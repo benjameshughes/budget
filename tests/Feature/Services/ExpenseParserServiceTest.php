@@ -2,25 +2,24 @@
 
 declare(strict_types=1);
 
-use Anthropic\Laravel\Facades\Anthropic;
-use Anthropic\Responses\Messages\CreateResponse;
 use App\Models\Category;
 use App\Models\User;
 use App\Services\ExpenseParserService;
 use Carbon\Carbon;
+use Prism\Prism\Facades\Prism;
+use Prism\Prism\Testing\TextResponseFake;
+use Prism\Prism\ValueObjects\Usage;
 
 beforeEach(function () {
     $this->service = app(ExpenseParserService::class);
 });
 
-function fakeAnthropicResponse(array $data): void
+function fakePrismResponse(array $data): void
 {
-    Anthropic::fake([
-        CreateResponse::fake([
-            'content' => [
-                ['type' => 'text', 'text' => json_encode($data)],
-            ],
-        ]),
+    Prism::fake([
+        TextResponseFake::make()
+            ->withText(json_encode($data))
+            ->withUsage(new Usage(10, 20)),
     ]);
 }
 
@@ -31,7 +30,7 @@ test('parse extracts expense data from natural language input', function () {
         'name' => 'Food & Drink',
     ]);
 
-    fakeAnthropicResponse([
+    fakePrismResponse([
         'amount' => 4.50,
         'name' => 'Starbucks coffee',
         'type' => 'expense',
@@ -56,7 +55,7 @@ test('parse extracts expense data from natural language input', function () {
 test('parse extracts income data from natural language input', function () {
     $user = User::factory()->create();
 
-    fakeAnthropicResponse([
+    fakePrismResponse([
         'amount' => 500.00,
         'name' => 'Freelance payment',
         'type' => 'income',
@@ -83,7 +82,7 @@ test('parse handles category matching by name', function () {
         'name' => 'Groceries',
     ]);
 
-    fakeAnthropicResponse([
+    fakePrismResponse([
         'amount' => 45.50,
         'name' => 'Tesco shopping',
         'type' => 'expense',
@@ -105,7 +104,7 @@ test('parse sets category_id to null when category does not match', function () 
         'name' => 'Transport',
     ]);
 
-    fakeAnthropicResponse([
+    fakePrismResponse([
         'amount' => 10.00,
         'name' => 'Coffee',
         'type' => 'expense',
@@ -123,7 +122,7 @@ test('parse sets category_id to null when category does not match', function () 
 test('parse defaults to expense when type is invalid', function () {
     $user = User::factory()->create();
 
-    fakeAnthropicResponse([
+    fakePrismResponse([
         'amount' => 20.00,
         'name' => 'Something',
         'type' => 'invalid_type',
@@ -140,7 +139,7 @@ test('parse defaults to expense when type is invalid', function () {
 test('parse uses today as fallback date when date is null', function () {
     $user = User::factory()->create();
 
-    fakeAnthropicResponse([
+    fakePrismResponse([
         'amount' => 15.00,
         'name' => 'Lunch',
         'type' => 'expense',
@@ -157,9 +156,11 @@ test('parse uses today as fallback date when date is null', function () {
 test('parse throws exception when API fails', function () {
     $user = User::factory()->create();
 
-    Anthropic::fake([
-        new \Exception('API Error'),
+    Prism::fake([
+        TextResponseFake::make()
+            ->withText('Invalid JSON response without braces')
+            ->withUsage(new Usage(10, 20)),
     ]);
 
     $this->service->parse('£10 at store', $user->id);
-})->throws(\Exception::class);
+})->throws(\Exception::class, 'Invalid JSON response from Claude');

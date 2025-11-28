@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use Anthropic\Laravel\Facades\Anthropic;
 use App\Models\Category;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Prism\Prism\Facades\Prism;
 
 class ExpenseParserService
 {
@@ -25,22 +25,17 @@ class ExpenseParserService
 
             $systemPrompt = $this->buildSystemPrompt($categoryList);
 
-            $response = Anthropic::messages()->create([
-                'model' => 'claude-sonnet-4-5-20250929',
-                'max_tokens' => 1024,
-                'system' => $systemPrompt,
-                'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => $input,
-                    ],
-                ],
-            ]);
+            $response = Prism::text()
+                ->using('anthropic', 'claude-sonnet-4-5-20250929')
+                ->withSystemPrompt($systemPrompt)
+                ->withPrompt($input)
+                ->withMaxTokens(1024)
+                ->generate();
 
-            $content = $response->content[0]->text ?? null;
+            $content = $response->text;
 
             if (! $content) {
-                throw new \Exception('No response from Claude API');
+                throw new \Exception('No response from Prism API');
             }
 
             // Extract JSON from response (in case Claude adds explanation text)

@@ -1,9 +1,3 @@
-### About this project
-This project is a personal money tracking app for myself. Simple as that. The app will be as simple as possible where you can add wages and expenses and basic reporting/stats.
-
-### Your Job
-Your job is to guide me with honesty and knowledge. I don't want you to do the entire code for me but help me with coding designs and process and help me understand deeper coding knowledge and laravel
-
 <laravel-boost-guidelines>
 === foundation rules ===
 

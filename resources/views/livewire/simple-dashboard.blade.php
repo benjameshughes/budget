@@ -8,15 +8,19 @@
 
     {{-- 2. Quick Input (The Hero Action) --}}
     <div class="mx-auto w-full max-w-2xl">
-        <form wire:submit="submitInput" class="flex gap-2">
-            <flux:input
+        <form wire:submit="submitInput">
+            <flux:composer
                 wire:model="input"
                 placeholder="What did you spend? (e.g., £25 at Tesco for groceries)"
-                class="flex-1"
-            />
-            <flux:button type="submit" variant="primary" icon="plus">
-                Add
-            </flux:button>
+                submit="enter"
+                rows="1"
+            >
+                <x-slot name="actionsTrailing">
+                    <flux:button type="submit" size="sm" variant="primary" icon="sparkles">
+                        Add
+                    </flux:button>
+                </x-slot>
+            </flux:composer>
         </form>
 
         <p class="mt-2 text-center text-sm text-neutral-500 dark:text-neutral-400">
