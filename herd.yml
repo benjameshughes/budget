@@ -1,0 +1,10 @@
+name: money
+php: '8.5'
+secured: true
+aliases: {  }
+services:
+    mariadb:
+        version: 10.11.6
+        port: '${DB_PORT}'
+integrations:
+    forge: {  }

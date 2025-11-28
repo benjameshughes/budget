@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Repositories\TransactionRepository;
+use Carbon\Carbon;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
+use Livewire\Component;
+
+class SpendingChart extends Component
+{
+    public string $period = '30';
+
+    #[On('transaction-added')]
+    #[On('bill-paid')]
+    public function refreshChart(): void
+    {
+        unset($this->chartData);
+    }
+
+    #[Computed]
+    public function chartData(): array
+    {
+        $days = (int) $this->period;
+        $to = Carbon::today();
+        $from = $to->copy()->subDays($days - 1);
+
+        return app(TransactionRepository::class)->dailyTotalsBetween($from, $to);
+    }
+
+    #[Computed]
+    public function totalExpenses(): float
+    {
+        return collect($this->chartData)->sum('expenses');
+    }
+
+    #[Computed]
+    public function totalIncome(): float
+    {
+        return collect($this->chartData)->sum('income');
+    }
+
+    public function render()
+    {
+        return view('livewire.spending-chart');
+    }
+}
