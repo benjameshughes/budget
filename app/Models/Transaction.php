@@ -22,6 +22,7 @@ class Transaction extends Model
         'amount' => 'decimal:2',
         'payment_date' => 'date',
         'type' => TransactionType::class,
+        'is_savings' => 'boolean',
     ];
 
     public function category(): BelongsTo
@@ -29,4 +30,3 @@ class Transaction extends Model
         return $this->belongsTo(Category::class);
     }
 }
-

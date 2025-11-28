@@ -20,6 +20,7 @@ class TransactionFactory extends Factory
             'description' => fake()->optional()->sentence(),
             'amount' => fake()->randomFloat(2, 10, 1000),
             'type' => fake()->randomElement(TransactionType::cases()),
+            'is_savings' => false,
             'payment_date' => fake()->dateTimeBetween('-3 months', 'now'),
             'category_id' => null,
         ];

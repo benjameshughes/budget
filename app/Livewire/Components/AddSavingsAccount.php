@@ -14,13 +14,15 @@ class AddSavingsAccount extends Component
     use AuthorizesRequests;
 
     public string $name = '';
+
     public ?string $target_amount = null;
+
     public ?string $notes = null;
 
     protected function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('savings_accounts', 'name')->where(fn($q) => $q->where('user_id', auth()->id()))],
+            'name' => ['required', 'string', 'max:255', Rule::unique('savings_accounts', 'name')->where(fn ($q) => $q->where('user_id', auth()->id()))],
             'target_amount' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
@@ -38,7 +40,7 @@ class AddSavingsAccount extends Component
             'notes' => $data['notes'] ?? null,
         ]);
 
-        Flux::toast(text: 'Savings account created', heading: 'Success', variant: 'success');
+        Flux::toast(text: 'Saving space created', heading: 'Success', variant: 'success');
         $this->dispatch('savings-account-created');
         $this->reset(['name', 'target_amount', 'notes']);
     }
@@ -48,4 +50,3 @@ class AddSavingsAccount extends Component
         return view('livewire.components.add-savings-account');
     }
 }
-

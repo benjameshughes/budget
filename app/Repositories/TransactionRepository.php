@@ -6,8 +6,8 @@ use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class TransactionRepository
 {
@@ -34,6 +34,7 @@ class TransactionRepository
             ->select('category_id', DB::raw('SUM(amount) as total'))
             ->where('user_id', auth()->id())
             ->where('type', TransactionType::Expense)
+            ->where('is_savings', false)
             ->whereNotNull('category_id')
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->groupBy('category_id')
@@ -116,6 +117,7 @@ class TransactionRepository
             ->select('category_id', DB::raw('SUM(amount) as total'))
             ->where('user_id', auth()->id())
             ->where('type', TransactionType::Expense)
+            ->where('is_savings', false)
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->groupBy('category_id')
             ->orderByDesc('total')

@@ -1,6 +1,6 @@
 <div class="p-4 space-y-4">
     <div class="flex items-center justify-between">
-        <flux:heading size="lg">Savings Accounts</flux:heading>
+        <flux:heading size="lg">Saving Spaces</flux:heading>
         <div class="flex gap-2">
             <flux:modal.trigger name="savings-transfer">
                 <flux:button variant="ghost" size="sm" icon="arrows-right-left" icon-trailing>Transfer</flux:button>
@@ -14,7 +14,7 @@
     @if($accounts->isEmpty())
         <div class="text-center py-8 text-neutral-500">
             <flux:icon name="banknotes" class="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No savings accounts yet</p>
+            <p>No saving spaces yet</p>
         </div>
     @else
         {{-- Summary Cards --}}
@@ -34,7 +34,7 @@
                 </div>
             @else
                 <div class="text-center p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/50">
-                    <div class="text-xs text-neutral-500">Accounts</div>
+                    <div class="text-xs text-neutral-500">Spaces</div>
                     <div class="text-lg font-semibold">{{ $accounts->count() }}</div>
                 </div>
             @endif

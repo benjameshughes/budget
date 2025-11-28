@@ -23,6 +23,7 @@ class SavingsService
                 'name' => 'Savings Deposit: '.$account->name,
                 'amount' => $amount,
                 'type' => TransactionType::Expense,
+                'is_savings' => true,
                 'payment_date' => $date,
                 'description' => $notes,
             ]);
@@ -49,6 +50,7 @@ class SavingsService
                 'name' => 'Savings Withdraw: '.$account->name,
                 'amount' => $amount,
                 'type' => TransactionType::Income,
+                'is_savings' => true,
                 'payment_date' => $date,
                 'description' => $notes,
             ]);
@@ -65,4 +67,3 @@ class SavingsService
         });
     }
 }
-

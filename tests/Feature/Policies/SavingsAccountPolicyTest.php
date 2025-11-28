@@ -26,10 +26,18 @@ test('user cannot view another users savings account', function () {
     expect($user->can('view', $account))->toBeFalse();
 });
 
-test('user can create savings accounts', function () {
+test('user can create savings accounts when they have less than 5', function () {
     $user = User::factory()->create();
+    SavingsAccount::factory()->forUser($user)->count(4)->create();
 
     expect($user->can('create', SavingsAccount::class))->toBeTrue();
+});
+
+test('user cannot create savings accounts when they already have 5', function () {
+    $user = User::factory()->create();
+    SavingsAccount::factory()->forUser($user)->count(5)->create();
+
+    expect($user->can('create', SavingsAccount::class))->toBeFalse();
 });
 
 test('user can update their own savings account', function () {

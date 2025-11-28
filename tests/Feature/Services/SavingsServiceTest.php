@@ -41,7 +41,8 @@ test('deposit creates a transaction and savings transfer', function () {
         ->and($transaction->type)->toBe(TransactionType::Expense)
         ->and($transaction->amount)->toBe('100.00')
         ->and($transaction->user_id)->toBe($user->id)
-        ->and($transaction->name)->toBe('Savings Deposit: '.$account->name);
+        ->and($transaction->name)->toBe('Savings Deposit: '.$account->name)
+        ->and($transaction->is_savings)->toBeTrue();
 });
 
 test('withdraw creates a transaction and savings transfer', function () {
@@ -69,7 +70,8 @@ test('withdraw creates a transaction and savings transfer', function () {
         ->and($transaction->type)->toBe(TransactionType::Income)
         ->and($transaction->amount)->toBe('50.00')
         ->and($transaction->user_id)->toBe($user->id)
-        ->and($transaction->name)->toBe('Savings Withdraw: '.$account->name);
+        ->and($transaction->name)->toBe('Savings Withdraw: '.$account->name)
+        ->and($transaction->is_savings)->toBeTrue();
 });
 
 test('deposit without notes creates transfer without notes', function () {
