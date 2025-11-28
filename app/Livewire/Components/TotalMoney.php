@@ -3,38 +3,55 @@
 namespace App\Livewire\Components;
 
 use App\Repositories\TransactionRepository;
-use App\Services\Analytics\OverviewService;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 final class TotalMoney extends Component
 {
+    public string $period = 'month';
+
     #[On('transaction-added')]
     #[On('category-created')]
     public function refreshOverview(): void
     {
-        unset($this->overview);
-        unset($this->sparklineData);
+        unset($this->income);
+        unset($this->expenses);
+        unset($this->net);
     }
 
     #[Computed]
-    public function overview(): Collection
+    public function income(): float
     {
-        return app(OverviewService::class)->getOverview();
+        $transactions = app(TransactionRepository::class)
+            ->between($this->getStartDate(), Carbon::today());
+
+        return $transactions->where('type', 'income')->sum('amount');
     }
 
     #[Computed]
-    public function sparklineData(): array
+    public function expenses(): float
     {
-        $to = Carbon::today();
-        $from = $to->copy()->subDays(13); // Last 14 days
+        $transactions = app(TransactionRepository::class)
+            ->between($this->getStartDate(), Carbon::today());
 
-        return collect(app(TransactionRepository::class)->dailyTotalsBetween($from, $to))
-            ->pluck('expenses')
-            ->toArray();
+        return $transactions->where('type', 'expense')->sum('amount');
+    }
+
+    #[Computed]
+    public function net(): float
+    {
+        return $this->income - $this->expenses;
+    }
+
+    private function getStartDate(): Carbon
+    {
+        return match ($this->period) {
+            'week' => Carbon::today()->startOfWeek(),
+            'month' => Carbon::today()->startOfMonth(),
+            default => Carbon::today()->startOfMonth(),
+        };
     }
 
     public function render()

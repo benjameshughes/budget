@@ -40,4 +40,11 @@ class SavingsAccountFactory extends Factory
             'target_amount' => null,
         ]);
     }
+
+    public function named(string $name): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'name' => $name,
+        ]);
+    }
 }

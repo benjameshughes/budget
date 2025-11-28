@@ -60,4 +60,25 @@ class TransactionFactory extends Factory
             'payment_date' => $date,
         ]);
     }
+
+    public function thisWeek(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'payment_date' => fake()->dateTimeBetween('monday this week', 'sunday this week'),
+        ]);
+    }
+
+    public function thisMonth(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'payment_date' => fake()->dateTimeBetween('first day of this month', 'last day of this month'),
+        ]);
+    }
+
+    public function withAmount(float $amount): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'amount' => $amount,
+        ]);
+    }
 }

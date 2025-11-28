@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Enums\TransferDirection;
 use App\Models\SavingsAccount;
-use App\Models\SavingsTransfer;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -26,13 +25,46 @@ class SavingsAccountsSummary extends Component
         return $deposits - $withdrawals;
     }
 
+    protected function computeStats($accounts): array
+    {
+        $totalBalance = $accounts->sum(fn ($acc) => $this->balance($acc));
+        $totalTarget = $accounts->whereNotNull('target_amount')->sum('target_amount');
+        $hasTargets = $totalTarget > 0;
+        $overallProgress = $hasTargets ? min(100, ($totalBalance / $totalTarget) * 100) : 0;
+
+        $progressTextColor = match (true) {
+            $overallProgress >= 100 => 'text-emerald-600 dark:text-emerald-500',
+            $overallProgress >= 75 => 'text-sky-600 dark:text-sky-500',
+            $overallProgress >= 50 => 'text-amber-600 dark:text-amber-500',
+            default => 'text-rose-600 dark:text-rose-500',
+        };
+
+        $progressBarColor = match (true) {
+            $overallProgress >= 100 => 'bg-emerald-500',
+            $overallProgress >= 75 => 'bg-sky-500',
+            $overallProgress >= 50 => 'bg-amber-500',
+            default => 'bg-rose-500',
+        };
+
+        return [
+            'totalBalance' => $totalBalance,
+            'totalTarget' => $totalTarget,
+            'hasTargets' => $hasTargets,
+            'overallProgress' => $overallProgress,
+            'progressTextColor' => $progressTextColor,
+            'progressBarColor' => $progressBarColor,
+            'spacesCount' => $accounts->count(),
+            'maxSpaces' => 5, // You can make this configurable if needed
+        ];
+    }
+
     public function render()
     {
         $accounts = SavingsAccount::with('transfers')->where('user_id', auth()->id())->orderBy('name')->get();
+
         return view('livewire.savings-accounts-summary', [
             'accounts' => $accounts,
-            'computeBalance' => fn (SavingsAccount $a) => $this->balance($a),
+            'stats' => $this->computeStats($accounts),
         ]);
     }
 }
-

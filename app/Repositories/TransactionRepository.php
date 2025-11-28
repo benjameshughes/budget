@@ -19,6 +19,24 @@ class TransactionRepository
             ->sum('amount');
     }
 
+    public function between(Carbon $from, Carbon $to): \Illuminate\Database\Eloquent\Collection
+    {
+        return Transaction::query()
+            ->where('user_id', auth()->id())
+            ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
+            ->orderBy('payment_date', 'desc')
+            ->get();
+    }
+
+    public function totalIncomeBetween(Carbon $from, Carbon $to): float
+    {
+        return (float) Transaction::query()
+            ->where('user_id', auth()->id())
+            ->where('type', TransactionType::Income)
+            ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
+            ->sum('amount');
+    }
+
     public function totalExpensesBetween(Carbon $from, Carbon $to): float
     {
         return (float) Transaction::query()

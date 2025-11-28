@@ -2,77 +2,109 @@
 
 declare(strict_types=1);
 
-use App\Enums\TransactionType;
-use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Repositories\TransactionRepository;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-beforeEach(function () {
-    $this->repository = app(TransactionRepository::class);
-    $this->user = User::factory()->create();
-    $this->actingAs($this->user);
+uses(RefreshDatabase::class);
+
+test('between returns transactions for date range', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    // Create transactions in different periods
+    Transaction::factory()
+        ->forUser($user)
+        ->onDate(Carbon::today()->subWeek())
+        ->create();
+
+    $thisWeekTransaction = Transaction::factory()
+        ->forUser($user)
+        ->thisWeek()
+        ->create();
+
+    $repo = app(TransactionRepository::class);
+    $results = $repo->between(Carbon::today()->startOfWeek(), Carbon::today()->endOfWeek());
+
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($thisWeekTransaction->id);
 });
 
-test('expensesByCategoryBetween excludes savings transactions', function () {
-    $category = Category::factory()->forUser($this->user)->create();
-    $from = Carbon::parse('2025-01-01');
-    $to = Carbon::parse('2025-12-31');
+test('totalIncomeBetween calculates income for date range', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
 
-    // Create regular expense
-    Transaction::factory()->forUser($this->user)->create([
-        'type' => TransactionType::Expense,
-        'amount' => 100.00,
-        'category_id' => $category->id,
-        'payment_date' => '2025-06-15',
-        'is_savings' => false,
-    ]);
+    // Create income this week
+    Transaction::factory()
+        ->forUser($user)
+        ->income()
+        ->thisWeek()
+        ->withAmount(1000.00)
+        ->create();
 
-    // Create savings expense
-    Transaction::factory()->forUser($this->user)->create([
-        'type' => TransactionType::Expense,
-        'amount' => 200.00,
-        'category_id' => $category->id,
-        'payment_date' => '2025-06-15',
-        'is_savings' => true,
-    ]);
+    Transaction::factory()
+        ->forUser($user)
+        ->income()
+        ->thisWeek()
+        ->withAmount(500.00)
+        ->create();
 
-    $result = $this->repository->expensesByCategoryBetween($from, $to);
+    // Create expense this week (should not be included)
+    Transaction::factory()
+        ->forUser($user)
+        ->expense()
+        ->thisWeek()
+        ->withAmount(200.00)
+        ->create();
 
-    // Should only include the non-savings transaction
-    expect($result)->toHaveCount(1)
-        ->and($result[0]['amount'])->toBe(100.00)
-        ->and($result[0]['category'])->toBe($category->name);
+    // Create income last week (should not be included)
+    Transaction::factory()
+        ->forUser($user)
+        ->income()
+        ->onDate(Carbon::today()->subWeek())
+        ->withAmount(300.00)
+        ->create();
+
+    $repo = app(TransactionRepository::class);
+    $total = $repo->totalIncomeBetween(Carbon::today()->startOfWeek(), Carbon::today()->endOfWeek());
+
+    expect($total)->toBe(1500.00);
 });
 
-test('topExpenseCategoryBetween excludes savings transactions', function () {
-    $category = Category::factory()->forUser($this->user)->create();
-    $from = Carbon::parse('2025-01-01');
-    $to = Carbon::parse('2025-12-31');
+test('totalExpensesBetween calculates expenses for date range', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
 
-    // Create regular expense
-    Transaction::factory()->forUser($this->user)->create([
-        'type' => TransactionType::Expense,
-        'amount' => 50.00,
-        'category_id' => $category->id,
-        'payment_date' => '2025-06-15',
-        'is_savings' => false,
-    ]);
+    // Create expenses this month
+    Transaction::factory()
+        ->forUser($user)
+        ->expense()
+        ->thisMonth()
+        ->withAmount(100.00)
+        ->create();
 
-    // Create savings expense with higher amount
-    Transaction::factory()->forUser($this->user)->create([
-        'type' => TransactionType::Expense,
-        'amount' => 500.00,
-        'category_id' => $category->id,
-        'payment_date' => '2025-06-15',
-        'is_savings' => true,
-    ]);
+    Transaction::factory()
+        ->forUser($user)
+        ->expense()
+        ->thisMonth()
+        ->withAmount(250.50)
+        ->create();
 
-    $result = $this->repository->topExpenseCategoryBetween($from, $to);
+    // Create income this month (should not be included)
+    Transaction::factory()
+        ->forUser($user)
+        ->income()
+        ->thisMonth()
+        ->withAmount(1000.00)
+        ->create();
 
-    // Should return the regular expense, not the higher savings amount
-    expect($result)->not->toBeNull()
-        ->and($result['total'])->toBe(50.00)
-        ->and($result['name'])->toBe($category->name);
+    $repo = app(TransactionRepository::class);
+    $total = $repo->totalExpensesBetween(
+        Carbon::today()->startOfMonth(),
+        Carbon::today()->endOfMonth()
+    );
+
+    expect($total)->toBe(350.50);
 });

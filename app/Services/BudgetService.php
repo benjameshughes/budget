@@ -36,6 +36,16 @@ class BudgetService
         return $netMTD - $upcomingBills;
     }
 
+    public function incomeBetween(Carbon $from, Carbon $to): float
+    {
+        return $this->transactions->totalIncomeBetween($from, $to);
+    }
+
+    public function expensesBetween(Carbon $from, Carbon $to): float
+    {
+        return $this->transactions->totalExpensesBetween($from, $to);
+    }
+
     public function monthlyIncome(): float
     {
         return $this->transactions->totalByType(TransactionType::Income);
@@ -80,4 +90,3 @@ class BudgetService
         return $remaining / $daysLeft;
     }
 }
-
