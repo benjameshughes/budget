@@ -14,6 +14,7 @@
                 placeholder="What did you spend? (e.g., £25 at Tesco for groceries)"
                 submit="enter"
                 rows="1"
+                inline
             >
                 <x-slot name="actionsTrailing">
                     <flux:button type="submit" size="sm" variant="primary" icon="sparkles">
