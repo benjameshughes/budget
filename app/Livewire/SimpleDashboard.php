@@ -23,6 +23,7 @@ class SimpleDashboard extends Component
         unset($this->weeklyIncome);
         unset($this->weeklyExpenses);
         unset($this->remaining);
+        unset($this->statusMessage);
         unset($this->recentTransactions);
     }
 
@@ -136,6 +137,7 @@ class SimpleDashboard extends Component
         );
 
         $this->reset('input', 'parsedTransaction');
+        $this->refreshData();
         $this->dispatch('transaction-added');
     }
 
