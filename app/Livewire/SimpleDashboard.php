@@ -89,18 +89,34 @@ class SimpleDashboard extends Component
             $parser = app(ExpenseParserService::class);
             $parsedData = $parser->parse($this->input, auth()->id());
 
-            // Dispatch event to pre-fill the AddTransaction form
-            $this->dispatch('fill-transaction-form', data: $parsedData);
+            // Check if this is a credit card payment
+            if (! empty($parsedData['is_credit_card_payment']) && ! empty($parsedData['credit_card_id'])) {
+                // Dispatch to credit card payment modal
+                $this->dispatch('fill-credit-card-payment-form', data: $parsedData);
 
-            // Clear the input
-            $this->reset('input');
+                // Clear the input
+                $this->reset('input');
 
-            // Show toast notification
-            \Flux\Flux::toast(
-                text: 'Form filled - please review and submit',
-                heading: 'Transaction Parsed',
-                variant: 'info',
-            );
+                // Show toast notification
+                \Flux\Flux::toast(
+                    text: 'Credit card payment detected - please review and submit',
+                    heading: 'Payment Parsed',
+                    variant: 'info',
+                );
+            } else {
+                // Dispatch event to pre-fill the AddTransaction form
+                $this->dispatch('fill-transaction-form', data: $parsedData);
+
+                // Clear the input
+                $this->reset('input');
+
+                // Show toast notification
+                \Flux\Flux::toast(
+                    text: 'Form filled - please review and submit',
+                    heading: 'Transaction Parsed',
+                    variant: 'info',
+                );
+            }
         } catch (\Exception $e) {
             \Flux\Flux::toast(
                 text: 'Failed to parse input. Please use the manual form below.',

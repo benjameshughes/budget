@@ -1,0 +1,213 @@
+<?php
+
+use App\Enums\BnplProvider;
+use App\Enums\TransactionType;
+use App\Models\BnplInstallment;
+use App\Models\BnplPurchase;
+use App\Models\Transaction;
+use App\Models\User;
+use App\Services\BnplService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+test('createPurchase creates purchase, transaction, and 4 installments', function () {
+    $user = User::factory()->create();
+    $service = app(BnplService::class);
+
+    $purchase = $service->createPurchase(
+        user: $user,
+        merchant: 'Nike',
+        total: 100.00,
+        provider: BnplProvider::ClearPay,
+        purchaseDate: now(),
+        fee: 0,
+        notes: 'Test purchase'
+    );
+
+    expect($purchase)->toBeInstanceOf(BnplPurchase::class)
+        ->and($purchase->merchant)->toBe('Nike')
+        ->and($purchase->total_amount)->toBe('100.00')
+        ->and($purchase->provider)->toBe(BnplProvider::ClearPay)
+        ->and($purchase->fee)->toBe('0.00')
+        ->and($purchase->installments)->toHaveCount(4);
+
+    $transaction = Transaction::where('user_id', $user->id)
+        ->where('name', 'BNPL: Nike')
+        ->first();
+
+    expect($transaction)->not->toBeNull()
+        ->and($transaction->amount)->toBe('100.00')
+        ->and($transaction->type)->toBe(TransactionType::Expense);
+});
+
+test('createPurchase calculates installment amounts correctly with rounding', function () {
+    $user = User::factory()->create();
+    $service = app(BnplService::class);
+
+    $purchase = $service->createPurchase(
+        user: $user,
+        merchant: 'ASOS',
+        total: 99.99,
+        provider: BnplProvider::Zilch,
+        purchaseDate: now(),
+        fee: 2.50,
+        notes: null
+    );
+
+    $totalToSplit = 99.99 + 2.50;
+    $installments = $purchase->installments->sortBy('installment_number')->values();
+
+    expect($installments[0]->amount)->toBe('25.62')
+        ->and($installments[1]->amount)->toBe('25.62')
+        ->and($installments[2]->amount)->toBe('25.62')
+        ->and($installments[3]->amount)->toBe('25.63')
+        ->and((float) $installments->sum('amount'))->toBe(102.49);
+});
+
+test('createPurchase sets correct due dates', function () {
+    $user = User::factory()->create();
+    $service = app(BnplService::class);
+    $purchaseDate = now()->startOfDay();
+
+    $purchase = $service->createPurchase(
+        user: $user,
+        merchant: 'Amazon',
+        total: 200.00,
+        provider: BnplProvider::ClearPay,
+        purchaseDate: $purchaseDate,
+        fee: 0
+    );
+
+    $installments = $purchase->installments->sortBy('installment_number')->values();
+
+    expect($installments[0]->due_date->toDateString())->toBe($purchaseDate->toDateString())
+        ->and($installments[1]->due_date->toDateString())->toBe($purchaseDate->copy()->addWeeks(2)->toDateString())
+        ->and($installments[2]->due_date->toDateString())->toBe($purchaseDate->copy()->addWeeks(4)->toDateString())
+        ->and($installments[3]->due_date->toDateString())->toBe($purchaseDate->copy()->addWeeks(6)->toDateString());
+});
+
+test('markInstallmentPaid updates installment correctly', function () {
+    $user = User::factory()->create();
+    $purchase = BnplPurchase::factory()->for($user)->create();
+    $installment = BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 1,
+        'amount' => 25.00,
+        'due_date' => now(),
+        'is_paid' => false,
+        'paid_date' => null,
+    ]);
+
+    $service = app(BnplService::class);
+    $paidDate = now();
+
+    $updated = $service->markInstallmentPaid($installment, $paidDate);
+
+    expect($updated->is_paid)->toBeTrue()
+        ->and($updated->paid_date->toDateString())->toBe($paidDate->toDateString());
+});
+
+test('markInstallmentPaid does NOT create transaction', function () {
+    $user = User::factory()->create();
+    $purchase = BnplPurchase::factory()->for($user)->create();
+    $installment = BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 1,
+        'amount' => 25.00,
+        'due_date' => now(),
+        'is_paid' => false,
+        'paid_date' => null,
+    ]);
+
+    $transactionCountBefore = Transaction::where('user_id', $user->id)->count();
+
+    $service = app(BnplService::class);
+    $service->markInstallmentPaid($installment);
+
+    $transactionCountAfter = Transaction::where('user_id', $user->id)->count();
+
+    expect($transactionCountAfter)->toBe($transactionCountBefore);
+});
+
+test('getRemainingBalance calculates correctly', function () {
+    $user = User::factory()->create();
+    $purchase = BnplPurchase::factory()->for($user)->create();
+
+    BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 1,
+        'amount' => 25.00,
+        'due_date' => now(),
+        'is_paid' => true,
+    ]);
+    BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 2,
+        'amount' => 25.00,
+        'due_date' => now()->addWeeks(2),
+        'is_paid' => false,
+    ]);
+    BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 3,
+        'amount' => 25.00,
+        'due_date' => now()->addWeeks(4),
+        'is_paid' => false,
+    ]);
+    BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 4,
+        'amount' => 25.00,
+        'due_date' => now()->addWeeks(6),
+        'is_paid' => false,
+    ]);
+
+    $service = app(BnplService::class);
+    $remaining = $service->getRemainingBalance($purchase);
+
+    expect($remaining)->toBe(75.0);
+});
+
+test('getUpcomingInstallments returns correct installments', function () {
+    $user = User::factory()->create();
+    $purchase = BnplPurchase::factory()->for($user)->create();
+
+    BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 1,
+        'amount' => 25.00,
+        'due_date' => now()->addDays(10),
+        'is_paid' => false,
+    ]);
+    BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 2,
+        'amount' => 25.00,
+        'due_date' => now()->addDays(40),
+        'is_paid' => false,
+    ]);
+    BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 3,
+        'amount' => 25.00,
+        'due_date' => now()->addDays(5),
+        'is_paid' => true,
+    ]);
+
+    $service = app(BnplService::class);
+    $upcoming = $service->getUpcomingInstallments($user, 30);
+
+    expect($upcoming)->toHaveCount(1)
+        ->and($upcoming->first()->due_date->diffInDays(now()))->toBeLessThanOrEqual(30)
+        ->and($upcoming->first()->is_paid)->toBeFalse();
+});

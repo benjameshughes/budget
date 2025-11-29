@@ -6,11 +6,13 @@
             <flux:subheading>Deep dive into your spending patterns</flux:subheading>
         </div>
 
-        {{-- Top 3 Cards --}}
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {{-- Top 5 Cards --}}
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             <livewire:components.total-money />
             <livewire:budget-summary />
             <livewire:savings-accounts-summary />
+            <livewire:credit-cards-summary />
+            <livewire:bnpl-summary />
         </div>
 
         {{-- Charts --}}

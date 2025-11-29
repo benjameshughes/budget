@@ -47,6 +47,13 @@
                 </div>
             </div>
 
+            <flux:select variant="combobox" wire:model.live="credit_card_id" label="Paid with (optional)" placeholder="Debit">
+                <flux:select.option value="">Debit</flux:select.option>
+                @foreach($creditCards as $card)
+                    <flux:select.option value="{{ $card->id }}">{{ $card->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
             <flux:textarea
                 wire:model.live="description"
                 label="Description (optional)"

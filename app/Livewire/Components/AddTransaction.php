@@ -4,6 +4,7 @@ namespace App\Livewire\Components;
 
 use App\Enums\TransactionType;
 use App\Models\Category;
+use App\Models\CreditCard;
 use App\Models\Transaction;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -28,6 +29,8 @@ class AddTransaction extends Component
 
     public ?string $category = null; // optional, keep as string for UI consistency
 
+    public ?string $credit_card_id = null;
+
     public function mount(): void
     {
         $this->payment_date = now()->toDateString();
@@ -42,6 +45,7 @@ class AddTransaction extends Component
             'name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'category' => ['nullable', 'exists:categories,id'],
+            'credit_card_id' => ['nullable', 'exists:credit_cards,id'],
         ];
     }
 
@@ -58,6 +62,7 @@ class AddTransaction extends Component
             'type' => TransactionType::from($data['type']),
             'payment_date' => $data['payment_date'],
             'category_id' => $this->category,
+            'credit_card_id' => $this->credit_card_id,
         ]);
 
         $this->dispatch('transaction-added');
@@ -67,7 +72,7 @@ class AddTransaction extends Component
             variant: 'success',
         );
 
-        $this->reset(['amount', 'name', 'description', 'category']);
+        $this->reset(['amount', 'name', 'description', 'category', 'credit_card_id']);
     }
 
     #[On('category-created')]
@@ -85,6 +90,7 @@ class AddTransaction extends Component
         $this->type = $data['type'] ?? TransactionType::Expense->value;
         $this->payment_date = $data['date'] ?? now()->toDateString();
         $this->category = $data['category_id'] ? (string) $data['category_id'] : null;
+        $this->credit_card_id = $data['credit_card_id'] ? (string) $data['credit_card_id'] : null;
         $this->description = null; // AI doesn't parse description, keep empty
     }
 
@@ -93,6 +99,10 @@ class AddTransaction extends Component
         return view('livewire.components.add-transaction', [
             'categories' => Category::select('id', 'name')
                 ->where(fn ($q) => $q->where('user_id', auth()->id())->orWhereNull('user_id'))
+                ->orderBy('name')
+                ->get(),
+            'creditCards' => CreditCard::select('id', 'name')
+                ->where('user_id', auth()->id())
                 ->orderBy('name')
                 ->get(),
             'types' => TransactionType::cases(),
