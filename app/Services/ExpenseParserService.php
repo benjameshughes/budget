@@ -26,7 +26,7 @@ class ExpenseParserService
             $systemPrompt = $this->buildSystemPrompt($categoryList);
 
             $response = Prism::text()
-                ->using('anthropic', 'claude-sonnet-4-5-20250929')
+                ->using('anthropic', 'claude-opus-4-5-20251101')
                 ->withSystemPrompt($systemPrompt)
                 ->withPrompt($input)
                 ->withMaxTokens(1024)
