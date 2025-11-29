@@ -30,6 +30,7 @@ class ExpenseParserService
                 ->withSystemPrompt($systemPrompt)
                 ->withPrompt($input)
                 ->withMaxTokens(1024)
+                ->withProviderOptions(['cacheType' => 'ephemeral'])
                 ->generate();
 
             $content = $response->text;
