@@ -6,20 +6,26 @@ use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
 use Flux\Flux;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Livewire\Component;
 use Livewire\Attributes\On;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Component;
 
 class AddTransaction extends Component
 {
     use AuthorizesRequests;
+
     public string $amount = '';
+
     public string $type = TransactionType::Expense->value;
+
     public ?string $payment_date = null; // Y-m-d
+
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $category = null; // optional, keep as string for UI consistency
 
     public function mount(): void
@@ -71,11 +77,22 @@ class AddTransaction extends Component
         $this->category = (string) $id;
     }
 
+    #[On('fill-transaction-form')]
+    public function fillForm(array $data): void
+    {
+        $this->amount = (string) ($data['amount'] ?? '');
+        $this->name = $data['name'] ?? null;
+        $this->type = $data['type'] ?? TransactionType::Expense->value;
+        $this->payment_date = $data['date'] ?? now()->toDateString();
+        $this->category = $data['category_id'] ? (string) $data['category_id'] : null;
+        $this->description = null; // AI doesn't parse description, keep empty
+    }
+
     public function render(): View
     {
         return view('livewire.components.add-transaction', [
             'categories' => Category::select('id', 'name')
-                ->where(fn($q) => $q->where('user_id', auth()->id())->orWhereNull('user_id'))
+                ->where(fn ($q) => $q->where('user_id', auth()->id())->orWhereNull('user_id'))
                 ->orderBy('name')
                 ->get(),
             'types' => TransactionType::cases(),

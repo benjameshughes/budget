@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Repositories\TransactionRepository;
 use App\Services\ExpenseParserService;
@@ -14,8 +13,6 @@ use Livewire\Component;
 class SimpleDashboard extends Component
 {
     public string $input = '';
-
-    public ?array $parsedTransaction = null;
 
     #[On('transaction-added')]
     public function refreshData(): void
@@ -90,60 +87,27 @@ class SimpleDashboard extends Component
 
         try {
             $parser = app(ExpenseParserService::class);
-            $this->parsedTransaction = $parser->parse($this->input, auth()->id());
+            $parsedData = $parser->parse($this->input, auth()->id());
 
-            // If confidence is high (>= 0.8), auto-save
-            if ($this->parsedTransaction['confidence'] >= 0.8) {
-                $this->confirmParsedTransaction();
-            } else {
-                // Show preview for confirmation
-                \Flux\Flux::toast(
-                    text: 'Please review the parsed transaction below',
-                    heading: 'Transaction Parsed',
-                    variant: 'info',
-                );
-            }
+            // Dispatch event to pre-fill the AddTransaction form
+            $this->dispatch('fill-transaction-form', data: $parsedData);
+
+            // Clear the input
+            $this->reset('input');
+
+            // Show toast notification
+            \Flux\Flux::toast(
+                text: 'Form filled - please review and submit',
+                heading: 'Transaction Parsed',
+                variant: 'info',
+            );
         } catch (\Exception $e) {
             \Flux\Flux::toast(
                 text: 'Failed to parse input. Please use the manual form below.',
                 heading: 'Parsing Error',
                 variant: 'danger',
             );
-
-            $this->reset('parsedTransaction');
         }
-    }
-
-    public function confirmParsedTransaction(): void
-    {
-        if (! $this->parsedTransaction) {
-            return;
-        }
-
-        Transaction::create([
-            'user_id' => auth()->id(),
-            'name' => $this->parsedTransaction['name'],
-            'amount' => $this->parsedTransaction['amount'],
-            'type' => TransactionType::from($this->parsedTransaction['type']),
-            'category_id' => $this->parsedTransaction['category_id'],
-            'payment_date' => $this->parsedTransaction['date'],
-            'is_savings' => false,
-        ]);
-
-        \Flux\Flux::toast(
-            text: 'Transaction added successfully',
-            heading: 'Success',
-            variant: 'success',
-        );
-
-        $this->reset('input', 'parsedTransaction');
-        $this->refreshData();
-        $this->dispatch('transaction-added');
-    }
-
-    public function cancelParsedTransaction(): void
-    {
-        $this->reset('parsedTransaction');
     }
 
     public function render()

@@ -27,56 +27,6 @@
         <p class="mt-2 text-center text-sm text-neutral-500 dark:text-neutral-400">
             AI-powered parsing - just type naturally!
         </p>
-
-        {{-- Parsed Transaction Preview --}}
-        @if($parsedTransaction)
-            <flux:card class="mt-4 border-2 border-blue-500 dark:border-blue-400">
-                <div class="flex flex-col gap-4">
-                    <div class="flex items-center justify-between">
-                        <flux:heading size="sm">Review Parsed Transaction</flux:heading>
-                        <flux:badge color="blue">
-                            {{ number_format($parsedTransaction['confidence'] * 100, 0) }}% confident
-                        </flux:badge>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="text-neutral-500 dark:text-neutral-400">Description:</span>
-                            <span class="ml-2 font-medium">{{ $parsedTransaction['name'] }}</span>
-                        </div>
-                        <div>
-                            <span class="text-neutral-500 dark:text-neutral-400">Amount:</span>
-                            <span class="ml-2 font-semibold {{ $parsedTransaction['type'] === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                {{ $parsedTransaction['type'] === 'income' ? '+' : '-' }}£{{ number_format($parsedTransaction['amount'], 2) }}
-                            </span>
-                        </div>
-                        <div>
-                            <span class="text-neutral-500 dark:text-neutral-400">Type:</span>
-                            <span class="ml-2 font-medium capitalize">{{ $parsedTransaction['type'] }}</span>
-                        </div>
-                        <div>
-                            <span class="text-neutral-500 dark:text-neutral-400">Date:</span>
-                            <span class="ml-2 font-medium">{{ \Carbon\Carbon::parse($parsedTransaction['date'])->format('M j, Y') }}</span>
-                        </div>
-                        @if($parsedTransaction['category_name'])
-                            <div>
-                                <span class="text-neutral-500 dark:text-neutral-400">Category:</span>
-                                <span class="ml-2 font-medium">{{ $parsedTransaction['category_name'] }}</span>
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="flex gap-2">
-                        <flux:button wire:click="confirmParsedTransaction" variant="primary" class="flex-1">
-                            Confirm & Save
-                        </flux:button>
-                        <flux:button wire:click="cancelParsedTransaction" variant="ghost" class="flex-1">
-                            Cancel
-                        </flux:button>
-                    </div>
-                </div>
-            </flux:card>
-        @endif
     </div>
 
     {{-- Traditional Add Transaction Form (Fallback) --}}

@@ -67,14 +67,14 @@ class ExpenseParserService
 
     protected function buildSystemPrompt(string $categoryList): string
     {
-        return <<<'PROMPT'
+        return <<<PROMPT
 You are an expense parser. Your job is to extract transaction information from natural language input and return it as JSON.
 
 Extract:
 1. **amount**: The monetary value (positive number, no currency symbols)
 2. **name**: Short description/merchant name (e.g., "Starbucks", "Weekly groceries")
 3. **type**: Either "income" or "expense"
-4. **category**: Suggest from the user's categories if applicable, or null if uncertain
+4. **category**: MUST be the exact category name from the list below, or null if no good match exists
 5. **date**: ISO format (YYYY-MM-DD), parse relative dates like "yesterday", "last Friday", default to today
 6. **confidence**: Float 0-1 indicating parsing confidence
 
@@ -93,6 +93,10 @@ Type detection:
 
 {$categoryList}
 
+IMPORTANT: For the category field, you MUST either:
+1. Return the EXACT category name from the list above (case-sensitive), OR
+2. Return null if you're not confident or no category matches
+
 Return ONLY valid JSON in this exact format:
 {
     "amount": 4.50,
@@ -104,7 +108,7 @@ Return ONLY valid JSON in this exact format:
 }
 
 Rules:
-- If no category matches well, use null
+- Category must match exactly from the available list or be null
 - Always include all fields
 - confidence should reflect how certain you are about the parsing
 - Return clean, parseable JSON only
