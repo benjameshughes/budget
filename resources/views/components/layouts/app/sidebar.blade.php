@@ -17,6 +17,7 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.item icon="home" href="{{route('dashboard')}}" wire:current.exact>Home</flux:sidebar.item>
+                <flux:sidebar.item icon="chart-bar" href="{{route('analytics')}}">Analytics</flux:sidebar.item>
             </flux:sidebar.nav>
             <flux:sidebar.spacer />
             <flux:sidebar.nav>

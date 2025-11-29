@@ -11,10 +11,9 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-
-
-Route::middleware(['auth','verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::view('analytics', 'analytics')->name('analytics');
 
     Route::redirect('settings', 'settings/profile');
 
