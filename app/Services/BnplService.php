@@ -40,14 +40,20 @@ class BnplService
             'payment_date' => $purchaseDate,
         ]);
 
-        $totalToSplit = $total + $fee;
-        $installmentAmount = floor(($totalToSplit / 4) * 100) / 100;
-        $lastInstallmentAmount = $totalToSplit - ($installmentAmount * 3);
+        // Split purchase total evenly across 4 installments
+        $baseAmount = floor(($total / 4) * 100) / 100;
+        $lastBaseAmount = $total - ($baseAmount * 3); // Handle rounding on last
 
         for ($i = 1; $i <= 4; $i++) {
             $weeksToAdd = ($i - 1) * 2;
             $dueDate = $purchaseDate->copy()->addWeeks($weeksToAdd);
-            $amount = $i === 4 ? $lastInstallmentAmount : $installmentAmount;
+
+            // Fee is added to first installment only (how Zilch works)
+            $amount = match ($i) {
+                1 => $baseAmount + $fee,
+                4 => $lastBaseAmount,
+                default => $baseAmount,
+            };
 
             BnplInstallment::create([
                 'user_id' => $user->id,

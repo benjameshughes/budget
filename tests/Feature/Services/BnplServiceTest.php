@@ -41,7 +41,7 @@ test('createPurchase creates purchase, transaction, and 4 installments', functio
         ->and($transaction->type)->toBe(TransactionType::Expense);
 });
 
-test('createPurchase calculates installment amounts correctly with rounding', function () {
+test('createPurchase calculates installment amounts correctly with fee on first', function () {
     $user = User::factory()->create();
     $service = app(BnplService::class);
 
@@ -55,13 +55,15 @@ test('createPurchase calculates installment amounts correctly with rounding', fu
         notes: null
     );
 
-    $totalToSplit = 99.99 + 2.50;
+    // Fee goes on first installment only (how Zilch works)
+    // Base: floor(99.99/4 * 100) / 100 = 24.99
+    // Last: 99.99 - (24.99 * 3) = 25.02
     $installments = $purchase->installments->sortBy('installment_number')->values();
 
-    expect($installments[0]->amount)->toBe('25.62')
-        ->and($installments[1]->amount)->toBe('25.62')
-        ->and($installments[2]->amount)->toBe('25.62')
-        ->and($installments[3]->amount)->toBe('25.63')
+    expect($installments[0]->amount)->toBe('27.49') // 24.99 + 2.50 fee
+        ->and($installments[1]->amount)->toBe('24.99')
+        ->and($installments[2]->amount)->toBe('24.99')
+        ->and($installments[3]->amount)->toBe('25.02') // rounding adjustment
         ->and((float) $installments->sum('amount'))->toBe(102.49);
 });
 
