@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;
-use App\Services\BnplService;
+use App\Repositories\BnplRepository;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -17,7 +19,7 @@ class BnplSummary extends Component
         // Trigger re-render
     }
 
-    protected function computeStats($purchases, BnplService $service): array
+    protected function computeStats($purchases): array
     {
         $totalOutstanding = BnplInstallment::where('user_id', auth()->id())
             ->where('is_paid', false)
@@ -36,19 +38,18 @@ class BnplSummary extends Component
 
     public function render()
     {
-        $service = app(BnplService::class);
+        $repository = app(BnplRepository::class);
         $purchases = BnplPurchase::with(['installments'])
             ->where('user_id', auth()->id())
             ->orderBy('purchase_date', 'desc')
             ->get();
 
-        $upcomingInstallments = $service->getUpcomingInstallments(auth()->user());
+        $upcomingInstallments = $repository->getUpcomingInstallments(auth()->user());
 
         return view('livewire.bnpl-summary', [
             'purchases' => $purchases,
-            'stats' => $this->computeStats($purchases, $service),
+            'stats' => $this->computeStats($purchases),
             'upcomingInstallments' => $upcomingInstallments,
-            'service' => $service,
         ]);
     }
 }

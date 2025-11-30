@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Components;
 
+use App\Actions\Transaction\CreateTransactionAction;
 use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\CreditCard;
-use App\Models\Transaction;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
@@ -49,17 +51,17 @@ class AddTransaction extends Component
         ];
     }
 
-    public function add(): void
+    public function add(CreateTransactionAction $createTransactionAction): void
     {
         $this->authorize('create', \App\Models\Transaction::class);
         $data = $this->validate();
 
-        Transaction::create([
+        $createTransactionAction->handle([
             'user_id' => auth()->id(),
             'name' => $data['name'] ?? null,
             'description' => $data['description'] ?? null,
-            'amount' => (float) $data['amount'],
-            'type' => TransactionType::from($data['type']),
+            'amount' => $data['amount'],
+            'type' => $data['type'],
             'payment_date' => $data['payment_date'],
             'category_id' => $this->category,
             'credit_card_id' => $this->credit_card_id,

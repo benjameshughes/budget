@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Category;
@@ -8,9 +10,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Prism\Prism\Facades\Prism;
 
-class ExpenseParserService
+final readonly class ExpenseParserService
 {
-    public function parse(string $input, int $userId): array
+    public function parse(string $input, int $userId): \App\DataTransferObjects\Actions\ParsedExpenseDto
     {
         try {
             // Get user's categories for context
@@ -144,7 +146,7 @@ Rules:
 PROMPT;
     }
 
-    protected function normalizeResponse(array $parsed, string $rawInput, array $categories, array $creditCards): array
+    protected function normalizeResponse(array $parsed, string $rawInput, array $categories, array $creditCards): \App\DataTransferObjects\Actions\ParsedExpenseDto
     {
         // Find matching category ID if category name was suggested
         $categoryId = null;
@@ -164,21 +166,21 @@ PROMPT;
             }
         }
 
-        return [
-            'amount' => (float) ($parsed['amount'] ?? 0),
-            'name' => $parsed['name'] ?? 'Unknown',
-            'type' => in_array($parsed['type'] ?? '', ['income', 'expense'], true)
+        return new \App\DataTransferObjects\Actions\ParsedExpenseDto(
+            amount: (float) ($parsed['amount'] ?? 0),
+            name: $parsed['name'] ?? 'Unknown',
+            type: in_array($parsed['type'] ?? '', ['income', 'expense'], true)
                 ? $parsed['type']
                 : 'expense',
-            'category_id' => $categoryId,
-            'category_name' => $parsed['category'] ?? null,
-            'credit_card_id' => $creditCardId,
-            'credit_card_name' => $parsed['credit_card'] ?? null,
-            'is_credit_card_payment' => (bool) ($parsed['is_credit_card_payment'] ?? false),
-            'date' => $this->parseDate($parsed['date'] ?? null),
-            'confidence' => (float) ($parsed['confidence'] ?? 0),
-            'raw_input' => $rawInput,
-        ];
+            categoryId: $categoryId,
+            categoryName: $parsed['category'] ?? null,
+            creditCardId: $creditCardId,
+            creditCardName: $parsed['credit_card'] ?? null,
+            isCreditCardPayment: (bool) ($parsed['is_credit_card_payment'] ?? false),
+            date: $this->parseDate($parsed['date'] ?? null),
+            confidence: (float) ($parsed['confidence'] ?? 0),
+            rawInput: $rawInput,
+        );
     }
 
     protected function parseDate(?string $date): string

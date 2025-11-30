@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Components;
 
 use App\Repositories\TransactionRepository;
@@ -25,7 +27,7 @@ final class TotalMoney extends Component
     public function income(): float
     {
         $transactions = app(TransactionRepository::class)
-            ->between($this->getStartDate(), Carbon::today());
+            ->between(auth()->user(), $this->getStartDate(), Carbon::today());
 
         return $transactions->where('type', 'income')->sum('amount');
     }
@@ -34,7 +36,7 @@ final class TotalMoney extends Component
     public function expenses(): float
     {
         $transactions = app(TransactionRepository::class)
-            ->between($this->getStartDate(), Carbon::today());
+            ->between(auth()->user(), $this->getStartDate(), Carbon::today());
 
         return $transactions->where('type', 'expense')->sum('amount');
     }

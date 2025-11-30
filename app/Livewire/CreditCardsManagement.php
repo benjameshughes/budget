@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use App\Models\CreditCard;
-use App\Services\CreditCardService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -43,12 +44,11 @@ class CreditCardsManagement extends Component
     }
 
     #[Computed]
-    public function stats(): array
+    public function stats(): \App\DataTransferObjects\Budget\CreditCardStatsDto
     {
         $cards = $this->cards;
-        $service = app(CreditCardService::class);
 
-        $totalDebt = $cards->sum(fn ($card) => $service->currentBalance($card));
+        $totalDebt = $cards->sum(fn ($card) => $card->currentBalance());
         $totalLimit = $cards->whereNotNull('credit_limit')->sum('credit_limit');
         $hasLimits = $totalLimit > 0;
         $utilizationPercent = $hasLimits ? min(100, ($totalDebt / $totalLimit) * 100) : 0;
@@ -60,30 +60,14 @@ class CreditCardsManagement extends Component
             default => 'emerald',
         };
 
-        return [
-            'totalDebt' => $totalDebt,
-            'totalLimit' => $totalLimit,
-            'hasLimits' => $hasLimits,
-            'utilizationPercent' => $utilizationPercent,
-            'utilizationColor' => $utilizationColor,
-            'cardsCount' => $cards->count(),
-        ];
-    }
-
-    public function getBalance(CreditCard $card): float
-    {
-        return app(CreditCardService::class)->currentBalance($card);
-    }
-
-    public function getUtilization(CreditCard $card): ?float
-    {
-        if (! $card->credit_limit || $card->credit_limit <= 0) {
-            return null;
-        }
-
-        $balance = $this->getBalance($card);
-
-        return min(100, ($balance / $card->credit_limit) * 100);
+        return new \App\DataTransferObjects\Budget\CreditCardStatsDto(
+            totalDebt: $totalDebt,
+            totalLimit: $totalLimit,
+            hasLimits: $hasLimits,
+            utilizationPercent: $utilizationPercent,
+            utilizationColor: $utilizationColor,
+            cardsCount: $cards->count(),
+        );
     }
 
     public function render()

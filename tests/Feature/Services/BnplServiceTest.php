@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 use App\Enums\BnplProvider;
 use App\Enums\TransactionType;
 use App\Models\BnplInstallment;
@@ -171,8 +172,7 @@ test('getRemainingBalance calculates correctly', function () {
         'is_paid' => false,
     ]);
 
-    $service = app(BnplService::class);
-    $remaining = $service->getRemainingBalance($purchase);
+    $remaining = $purchase->remainingBalance();
 
     expect($remaining)->toBe(75.0);
 });
@@ -214,8 +214,8 @@ test('getUpcomingInstallments returns all unpaid installments', function () {
         'is_paid' => true, // Already paid
     ]);
 
-    $service = app(BnplService::class);
-    $upcoming = $service->getUpcomingInstallments($user);
+    $repository = app(\App\Repositories\BnplRepository::class);
+    $upcoming = $repository->getUpcomingInstallments($user);
 
     // Should return all unpaid installments (including overdue), excluding paid ones
     expect($upcoming)->toHaveCount(3)

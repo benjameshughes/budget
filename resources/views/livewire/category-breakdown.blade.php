@@ -30,26 +30,26 @@
                     'bg-fuchsia-500',
                     'bg-pink-500',
                 ];
-                $maxAmount = collect($this->categories)->max('amount') ?: 1;
+                $maxAmount = collect($this->categories)->max(fn($dto) => $dto->amount) ?: 1;
             @endphp
 
             @foreach($this->categories as $index => $category)
                 @php
                     $percentage = $this->totalExpenses > 0
-                        ? round(($category['amount'] / $this->totalExpenses) * 100, 1)
+                        ? round(($category->amount / $this->totalExpenses) * 100, 1)
                         : 0;
-                    $barWidth = ($category['amount'] / $maxAmount) * 100;
+                    $barWidth = ($category->amount / $maxAmount) * 100;
                     $color = $colors[$index % count($colors)];
                 @endphp
                 <div wire:key="category-{{ $index }}">
                     <div class="flex items-center justify-between text-sm mb-1">
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 rounded {{ $color }}"></div>
-                            <span class="font-medium">{{ $category['category'] }}</span>
+                            <span class="font-medium">{{ $category->category }}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-neutral-500">{{ $percentage }}%</span>
-                            <span class="font-semibold text-rose-600">£{{ number_format($category['amount'], 2) }}</span>
+                            <span class="font-semibold text-rose-600">£{{ number_format($category->amount, 2) }}</span>
                         </div>
                     </div>
                     <div class="h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">

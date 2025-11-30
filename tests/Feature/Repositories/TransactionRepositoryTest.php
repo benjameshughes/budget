@@ -26,7 +26,7 @@ test('between returns transactions for date range', function () {
         ->create();
 
     $repo = app(TransactionRepository::class);
-    $results = $repo->between(Carbon::today()->startOfWeek(), Carbon::today()->endOfWeek());
+    $results = $repo->between($user, Carbon::today()->startOfWeek(), Carbon::today()->endOfWeek());
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->id)->toBe($thisWeekTransaction->id);
@@ -68,7 +68,7 @@ test('totalIncomeBetween calculates income for date range', function () {
         ->create();
 
     $repo = app(TransactionRepository::class);
-    $total = $repo->totalIncomeBetween(Carbon::today()->startOfWeek(), Carbon::today()->endOfWeek());
+    $total = $repo->totalIncomeBetween($user, Carbon::today()->startOfWeek(), Carbon::today()->endOfWeek());
 
     expect($total)->toBe(1500.00);
 });
@@ -102,6 +102,7 @@ test('totalExpensesBetween calculates expenses for date range', function () {
 
     $repo = app(TransactionRepository::class);
     $total = $repo->totalExpensesBetween(
+        $user,
         Carbon::today()->startOfMonth(),
         Carbon::today()->endOfMonth()
     );

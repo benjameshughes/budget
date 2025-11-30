@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use App\Models\BnplInstallment;
@@ -51,7 +53,7 @@ class BnplManagement extends Component
     }
 
     #[Computed]
-    public function stats(): array
+    public function stats(): \App\DataTransferObjects\Budget\BnplStatsDto
     {
         $totalOutstanding = BnplInstallment::where('user_id', auth()->id())
             ->where('is_paid', false)
@@ -68,22 +70,12 @@ class BnplManagement extends Component
             ->where('due_date', '<', now())
             ->count();
 
-        return [
-            'totalOutstanding' => (float) $totalOutstanding,
-            'activePurchases' => $activePurchases,
-            'totalPurchases' => $totalPurchases,
-            'overdueInstallments' => $overdueInstallments,
-        ];
-    }
-
-    public function getPaidCount(BnplPurchase $purchase): int
-    {
-        return $purchase->installments->where('is_paid', true)->count();
-    }
-
-    public function getRemainingAmount(BnplPurchase $purchase): float
-    {
-        return (float) $purchase->installments->where('is_paid', false)->sum('amount');
+        return new \App\DataTransferObjects\Budget\BnplStatsDto(
+            totalOutstanding: (float) $totalOutstanding,
+            activePurchases: $activePurchases,
+            totalPurchases: $totalPurchases,
+            overdueInstallments: $overdueInstallments,
+        );
     }
 
     public function render()

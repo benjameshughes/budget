@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\BillCadence;
@@ -32,5 +34,16 @@ class Bill extends Model
     {
         return $this->belongsTo(Category::class);
     }
-}
 
+    public function monthlyEquivalent(): float
+    {
+        $multiplier = match ($this->cadence) {
+            BillCadence::Weekly => 52 / 12,
+            BillCadence::Biweekly => 26 / 12,
+            BillCadence::Monthly => 1,
+            BillCadence::Yearly => 1 / 12,
+        };
+
+        return (float) $this->amount * $multiplier * $this->interval_every;
+    }
+}

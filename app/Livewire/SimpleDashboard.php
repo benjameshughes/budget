@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use App\Models\Transaction;
@@ -28,14 +30,14 @@ class SimpleDashboard extends Component
     public function weeklyIncome(): float
     {
         return app(TransactionRepository::class)
-            ->totalIncomeBetween(Carbon::today()->startOfWeek(), Carbon::today());
+            ->totalIncomeBetween(auth()->user(), Carbon::today()->startOfWeek(), Carbon::today());
     }
 
     #[Computed]
     public function weeklyExpenses(): float
     {
         return app(TransactionRepository::class)
-            ->totalExpensesBetween(Carbon::today()->startOfWeek(), Carbon::today());
+            ->totalExpensesBetween(auth()->user(), Carbon::today()->startOfWeek(), Carbon::today());
     }
 
     #[Computed]
@@ -90,9 +92,13 @@ class SimpleDashboard extends Component
             $parsedData = $parser->parse($this->input, auth()->id());
 
             // Check if this is a credit card payment
-            if (! empty($parsedData['is_credit_card_payment']) && ! empty($parsedData['credit_card_id'])) {
+            if ($parsedData->isCreditCardPayment && $parsedData->creditCardId !== null) {
                 // Dispatch to credit card payment modal
-                $this->dispatch('fill-credit-card-payment-form', data: $parsedData);
+                $this->dispatch('fill-credit-card-payment-form', data: [
+                    'amount' => $parsedData->amount,
+                    'credit_card_id' => $parsedData->creditCardId,
+                    'date' => $parsedData->date,
+                ]);
 
                 // Clear the input
                 $this->reset('input');
@@ -105,7 +111,14 @@ class SimpleDashboard extends Component
                 );
             } else {
                 // Dispatch event to pre-fill the AddTransaction form
-                $this->dispatch('fill-transaction-form', data: $parsedData);
+                $this->dispatch('fill-transaction-form', data: [
+                    'amount' => $parsedData->amount,
+                    'name' => $parsedData->name,
+                    'type' => $parsedData->type,
+                    'category_id' => $parsedData->categoryId,
+                    'credit_card_id' => $parsedData->creditCardId,
+                    'date' => $parsedData->date,
+                ]);
 
                 // Clear the input
                 $this->reset('input');

@@ -4,14 +4,14 @@
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Debt</div>
             <div class="text-2xl font-semibold text-rose-600 dark:text-rose-500">
-                £{{ number_format($this->stats['totalDebt'], 2) }}
+                £{{ number_format($this->stats->totalDebt, 2) }}
             </div>
         </div>
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Limit</div>
             <div class="text-2xl font-semibold">
-                @if($this->stats['hasLimits'])
-                    £{{ number_format($this->stats['totalLimit'], 2) }}
+                @if($this->stats->hasLimits)
+                    £{{ number_format($this->stats->totalLimit, 2) }}
                 @else
                     <span class="text-neutral-400">-</span>
                 @endif
@@ -20,7 +20,7 @@
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Utilization</div>
             @php
-                $utilizationTextClass = match($this->stats['utilizationColor']) {
+                $utilizationTextClass = match($this->stats->utilizationColor) {
                     'rose' => 'text-rose-600 dark:text-rose-500',
                     'amber' => 'text-amber-600 dark:text-amber-500',
                     'sky' => 'text-sky-600 dark:text-sky-500',
@@ -28,8 +28,8 @@
                 };
             @endphp
             <div class="text-2xl font-semibold {{ $utilizationTextClass }}">
-                @if($this->stats['hasLimits'])
-                    {{ number_format($this->stats['utilizationPercent'], 1) }}%
+                @if($this->stats->hasLimits)
+                    {{ number_format($this->stats->utilizationPercent, 1) }}%
                 @else
                     <span class="text-neutral-400">-</span>
                 @endif
@@ -38,7 +38,7 @@
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Active Cards</div>
             <div class="text-2xl font-semibold">
-                {{ $this->stats['cardsCount'] }}
+                {{ $this->stats->cardsCount }}
             </div>
         </div>
     </div>
@@ -71,8 +71,8 @@
             <flux:table.rows>
                 @forelse($this->cards as $card)
                     @php
-                        $balance = $this->getBalance($card);
-                        $utilization = $this->getUtilization($card);
+                        $balance = $card->currentBalance();
+                        $utilization = $card->utilizationPercent();
                         $utilizationBarClass = match(true) {
                             $utilization === null => 'bg-neutral-500',
                             $utilization >= 90 => 'bg-rose-500',

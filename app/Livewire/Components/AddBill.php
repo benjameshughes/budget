@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Components;
 
+use App\Actions\Bill\CreateBillAction;
 use App\Enums\BillCadence;
 use App\Models\Bill;
 use App\Models\Category;
-use App\Services\SchedulingService;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
@@ -83,22 +85,21 @@ class AddBill extends Component
         }
     }
 
-    public function save(SchedulingService $scheduling): void
+    public function save(CreateBillAction $createBillAction): void
     {
         $this->authorize('create', Bill::class);
         $data = $this->validate();
 
-        $bill = Bill::create([
+        $createBillAction->handle([
             'user_id' => auth()->id(),
             'name' => $data['name'],
-            'amount' => (float) $data['amount'],
+            'amount' => $data['amount'],
             'category_id' => $this->category,
-            'cadence' => BillCadence::from($data['cadence']),
+            'cadence' => $data['cadence'],
             'day_of_month' => $data['day_of_month'],
             'weekday' => $data['weekday'],
             'interval_every' => $data['interval_every'],
             'start_date' => $data['start_date'],
-            'next_due_date' => $data['start_date'],
             'autopay' => false,
             'active' => true,
             'notes' => $data['notes'] ?? null,

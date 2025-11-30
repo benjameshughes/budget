@@ -1,68 +1,76 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Factories\Analytics;
 
+use App\DataTransferObjects\Analytics\MoneyDto;
+use App\DataTransferObjects\Analytics\OverviewDto;
+use App\DataTransferObjects\Analytics\TopCategoryDto;
 use Illuminate\Support\Collection;
 
 class OverviewFactory
 {
-    public static function make(float $income, float $expenses, array $extras = []): Collection
+    public static function make(float $income, float $expenses, array $extras = []): OverviewDto
     {
         $net = $income - $expenses;
 
-        $data = collect([
-            'income' => collect([
-                'raw' => $income,
-                'formatted' => self::formatCurrency($income),
-                'variant' => 'success',
-            ]),
-            'expenses' => collect([
-                'raw' => $expenses,
-                'formatted' => self::formatCurrency($expenses),
-                'variant' => 'danger',
-            ]),
-            'net' => collect([
-                'raw' => $net,
-                'formatted' => self::formatCurrency($net),
-                'variant' => $net >= 0 ? 'success' : 'danger',
-            ]),
-        ]);
+        $incomeDto = new MoneyDto(
+            raw: $income,
+            formatted: self::formatCurrency($income),
+            variant: 'success',
+        );
 
-        if (array_key_exists('weekly_expenses', $extras)) {
-            $data->put('weekly_spend', collect([
-                'raw' => (float) $extras['weekly_expenses'],
-                'formatted' => self::formatCurrency((float) $extras['weekly_expenses']),
-            ]));
-        }
+        $expensesDto = new MoneyDto(
+            raw: $expenses,
+            formatted: self::formatCurrency($expenses),
+            variant: 'danger',
+        );
 
-        if (array_key_exists('monthly_expenses', $extras)) {
-            $data->put('monthly_spend', collect([
-                'raw' => (float) $extras['monthly_expenses'],
-                'formatted' => self::formatCurrency((float) $extras['monthly_expenses']),
-            ]));
-        }
+        $netDto = new MoneyDto(
+            raw: $net,
+            formatted: self::formatCurrency($net),
+            variant: $net >= 0 ? 'success' : 'danger',
+        );
 
-        if (array_key_exists('top_category', $extras)) {
+        $weeklySpend = new MoneyDto(
+            raw: (float) ($extras['weekly_expenses'] ?? 0),
+            formatted: self::formatCurrency((float) ($extras['weekly_expenses'] ?? 0)),
+        );
+
+        $monthlySpend = new MoneyDto(
+            raw: (float) ($extras['monthly_expenses'] ?? 0),
+            formatted: self::formatCurrency((float) ($extras['monthly_expenses'] ?? 0)),
+        );
+
+        $topCategory = null;
+        if (array_key_exists('top_category', $extras) && $extras['top_category'] !== null) {
             $top = $extras['top_category'];
             // $top may be a Collection from the repository
             $name = is_array($top) ? ($top['name'] ?? '—') : ($top?->get('name') ?? '—');
             $total = is_array($top) ? ((float) ($top['total'] ?? 0)) : ((float) ($top?->get('total') ?? 0));
-            $data->put('top_category', collect([
-                'name' => $name,
-                'raw' => $total,
-                'formatted_total' => self::formatCurrency($total),
-            ]));
+
+            $topCategory = new TopCategoryDto(
+                name: $name,
+                amount: $total,
+                formatted: self::formatCurrency($total),
+            );
         }
 
-        if (array_key_exists('avg_daily_expense', $extras)) {
-            $avg = (float) $extras['avg_daily_expense'];
-            $data->put('avg_daily_spend', collect([
-                'raw' => $avg,
-                'formatted' => self::formatCurrency($avg),
-            ]));
-        }
+        $avgDailySpend = new MoneyDto(
+            raw: (float) ($extras['avg_daily_expense'] ?? 0),
+            formatted: self::formatCurrency((float) ($extras['avg_daily_expense'] ?? 0)),
+        );
 
-        return $data;
+        return new OverviewDto(
+            income: $incomeDto,
+            expenses: $expensesDto,
+            net: $netDto,
+            weeklySpend: $weeklySpend,
+            monthlySpend: $monthlySpend,
+            topCategory: $topCategory,
+            avgDailySpend: $avgDailySpend,
+        );
     }
 
     protected static function formatCurrency(float $value): string

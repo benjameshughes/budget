@@ -1,72 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\TransactionType;
+use App\Models\User;
 use App\Repositories\BillRepository;
 use App\Repositories\TransactionRepository;
 use Carbon\Carbon;
 
-class BudgetService
+final readonly class BudgetService
 {
     public function __construct(
-        private readonly BillRepository $bills,
-        private readonly TransactionRepository $transactions,
+        private BillRepository $bills,
+        private TransactionRepository $transactions,
     ) {}
 
-    public function weeklyBillsTotal(): float
+    public function weeklyBillsTotal(User $user): float
     {
         $start = Carbon::today()->startOfWeek();
         $end = Carbon::today()->endOfWeek();
 
-        return $this->bills->totalDueBetween($start, $end);
+        return $this->bills->totalDueBetween($user, $start, $end);
     }
 
-    public function spendableThisWeek(): float
+    public function spendableThisWeek(User $user): float
     {
         // Net MTD - upcoming bills for rest of week
         $today = Carbon::today();
-        $netMTD = $this->transactions->totalByType(TransactionType::Income)
-            - $this->transactions->totalByType(TransactionType::Expense);
+        $netMTD = $this->transactions->totalByType($user, TransactionType::Income)
+            - $this->transactions->totalByType($user, TransactionType::Expense);
 
         $restOfWeekStart = $today->copy();
         $weekEnd = $today->copy()->endOfWeek();
-        $upcomingBills = $this->bills->totalDueBetween($restOfWeekStart, $weekEnd);
+        $upcomingBills = $this->bills->totalDueBetween($user, $restOfWeekStart, $weekEnd);
 
         return $netMTD - $upcomingBills;
     }
 
-    public function incomeBetween(Carbon $from, Carbon $to): float
+    public function incomeBetween(User $user, Carbon $from, Carbon $to): float
     {
-        return $this->transactions->totalIncomeBetween($from, $to);
+        return $this->transactions->totalIncomeBetween($user, $from, $to);
     }
 
-    public function expensesBetween(Carbon $from, Carbon $to): float
+    public function expensesBetween(User $user, Carbon $from, Carbon $to): float
     {
-        return $this->transactions->totalExpensesBetween($from, $to);
+        return $this->transactions->totalExpensesBetween($user, $from, $to);
     }
 
-    public function monthlyIncome(): float
+    public function monthlyIncome(User $user): float
     {
-        return $this->transactions->totalByType(TransactionType::Income);
+        return $this->transactions->totalByType($user, TransactionType::Income);
     }
 
-    public function monthlyExpenses(): float
+    public function monthlyExpenses(User $user): float
     {
-        return $this->transactions->totalByType(TransactionType::Expense);
+        return $this->transactions->totalByType($user, TransactionType::Expense);
     }
 
     /**
      * Calculate what percentage of income has been spent.
      */
-    public function spendingPercentage(): float
+    public function spendingPercentage(User $user): float
     {
-        $income = $this->monthlyIncome();
+        $income = $this->monthlyIncome($user);
         if ($income <= 0) {
             return 0;
         }
 
-        $expenses = $this->monthlyExpenses();
+        $expenses = $this->monthlyExpenses($user);
 
         return min(100, ($expenses / $income) * 100);
     }
@@ -82,9 +85,9 @@ class BudgetService
     /**
      * Estimated daily budget based on remaining spendable amount.
      */
-    public function dailyBudgetRemaining(): float
+    public function dailyBudgetRemaining(User $user): float
     {
-        $remaining = $this->spendableThisWeek();
+        $remaining = $this->spendableThisWeek($user);
         $daysLeft = max(1, $this->daysRemainingInMonth());
 
         return $remaining / $daysLeft;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Components;
 
 use App\Enums\TransferDirection;
@@ -16,9 +18,13 @@ class SavingsTransfer extends Component
     use AuthorizesRequests;
 
     public ?string $account = null;
+
     public string $direction = TransferDirection::Deposit->value;
+
     public string $amount = '';
+
     public ?string $transfer_date = null;
+
     public ?string $notes = null;
 
     protected function rules(): array
@@ -64,4 +70,3 @@ class SavingsTransfer extends Component
         ]);
     }
 }
-

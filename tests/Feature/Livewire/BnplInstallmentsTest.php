@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 use App\Livewire\Components\BnplInstallments;
 use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;

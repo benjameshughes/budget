@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
-use App\Enums\BillCadence;
+use App\Actions\Bill\DeleteBillAction;
+use App\Actions\Bill\ToggleBillActiveAction;
 use App\Enums\PayCadence;
 use App\Models\Bill;
 use Flux\Flux;
@@ -51,13 +54,13 @@ class BillsManagement extends Component
     }
 
     #[Computed]
-    public function stats(): array
+    public function stats(): \App\DataTransferObjects\Budget\BillStatsDto
     {
         $bills = Bill::where('user_id', auth()->id())
             ->where('active', true)
             ->get();
 
-        $totalMonthly = $bills->sum(fn ($bill) => $this->getMonthlyEquivalent($bill));
+        $totalMonthly = $bills->sum(fn ($bill) => $bill->monthlyEquivalent());
         $payCadence = auth()->user()->pay_cadence;
         $paydayAmount = $totalMonthly / $payCadence->divisor();
 
@@ -65,25 +68,13 @@ class BillsManagement extends Component
             return $bill->next_due_date && $bill->next_due_date->lte(now()->addDays(30));
         })->sum('amount');
 
-        return [
-            'totalMonthly' => $totalMonthly,
-            'paydayAmount' => $paydayAmount,
-            'paydayLabel' => $this->getPaydayLabel($payCadence),
-            'next30Days' => $next30Days,
-            'activeBills' => $bills->count(),
-        ];
-    }
-
-    public function getMonthlyEquivalent(Bill $bill): float
-    {
-        $multiplier = match ($bill->cadence) {
-            BillCadence::Weekly => 52 / 12,
-            BillCadence::Biweekly => 26 / 12,
-            BillCadence::Monthly => 1,
-            BillCadence::Yearly => 1 / 12,
-        };
-
-        return (float) $bill->amount * $multiplier * $bill->interval_every;
+        return new \App\DataTransferObjects\Budget\BillStatsDto(
+            totalMonthly: $totalMonthly,
+            paydayAmount: $paydayAmount,
+            paydayLabel: $this->getPaydayLabel($payCadence),
+            next30Days: $next30Days,
+            activeBills: $bills->count(),
+        );
     }
 
     public function getPaydayLabel(PayCadence $payCadence): string
@@ -96,9 +87,9 @@ class BillsManagement extends Component
         };
     }
 
-    public function toggleActive(Bill $bill): void
+    public function toggleActive(Bill $bill, ToggleBillActiveAction $toggleBillActiveAction): void
     {
-        $bill->update(['active' => ! $bill->active]);
+        $toggleBillActiveAction->handle($bill);
 
         Flux::toast(
             text: $bill->active ? 'Bill activated' : 'Bill deactivated',
@@ -109,9 +100,9 @@ class BillsManagement extends Component
         $this->refresh();
     }
 
-    public function deleteBill(Bill $bill): void
+    public function deleteBill(Bill $bill, DeleteBillAction $deleteBillAction): void
     {
-        $bill->delete();
+        $deleteBillAction->handle($bill);
 
         Flux::toast(
             text: 'Bill deleted successfully',

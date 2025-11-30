@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\TransferDirection;
@@ -34,4 +36,3 @@ class SavingsTransfer extends Model
         return $this->belongsTo(Transaction::class);
     }
 }
-
