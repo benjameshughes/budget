@@ -1,56 +1,56 @@
-<div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-    <div class="flex items-center justify-between mb-4">
-        <flux:heading size="lg">Buy Now Pay Later</flux:heading>
-        <a href="{{ route('bnpl') }}" class="text-sm text-sky-600 dark:text-sky-400 hover:underline">
+<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+        <flux:heading size="sm" class="text-zinc-700 dark:text-zinc-300 font-medium">Buy Now Pay Later</flux:heading>
+        <a href="{{ route('bnpl') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline">
             View All
         </a>
     </div>
 
     @if($purchases->isEmpty())
-        <div class="text-center py-8 text-neutral-500 dark:text-neutral-400">
+        <div class="text-center py-8 text-zinc-500 dark:text-zinc-400">
             <flux:icon name="banknotes" variant="mini" class="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p class="text-sm">No BNPL purchases yet</p>
-            <a href="{{ route('bnpl') }}" class="text-sm text-sky-600 dark:text-sky-400 hover:underline mt-2 inline-block">
+            <p class="text-xs">No BNPL purchases yet</p>
+            <a href="{{ route('bnpl') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline mt-2 inline-block">
                 Add your first purchase
             </a>
         </div>
     @else
-        <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="text-center">
-                <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">Total Outstanding</div>
-                <div class="text-2xl font-semibold text-rose-600 dark:text-rose-500">
+                <div class="text-xs text-zinc-500 dark:text-zinc-400 mb-2 font-medium">Total Outstanding</div>
+                <div class="text-lg font-semibold text-rose-700 dark:text-rose-400 tabular-nums">
                     £{{ number_format($stats['totalOutstanding'], 2) }}
                 </div>
             </div>
             <div class="text-center">
-                <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">Active Purchases</div>
-                <div class="text-2xl font-semibold">
+                <div class="text-xs text-zinc-500 dark:text-zinc-400 mb-2 font-medium">Active Purchases</div>
+                <div class="text-lg font-semibold tabular-nums">
                     {{ $stats['activePurchases'] }}{{ $stats['maxPurchases'] ? ' / ' . $stats['maxPurchases'] : '' }}
                 </div>
             </div>
         </div>
 
         @if($upcomingInstallments->isNotEmpty())
-            <div class="space-y-3">
-                <div class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Next Installments</div>
+            <div class="space-y-2">
+                <div class="text-xs font-medium text-zinc-700 dark:text-zinc-300">Next Installments</div>
                 @foreach($upcomingInstallments->take(3) as $installment)
                     <div
                         wire:key="installment-{{ $installment->id }}"
-                        class="flex items-center justify-between p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/50"
+                        class="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50"
                     >
                         <div class="flex-1">
-                            <div class="font-medium">{{ $installment->purchase->merchant }}</div>
-                            <div class="text-sm text-neutral-500 dark:text-neutral-400">
+                            <div class="font-medium text-sm">{{ $installment->purchase->merchant }}</div>
+                            <div class="text-xs text-zinc-500 dark:text-zinc-400">
                                 Due: {{ $installment->due_date->format('M j, Y') }}
                             </div>
                         </div>
-                        <div class="text-lg font-semibold text-rose-600 dark:text-rose-500">
+                        <div class="text-sm font-semibold text-rose-700 dark:text-rose-400 tabular-nums">
                             £{{ number_format($installment->amount, 2) }}
                         </div>
                     </div>
                 @endforeach
                 @if($upcomingInstallments->count() > 3)
-                    <a href="{{ route('bnpl') }}" class="text-sm text-sky-600 dark:text-sky-400 hover:underline block text-center mt-2">
+                    <a href="{{ route('bnpl') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline block text-center mt-2">
                         +{{ $upcomingInstallments->count() - 3 }} more
                     </a>
                 @endif
