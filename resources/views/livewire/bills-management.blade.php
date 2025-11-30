@@ -8,9 +8,9 @@
             </div>
         </div>
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Set Aside Per Week</div>
+            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">{{ $this->stats['paydayLabel'] }}</div>
             <div class="text-2xl font-semibold text-sky-600 dark:text-sky-500">
-                £{{ number_format($this->stats['weeklyAmount'], 2) }}
+                £{{ number_format($this->stats['paydayAmount'], 2) }}
             </div>
         </div>
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">

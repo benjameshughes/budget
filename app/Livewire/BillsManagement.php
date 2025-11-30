@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\BillCadence;
+use App\Enums\PayCadence;
 use App\Models\Bill;
 use Flux\Flux;
 use Illuminate\Support\Collection;
@@ -57,7 +58,8 @@ class BillsManagement extends Component
             ->get();
 
         $totalMonthly = $bills->sum(fn ($bill) => $this->getMonthlyEquivalent($bill));
-        $weeklyAmount = $bills->sum(fn ($bill) => $this->getWeeklyEquivalent($bill));
+        $payCadence = auth()->user()->pay_cadence;
+        $paydayAmount = $totalMonthly / $payCadence->divisor();
 
         $next30Days = $bills->filter(function ($bill) {
             return $bill->next_due_date && $bill->next_due_date->lte(now()->addDays(30));
@@ -65,7 +67,8 @@ class BillsManagement extends Component
 
         return [
             'totalMonthly' => $totalMonthly,
-            'weeklyAmount' => $weeklyAmount,
+            'paydayAmount' => $paydayAmount,
+            'paydayLabel' => $this->getPaydayLabel($payCadence),
             'next30Days' => $next30Days,
             'activeBills' => $bills->count(),
         ];
@@ -83,16 +86,14 @@ class BillsManagement extends Component
         return (float) $bill->amount * $multiplier * $bill->interval_every;
     }
 
-    public function getWeeklyEquivalent(Bill $bill): float
+    public function getPaydayLabel(PayCadence $payCadence): string
     {
-        $multiplier = match ($bill->cadence) {
-            BillCadence::Weekly => 1,
-            BillCadence::Biweekly => 0.5,
-            BillCadence::Monthly => 12 / 52,
-            BillCadence::Yearly => 1 / 52,
+        return match ($payCadence) {
+            PayCadence::Weekly => 'Set Aside Per Week',
+            PayCadence::Biweekly => 'Set Aside Per Paycheck',
+            PayCadence::TwiceMonthly => 'Set Aside Per Paycheck',
+            PayCadence::Monthly => 'Set Aside Per Month',
         };
-
-        return (float) $bill->amount * $multiplier * $bill->interval_every;
     }
 
     public function toggleActive(Bill $bill): void
