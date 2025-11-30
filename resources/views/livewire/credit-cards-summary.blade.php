@@ -1,20 +1,18 @@
 <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
     <div class="flex items-center justify-between mb-4">
         <flux:heading size="lg">Credit Cards</flux:heading>
-        <div class="flex gap-1">
-            <flux:modal.trigger name="credit-card-payment">
-                <flux:button variant="ghost" size="sm" icon="credit-card" iconVariant="mini" />
-            </flux:modal.trigger>
-            <flux:modal.trigger name="add-credit-card">
-                <flux:button variant="ghost" size="sm" icon="plus" iconVariant="mini" />
-            </flux:modal.trigger>
-        </div>
+        <a href="{{ route('credit-cards') }}" class="text-sm text-sky-600 dark:text-sky-400 hover:underline">
+            View All
+        </a>
     </div>
 
     @if($cards->isEmpty())
         <div class="text-center py-8 text-neutral-500 dark:text-neutral-400">
             <flux:icon name="credit-card" variant="mini" class="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p class="text-sm">No credit cards yet</p>
+            <a href="{{ route('credit-cards') }}" class="text-sm text-sky-600 dark:text-sky-400 hover:underline mt-2 inline-block">
+                Add your first card
+            </a>
         </div>
     @else
         @if($stats['hasLimits'])
@@ -53,7 +51,4 @@
             </div>
         </div>
     @endif
-
-    <livewire:components.add-credit-card />
-    <livewire:components.credit-card-payment />
 </div>

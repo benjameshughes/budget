@@ -14,6 +14,8 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('analytics', 'analytics')->name('analytics');
+    Route::view('bnpl', 'bnpl')->name('bnpl');
+    Route::view('credit-cards', 'credit-cards')->name('credit-cards');
 
     Route::redirect('settings', 'settings/profile');
 
