@@ -6,9 +6,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\Transaction\CreateTransactionAction;
 use App\Contracts\ExpenseParserInterface;
+use App\DataTransferObjects\Actions\CreateTransactionData;
+use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ParseTransactionRequest;
 use App\Http\Requests\Api\StoreTransactionRequest;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 
 final class TransactionController extends Controller
@@ -18,15 +21,17 @@ final class TransactionController extends Controller
      */
     public function store(StoreTransactionRequest $request, CreateTransactionAction $action): JsonResponse
     {
-        $transaction = $action->handle([
-            'user_id' => $request->user()->id,
-            'name' => $request->validated('name'),
-            'amount' => $request->validated('amount'),
-            'type' => $request->validated('type'),
-            'payment_date' => $request->validated('date') ?? now(),
-            'category_id' => $request->validated('category_id'),
-            'description' => $request->validated('description'),
-        ]);
+        $data = new CreateTransactionData(
+            userId: $request->user()->id,
+            name: $request->validated('name'),
+            amount: (float) $request->validated('amount'),
+            type: TransactionType::from($request->validated('type')),
+            paymentDate: $request->validated('date') ? Carbon::parse($request->validated('date')) : Carbon::now(),
+            categoryId: $request->validated('category_id'),
+            description: $request->validated('description'),
+        );
+
+        $transaction = $action->handle($data);
 
         return response()->json([
             'message' => 'Transaction created successfully',
@@ -51,16 +56,18 @@ final class TransactionController extends Controller
         $parsed = $parser->parse($request->validated('text'), $user->id);
 
         // Create the transaction using parsed data
-        $transaction = $action->handle([
-            'user_id' => $user->id,
-            'name' => $parsed->name,
-            'amount' => $parsed->amount,
-            'type' => $parsed->type,
-            'payment_date' => $parsed->date,
-            'category_id' => $parsed->categoryId,
-            'credit_card_id' => $parsed->creditCardId,
-            'description' => "Parsed from: {$parsed->rawInput}",
-        ]);
+        $data = new CreateTransactionData(
+            userId: $user->id,
+            name: $parsed->name,
+            amount: $parsed->amount,
+            type: TransactionType::from($parsed->type),
+            paymentDate: Carbon::parse($parsed->date),
+            categoryId: $parsed->categoryId,
+            creditCardId: $parsed->creditCardId,
+            description: "Parsed from: {$parsed->rawInput}",
+        );
+
+        $transaction = $action->handle($data);
 
         return response()->json([
             'message' => 'Transaction created successfully',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Enums\CategoryColor;
 use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
@@ -142,11 +143,6 @@ final readonly class TransactionRepository
      */
     public function expensesByCategoryBetween(User $user, Carbon $from, Carbon $to): array
     {
-        $categories = Category::query()
-            ->where('user_id', $user->id)
-            ->pluck('color', 'id')
-            ->toArray();
-
         return Transaction::query()
             ->select('category_id', DB::raw('SUM(amount) as total'))
             ->where('user_id', $user->id)
@@ -156,13 +152,13 @@ final readonly class TransactionRepository
             ->groupBy('category_id')
             ->orderByDesc('total')
             ->get()
-            ->map(function ($row) use ($categories) {
+            ->map(function ($row, int $index) {
                 $category = $row->category_id ? Category::find($row->category_id) : null;
 
                 return new \App\DataTransferObjects\Analytics\CategoryExpenseDto(
                     category: $category?->name ?? 'Uncategorized',
                     amount: (float) $row->total,
-                    color: $categories[$row->category_id] ?? 'gray',
+                    color: CategoryColor::fromIndex($index)->hex(),
                 );
             })
             ->toArray();

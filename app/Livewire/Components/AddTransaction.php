@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Livewire\Components;
 
 use App\Actions\Transaction\CreateTransactionAction;
+use App\DataTransferObjects\Actions\CreateTransactionData;
 use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\CreditCard;
+use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
@@ -54,18 +56,20 @@ class AddTransaction extends Component
     public function add(CreateTransactionAction $createTransactionAction): void
     {
         $this->authorize('create', \App\Models\Transaction::class);
-        $data = $this->validate();
+        $validated = $this->validate();
 
-        $createTransactionAction->handle([
-            'user_id' => auth()->id(),
-            'name' => $data['name'] ?? null,
-            'description' => $data['description'] ?? null,
-            'amount' => $data['amount'],
-            'type' => $data['type'],
-            'payment_date' => $data['payment_date'],
-            'category_id' => $this->category,
-            'credit_card_id' => $this->credit_card_id,
-        ]);
+        $data = new CreateTransactionData(
+            userId: auth()->id(),
+            name: $validated['name'] ?? '',
+            amount: (float) $validated['amount'],
+            type: TransactionType::from($validated['type']),
+            paymentDate: Carbon::parse($validated['payment_date']),
+            categoryId: $this->category ? (int) $this->category : null,
+            creditCardId: $this->credit_card_id ? (int) $this->credit_card_id : null,
+            description: $validated['description'] ?? null,
+        );
+
+        $createTransactionAction->handle($data);
 
         $this->dispatch('transaction-added');
         Flux::toast(

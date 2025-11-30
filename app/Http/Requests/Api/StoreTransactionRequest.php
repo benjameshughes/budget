@@ -30,7 +30,7 @@ final class StoreTransactionRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0.01'],
             'type' => ['required', Rule::enum(TransactionType::class)],
             'date' => ['nullable', 'date'],
-            'category_id' => ['nullable', 'exists:categories,id'],
+            'category_id' => ['nullable', Rule::exists('categories', 'id')->where('user_id', auth()->id())],
             'description' => ['nullable', 'string', 'max:1000'],
         ];
     }

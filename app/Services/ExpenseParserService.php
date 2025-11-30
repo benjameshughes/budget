@@ -38,7 +38,9 @@ final readonly class ExpenseParserService implements ExpenseParserInterface
                 ? 'No credit cards exist yet.'
                 : 'Available credit cards: '.implode(', ', $creditCards);
 
-            $systemPrompt = $this->buildSystemPrompt($categoryList, $creditCardList);
+            $todaysDate = Carbon::today()->toDateString();
+
+            $systemPrompt = $this->buildSystemPrompt($categoryList, $creditCardList, $todaysDate);
 
             $response = Prism::text()
                 ->using('anthropic', 'claude-opus-4-5-20251101')
@@ -76,13 +78,17 @@ final readonly class ExpenseParserService implements ExpenseParserInterface
                 'error' => $e->getMessage(),
             ]);
 
-            throw $e;
+            throw new \RuntimeException(
+                'Unable to parse transaction. Please try again or enter it manually.'
+            );
         }
     }
 
-    protected function buildSystemPrompt(string $categoryList, string $creditCardList): string
+    protected function buildSystemPrompt(string $categoryList, string $creditCardList, string $todaysDate): string
     {
         return <<<PROMPT
+Today's date is: {$todaysDate}
+
 You are an expense parser. Your job is to extract transaction information from natural language input and return it as JSON.
 
 Extract:

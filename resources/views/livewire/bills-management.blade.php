@@ -90,7 +90,7 @@
                         </flux:table.cell>
                         <flux:table.cell align="end" class="whitespace-nowrap">
                             <span class="text-neutral-600 dark:text-neutral-300">
-                                £{{ number_format($this->getMonthlyEquivalent($bill), 2) }}
+                                £{{ number_format($bill->monthlyEquivalent(), 2) }}
                             </span>
                         </flux:table.cell>
                         <flux:table.cell align="end">
