@@ -60,11 +60,11 @@ test('shows all four installments for a purchase', function () {
         ->assertSee('4');
 });
 
-test('can mark selected installments as paid', function () {
+test('can mark installment as paid with checkbox click', function () {
     $user = User::factory()->create();
     $purchase = BnplPurchase::factory()->for($user)->create();
 
-    $installment1 = BnplInstallment::create([
+    $installment = BnplInstallment::create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $purchase->id,
         'installment_number' => 1,
@@ -73,25 +73,14 @@ test('can mark selected installments as paid', function () {
         'is_paid' => false,
     ]);
 
-    $installment2 = BnplInstallment::create([
-        'user_id' => $user->id,
-        'bnpl_purchase_id' => $purchase->id,
-        'installment_number' => 2,
-        'amount' => 25.00,
-        'due_date' => now()->addWeeks(2),
-        'is_paid' => false,
-    ]);
-
     $this->actingAs($user);
 
     Livewire::test(BnplPurchaseDetail::class)
         ->set('purchaseId', $purchase->id)
-        ->set('selectedInstallments', [$installment1->id, $installment2->id])
-        ->call('markSelectedPaid')
+        ->call('markPaid', $installment->id)
         ->assertDispatched('bnpl-installment-paid');
 
-    expect($installment1->fresh()->is_paid)->toBeTrue();
-    expect($installment2->fresh()->is_paid)->toBeTrue();
+    expect($installment->fresh()->is_paid)->toBeTrue();
 });
 
 test('displays paid and unpaid status correctly', function () {
@@ -136,7 +125,7 @@ test('responds to show-bnpl-purchase-detail event', function () {
         ->assertSet('purchaseId', $purchase->id);
 });
 
-test('clears selection after marking as paid', function () {
+test('cannot mark already paid installment', function () {
     $user = User::factory()->create();
     $purchase = BnplPurchase::factory()->for($user)->create();
 
@@ -146,16 +135,16 @@ test('clears selection after marking as paid', function () {
         'installment_number' => 1,
         'amount' => 25.00,
         'due_date' => now(),
-        'is_paid' => false,
+        'is_paid' => true,
+        'paid_date' => now()->subDay(),
     ]);
 
     $this->actingAs($user);
 
     Livewire::test(BnplPurchaseDetail::class)
         ->set('purchaseId', $purchase->id)
-        ->set('selectedInstallments', [$installment->id])
-        ->call('markSelectedPaid')
-        ->assertSet('selectedInstallments', []);
+        ->call('markPaid', $installment->id)
+        ->assertNotDispatched('bnpl-installment-paid');
 });
 
 test('shows total paid and remaining amounts', function () {
@@ -187,4 +176,27 @@ test('shows total paid and remaining amounts', function () {
         ->assertSee('Total Paid')
         ->assertSee('Total Remaining')
         ->assertSee('25.00');
+});
+
+test('refreshes purchase details when installment is marked as paid', function () {
+    $user = User::factory()->create();
+    $purchase = BnplPurchase::factory()->for($user)->create();
+
+    $installment = BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 1,
+        'amount' => 25.00,
+        'due_date' => now(),
+        'is_paid' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(BnplPurchaseDetail::class)
+        ->call('showPurchase', $purchase->id)
+        ->assertSee('Unpaid')
+        ->call('markPaid', $installment->id)
+        ->assertDispatched('bnpl-installment-paid')
+        ->assertSee('Paid');
 });

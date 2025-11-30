@@ -177,7 +177,7 @@ test('getRemainingBalance calculates correctly', function () {
     expect($remaining)->toBe(75.0);
 });
 
-test('getUpcomingInstallments returns correct installments', function () {
+test('getUpcomingInstallments returns all unpaid installments', function () {
     $user = User::factory()->create();
     $purchase = BnplPurchase::factory()->for($user)->create();
 
@@ -202,14 +202,22 @@ test('getUpcomingInstallments returns correct installments', function () {
         'bnpl_purchase_id' => $purchase->id,
         'installment_number' => 3,
         'amount' => 25.00,
-        'due_date' => now()->addDays(5),
-        'is_paid' => true,
+        'due_date' => now()->subDays(5), // Overdue
+        'is_paid' => false,
+    ]);
+    BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 4,
+        'amount' => 25.00,
+        'due_date' => now()->subDays(10),
+        'is_paid' => true, // Already paid
     ]);
 
     $service = app(BnplService::class);
-    $upcoming = $service->getUpcomingInstallments($user, 30);
+    $upcoming = $service->getUpcomingInstallments($user);
 
-    expect($upcoming)->toHaveCount(1)
-        ->and($upcoming->first()->due_date->diffInDays(now()))->toBeLessThanOrEqual(30)
-        ->and($upcoming->first()->is_paid)->toBeFalse();
+    // Should return all unpaid installments (including overdue), excluding paid ones
+    expect($upcoming)->toHaveCount(3)
+        ->and($upcoming->pluck('is_paid')->unique()->toArray())->toBe([false]);
 });

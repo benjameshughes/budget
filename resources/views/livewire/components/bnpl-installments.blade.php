@@ -5,15 +5,16 @@
             <flux:subheading>Click on any purchase to view details and manage installments</flux:subheading>
         </div>
 
-        @if($purchases->isEmpty())
+        @if($this->purchases->isEmpty())
             <div class="text-center py-8 text-neutral-500 dark:text-neutral-400">
                 <flux:icon name="banknotes" variant="mini" class="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p class="text-sm">No active BNPL purchases</p>
             </div>
         @else
             <div class="space-y-3">
-                @foreach($purchases as $purchase)
+                @foreach($this->purchases as $purchase)
                     <div
+                        wire:key="purchase-{{ $purchase->id }}"
                         wire:click="showPurchaseDetail({{ $purchase->id }})"
                         class="flex items-center justify-between p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:border-neutral-300 dark:hover:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 cursor-pointer transition-colors"
                     >

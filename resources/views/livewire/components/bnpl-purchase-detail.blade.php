@@ -63,16 +63,23 @@
                             @foreach($purchase->installments as $installment)
                                 <flux:table.row :class="$installment->is_paid ? 'opacity-60' : ''">
                                     <flux:table.cell>
-                                        @if($installment->is_paid)
-                                            <div class="w-5 h-5 flex items-center justify-center">
+                                        <div class="w-5 h-5 flex items-center justify-center">
+                                            @if($installment->is_paid)
                                                 <flux:icon name="check-circle" variant="mini" class="w-5 h-5 text-emerald-600 dark:text-emerald-500" />
-                                            </div>
-                                        @else
-                                            <flux:checkbox
-                                                wire:model="selectedInstallments"
-                                                value="{{ $installment->id }}"
-                                            />
-                                        @endif
+                                            @else
+                                                <button
+                                                    type="button"
+                                                    wire:click="markPaid({{ $installment->id }})"
+                                                    wire:loading.attr="disabled"
+                                                    class="w-5 h-5 rounded border-2 border-neutral-300 dark:border-neutral-600 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors cursor-pointer"
+                                                    title="Mark as paid"
+                                                >
+                                                    <span wire:loading wire:target="markPaid({{ $installment->id }})" class="flex items-center justify-center">
+                                                        <flux:icon name="arrow-path" variant="mini" class="w-3 h-3 animate-spin" />
+                                                    </span>
+                                                </button>
+                                            @endif
+                                        </div>
                                     </flux:table.cell>
                                     <flux:table.cell :class="$installment->is_paid ? 'line-through' : ''">
                                         {{ $installment->installment_number }}
@@ -105,17 +112,10 @@
             </div>
 
             {{-- Actions --}}
-            <div class="flex gap-2 justify-end pt-4 border-t border-neutral-200 dark:border-neutral-700">
+            <div class="flex justify-end pt-4 border-t border-neutral-200 dark:border-neutral-700">
                 <flux:modal.close>
                     <flux:button variant="ghost">Close</flux:button>
                 </flux:modal.close>
-                <flux:button
-                    wire:click="markSelectedPaid"
-                    variant="primary"
-                    :disabled="empty($selectedInstallments)"
-                >
-                    Mark Selected as Paid
-                </flux:button>
             </div>
         </div>
     @else

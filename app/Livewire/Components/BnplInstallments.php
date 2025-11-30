@@ -3,7 +3,9 @@
 namespace App\Livewire\Components;
 
 use App\Models\BnplPurchase;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -13,7 +15,21 @@ class BnplInstallments extends Component
     #[On('bnpl-installment-paid')]
     public function refreshPurchases(): void
     {
-        // Trigger re-render
+        unset($this->purchases);
+    }
+
+    #[Computed]
+    public function purchases(): Collection
+    {
+        return BnplPurchase::with(['installments' => function ($query) {
+            $query->orderBy('installment_number');
+        }])
+            ->where('user_id', auth()->id())
+            ->whereHas('installments', function ($query) {
+                $query->where('is_paid', false);
+            })
+            ->orderBy('purchase_date', 'desc')
+            ->get();
     }
 
     public function showPurchaseDetail(int $purchaseId): void
@@ -23,18 +39,6 @@ class BnplInstallments extends Component
 
     public function render(): View
     {
-        $purchases = BnplPurchase::with(['installments' => function ($query) {
-            $query->orderBy('installment_number');
-        }])
-            ->where('user_id', auth()->id())
-            ->whereHas('installments', function ($query) {
-                $query->where('is_paid', false);
-            })
-            ->orderBy('purchase_date', 'desc')
-            ->get();
-
-        return view('livewire.components.bnpl-installments', [
-            'purchases' => $purchases,
-        ]);
+        return view('livewire.components.bnpl-installments');
     }
 }

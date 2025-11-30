@@ -94,11 +94,11 @@ class BnplService
             ->sum('amount');
     }
 
-    public function getUpcomingInstallments(User $user, int $days = 30): Collection
+    public function getUpcomingInstallments(User $user): Collection
     {
+        // Show ALL unpaid installments - both overdue and upcoming
         return BnplInstallment::where('user_id', $user->id)
             ->where('is_paid', false)
-            ->where('due_date', '<=', now()->addDays($days))
             ->with('purchase')
             ->orderBy('due_date')
             ->get();

@@ -34,9 +34,10 @@
 
         @if($upcomingInstallments->isNotEmpty())
             <div class="space-y-3">
-                <div class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Upcoming Installments (30 days)</div>
+                <div class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Upcoming Installments</div>
                 @foreach($upcomingInstallments as $installment)
                     <div
+                        wire:key="installment-{{ $installment->id }}"
                         wire:click="$dispatch('show-bnpl-purchase-detail', { purchaseId: {{ $installment->bnpl_purchase_id }} })"
                         class="flex items-center justify-between p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
                     >

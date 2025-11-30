@@ -42,7 +42,7 @@ class BnplSummary extends Component
             ->orderBy('purchase_date', 'desc')
             ->get();
 
-        $upcomingInstallments = $service->getUpcomingInstallments(auth()->user(), 30);
+        $upcomingInstallments = $service->getUpcomingInstallments(auth()->user());
 
         return view('livewire.bnpl-summary', [
             'purchases' => $purchases,
