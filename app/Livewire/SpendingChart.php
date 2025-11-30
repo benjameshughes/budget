@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use App\Repositories\TransactionRepository;
@@ -26,19 +28,19 @@ class SpendingChart extends Component
         $to = Carbon::today();
         $from = $to->copy()->subDays($days - 1);
 
-        return app(TransactionRepository::class)->dailyTotalsBetween($from, $to);
+        return app(TransactionRepository::class)->dailyTotalsBetween(auth()->user(), $from, $to);
     }
 
     #[Computed]
     public function totalExpenses(): float
     {
-        return collect($this->chartData)->sum('expenses');
+        return collect($this->chartData)->sum(fn ($dto) => $dto->expenses);
     }
 
     #[Computed]
     public function totalIncome(): float
     {
-        return collect($this->chartData)->sum('income');
+        return collect($this->chartData)->sum(fn ($dto) => $dto->income);
     }
 
     public function render()

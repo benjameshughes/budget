@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\Bill;
+
+use App\Enums\TransactionType;
+use App\Events\Bill\BillPaid;
+use App\Models\Bill;
+use App\Models\Transaction;
+use App\Services\SchedulingService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Gate;
+
+final readonly class MarkBillPaidAction
+{
+    public function __construct(
+        private SchedulingService $schedulingService,
+    ) {}
+
+    public function handle(Bill $bill, Carbon $paidDate, ?string $notes = null): Transaction
+    {
+        Gate::authorize('update', $bill);
+
+        $transaction = Transaction::create([
+            'user_id' => $bill->user_id,
+            'name' => $bill->name,
+            'amount' => $bill->amount,
+            'type' => TransactionType::Expense,
+            'payment_date' => $paidDate,
+            'category_id' => $bill->category_id,
+            'description' => $notes ?? 'Bill payment',
+        ]);
+
+        $bill->update([
+            'next_due_date' => $this->schedulingService->nextDue($bill),
+        ]);
+
+        event(new BillPaid($bill, $transaction, $paidDate));
+
+        return $transaction;
+    }
+}

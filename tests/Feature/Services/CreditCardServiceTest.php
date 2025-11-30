@@ -65,7 +65,7 @@ test('currentBalance calculates correct balance with spending and payments', fun
     // Add some payments
     CreditCardPayment::factory()->forCard($card)->create(['amount' => 100.00]);
 
-    $balance = $this->service->currentBalance($card);
+    $balance = $card->currentBalance();
 
     // Starting: 1000, Spending: +250, Payments: -100 = 1150
     expect($balance)->toBe(1150.00);
@@ -75,7 +75,7 @@ test('currentBalance returns starting balance when no payments', function () {
     $user = User::factory()->create();
     $card = CreditCard::factory()->forUser($user)->create(['starting_balance' => 1000.00]);
 
-    $balance = $this->service->currentBalance($card);
+    $balance = $card->currentBalance();
 
     expect($balance)->toBe(1000.00);
 });

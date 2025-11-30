@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 use App\Livewire\SimpleDashboard;
 use App\Models\Transaction;
 use App\Models\User;

@@ -4,25 +4,25 @@
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Outstanding</div>
             <div class="text-2xl font-semibold text-rose-600 dark:text-rose-500">
-                £{{ number_format($this->stats['totalOutstanding'], 2) }}
+                £{{ number_format($this->stats->totalOutstanding, 2) }}
             </div>
         </div>
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Active Purchases</div>
             <div class="text-2xl font-semibold">
-                {{ $this->stats['activePurchases'] }}
+                {{ $this->stats->activePurchases }}
             </div>
         </div>
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Purchases</div>
             <div class="text-2xl font-semibold">
-                {{ $this->stats['totalPurchases'] }}
+                {{ $this->stats->totalPurchases }}
             </div>
         </div>
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Overdue Payments</div>
-            <div class="text-2xl font-semibold {{ $this->stats['overdueInstallments'] > 0 ? 'text-rose-600 dark:text-rose-500' : 'text-emerald-600 dark:text-emerald-500' }}">
-                {{ $this->stats['overdueInstallments'] }}
+            <div class="text-2xl font-semibold {{ $this->stats->overdueInstallments > 0 ? 'text-rose-600 dark:text-rose-500' : 'text-emerald-600 dark:text-emerald-500' }}">
+                {{ $this->stats->overdueInstallments }}
             </div>
         </div>
     </div>
@@ -87,7 +87,7 @@
                         </flux:table.cell>
                         <flux:table.cell align="center">
                             @php
-                                $paidCount = $this->getPaidCount($purchase);
+                                $paidCount = $purchase->paidInstallmentsCount();
                                 $totalCount = $purchase->installments->count();
                             @endphp
                             <div class="flex items-center gap-2">
@@ -110,7 +110,7 @@
                             </div>
                         </flux:table.cell>
                         <flux:table.cell align="end" class="whitespace-nowrap">
-                            @php $remaining = $this->getRemainingAmount($purchase); @endphp
+                            @php $remaining = $purchase->remainingBalance(); @endphp
                             @if($remaining > 0)
                                 <span class="text-rose-600 dark:text-rose-500 font-medium">
                                     £{{ number_format($remaining, 2) }}

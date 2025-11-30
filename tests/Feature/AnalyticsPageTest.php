@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 use App\Livewire\BudgetSummary;
 use App\Livewire\CategoryBreakdown;
 use App\Livewire\Components\TotalMoney;

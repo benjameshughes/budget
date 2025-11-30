@@ -42,14 +42,14 @@ test('parse extracts expense data from natural language input', function () {
     $result = $this->service->parse('Spent £4.50 at Starbucks', $user->id);
 
     expect($result)
-        ->toBeArray()
-        ->and($result['amount'])->toBe(4.50)
-        ->and($result['name'])->toBe('Starbucks coffee')
-        ->and($result['type'])->toBe('expense')
-        ->and($result['category_id'])->not->toBeNull()
-        ->and($result['date'])->toBe(Carbon::today()->toDateString())
-        ->and($result['confidence'])->toBe(0.95)
-        ->and($result['raw_input'])->toBe('Spent £4.50 at Starbucks');
+        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->and($result->amount)->toBe(4.50)
+        ->and($result->name)->toBe('Starbucks coffee')
+        ->and($result->type)->toBe('expense')
+        ->and($result->categoryId)->not->toBeNull()
+        ->and($result->date)->toBe(Carbon::today()->toDateString())
+        ->and($result->confidence)->toBe(0.95)
+        ->and($result->rawInput)->toBe('Spent £4.50 at Starbucks');
 });
 
 test('parse extracts income data from natural language input', function () {
@@ -67,12 +67,12 @@ test('parse extracts income data from natural language input', function () {
     $result = $this->service->parse('Got paid £500 for freelance work', $user->id);
 
     expect($result)
-        ->toBeArray()
-        ->and($result['amount'])->toBe(500.00)
-        ->and($result['name'])->toBe('Freelance payment')
-        ->and($result['type'])->toBe('income')
-        ->and($result['category_id'])->toBeNull()
-        ->and($result['confidence'])->toBe(0.88);
+        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->and($result->amount)->toBe(500.00)
+        ->and($result->name)->toBe('Freelance payment')
+        ->and($result->type)->toBe('income')
+        ->and($result->categoryId)->toBeNull()
+        ->and($result->confidence)->toBe(0.88);
 });
 
 test('parse handles category matching by name', function () {
@@ -93,8 +93,8 @@ test('parse handles category matching by name', function () {
 
     $result = $this->service->parse('£45.50 at Tesco', $user->id);
 
-    expect($result['category_id'])->toBe($category->id)
-        ->and($result['category_name'])->toBe('Groceries');
+    expect($result->categoryId)->toBe($category->id)
+        ->and($result->categoryName)->toBe('Groceries');
 });
 
 test('parse sets category_id to null when category does not match', function () {
@@ -115,8 +115,8 @@ test('parse sets category_id to null when category does not match', function () 
 
     $result = $this->service->parse('£10 at Costa', $user->id);
 
-    expect($result['category_id'])->toBeNull()
-        ->and($result['category_name'])->toBe('Food & Drink');
+    expect($result->categoryId)->toBeNull()
+        ->and($result->categoryName)->toBe('Food & Drink');
 });
 
 test('parse defaults to expense when type is invalid', function () {
@@ -133,7 +133,7 @@ test('parse defaults to expense when type is invalid', function () {
 
     $result = $this->service->parse('£20 for something', $user->id);
 
-    expect($result['type'])->toBe('expense');
+    expect($result->type)->toBe('expense');
 });
 
 test('parse uses today as fallback date when date is null', function () {
@@ -150,7 +150,7 @@ test('parse uses today as fallback date when date is null', function () {
 
     $result = $this->service->parse('£15 for lunch', $user->id);
 
-    expect($result['date'])->toBe(Carbon::today()->toDateString());
+    expect($result->date)->toBe(Carbon::today()->toDateString());
 });
 
 test('parse throws exception when API fails', function () {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Category;
@@ -33,4 +35,3 @@ class CategoryPolicy
         return $category->user_id === $user->id;
     }
 }
-

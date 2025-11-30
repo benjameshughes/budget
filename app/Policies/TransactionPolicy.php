@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Transaction;
@@ -32,4 +34,3 @@ class TransactionPolicy
         return $transaction->user_id === $user->id;
     }
 }
-

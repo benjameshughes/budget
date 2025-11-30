@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,5 +33,31 @@ class CreditCard extends Model
     public function spending(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function currentBalance(): float
+    {
+        $spending = (float) $this->spending()->sum('amount');
+        $payments = (float) $this->payments()->sum('amount');
+
+        return $this->starting_balance + $spending - $payments;
+    }
+
+    public function availableCredit(): ?float
+    {
+        if (! $this->credit_limit || $this->credit_limit <= 0) {
+            return null;
+        }
+
+        return $this->credit_limit - $this->currentBalance();
+    }
+
+    public function utilizationPercent(): ?float
+    {
+        if (! $this->credit_limit || $this->credit_limit <= 0) {
+            return null;
+        }
+
+        return min(100, ($this->currentBalance() / $this->credit_limit) * 100);
     }
 }

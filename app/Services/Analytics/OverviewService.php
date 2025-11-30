@@ -1,35 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Analytics;
 
+use App\DataTransferObjects\Analytics\OverviewDto;
 use App\Enums\TransactionType;
 use App\Factories\Analytics\OverviewFactory;
+use App\Models\User;
 use App\Repositories\TransactionRepository;
 use Carbon\Carbon;
 
-class OverviewService
+final readonly class OverviewService
 {
-    public function __construct(private readonly TransactionRepository $transactions)
-    {
-    }
+    public function __construct(private TransactionRepository $transactions) {}
 
-    public function getOverview(): \Illuminate\Support\Collection
+    public function getOverview(User $user): OverviewDto
     {
-        $income = $this->transactions->totalByType(TransactionType::Income);
-        $expenses = $this->transactions->totalByType(TransactionType::Expense);
+        $income = $this->transactions->totalByType($user, TransactionType::Income);
+        $expenses = $this->transactions->totalByType($user, TransactionType::Expense);
 
         // Weekly: last 7 days including today
         $weekTo = Carbon::today();
         $weekFrom = $weekTo->copy()->subDays(6);
-        $weeklyExpenses = $this->transactions->totalExpensesBetween($weekFrom, $weekTo);
+        $weeklyExpenses = $this->transactions->totalExpensesBetween($user, $weekFrom, $weekTo);
 
         // Monthly: current month to date
         $monthFrom = Carbon::today()->startOfMonth();
         $monthTo = Carbon::today();
-        $monthlyExpenses = $this->transactions->totalExpensesBetween($monthFrom, $monthTo);
+        $monthlyExpenses = $this->transactions->totalExpensesBetween($user, $monthFrom, $monthTo);
 
-        $topCategory = $this->transactions->topExpenseCategoryBetween($monthFrom, $monthTo);
-        $avgDailyExpense = $this->transactions->averageDailyExpenseBetween($monthFrom, $monthTo);
+        $topCategory = $this->transactions->topExpenseCategoryBetween($user, $monthFrom, $monthTo);
+        $avgDailyExpense = $this->transactions->averageDailyExpenseBetween($user, $monthFrom, $monthTo);
 
         return OverviewFactory::make($income, $expenses, [
             'weekly_expenses' => $weeklyExpenses,

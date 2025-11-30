@@ -1,56 +1,60 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class TransactionRepository
+final readonly class TransactionRepository
 {
-    public function totalByType(TransactionType $type): float
+    public function totalByType(User $user, TransactionType $type): float
     {
         return (float) Transaction::query()
-            ->where('user_id', auth()->id())
+            ->where('user_id', $user->id)
             ->where('type', $type)
             ->sum('amount');
     }
 
-    public function between(Carbon $from, Carbon $to): \Illuminate\Database\Eloquent\Collection
+    public function between(User $user, Carbon $from, Carbon $to): EloquentCollection
     {
         return Transaction::query()
-            ->where('user_id', auth()->id())
+            ->where('user_id', $user->id)
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->orderBy('payment_date', 'desc')
             ->get();
     }
 
-    public function totalIncomeBetween(Carbon $from, Carbon $to): float
+    public function totalIncomeBetween(User $user, Carbon $from, Carbon $to): float
     {
         return (float) Transaction::query()
-            ->where('user_id', auth()->id())
+            ->where('user_id', $user->id)
             ->where('type', TransactionType::Income)
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->sum('amount');
     }
 
-    public function totalExpensesBetween(Carbon $from, Carbon $to): float
+    public function totalExpensesBetween(User $user, Carbon $from, Carbon $to): float
     {
         return (float) Transaction::query()
-            ->where('user_id', auth()->id())
+            ->where('user_id', $user->id)
             ->where('type', TransactionType::Expense)
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->sum('amount');
     }
 
-    public function topExpenseCategoryBetween(Carbon $from, Carbon $to): ?Collection
+    public function topExpenseCategoryBetween(User $user, Carbon $from, Carbon $to): ?Collection
     {
         $row = Transaction::query()
             ->select('category_id', DB::raw('SUM(amount) as total'))
-            ->where('user_id', auth()->id())
+            ->where('user_id', $user->id)
             ->where('type', TransactionType::Expense)
             ->where('is_savings', false)
             ->whereNotNull('category_id')
@@ -72,10 +76,10 @@ class TransactionRepository
         ]);
     }
 
-    public function averageDailyExpenseBetween(Carbon $from, Carbon $to): float
+    public function averageDailyExpenseBetween(User $user, Carbon $from, Carbon $to): float
     {
         $days = max(1, $from->diffInDays($to) + 1);
-        $total = $this->totalExpensesBetween($from, $to);
+        $total = $this->totalExpensesBetween($user, $from, $to);
 
         return $total / $days;
     }
@@ -83,13 +87,13 @@ class TransactionRepository
     /**
      * Get daily spending totals for chart data.
      *
-     * @return array<int, array{date: string, expenses: float, income: float}>
+     * @return array<int, \App\DataTransferObjects\Analytics\DailyTotalsDto>
      */
-    public function dailyTotalsBetween(Carbon $from, Carbon $to): array
+    public function dailyTotalsBetween(User $user, Carbon $from, Carbon $to): array
     {
         $results = Transaction::query()
             ->select('payment_date', 'type', DB::raw('SUM(amount) as total'))
-            ->where('user_id', auth()->id())
+            ->where('user_id', $user->id)
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->groupBy('payment_date', 'type')
             ->orderBy('payment_date')
@@ -121,29 +125,46 @@ class TransactionRepository
             }
         }
 
-        return array_values($data);
+        return array_map(
+            fn (array $item) => new \App\DataTransferObjects\Analytics\DailyTotalsDto(
+                date: $item['date'],
+                expenses: $item['expenses'],
+                income: $item['income'],
+            ),
+            array_values($data)
+        );
     }
 
     /**
      * Get spending by category for a date range.
      *
-     * @return array<int, array{category: string, amount: float}>
+     * @return array<int, \App\DataTransferObjects\Analytics\CategoryExpenseDto>
      */
-    public function expensesByCategoryBetween(Carbon $from, Carbon $to): array
+    public function expensesByCategoryBetween(User $user, Carbon $from, Carbon $to): array
     {
+        $categories = Category::query()
+            ->where('user_id', $user->id)
+            ->pluck('color', 'id')
+            ->toArray();
+
         return Transaction::query()
             ->select('category_id', DB::raw('SUM(amount) as total'))
-            ->where('user_id', auth()->id())
+            ->where('user_id', $user->id)
             ->where('type', TransactionType::Expense)
             ->where('is_savings', false)
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->groupBy('category_id')
             ->orderByDesc('total')
             ->get()
-            ->map(fn ($row) => [
-                'category' => $row->category_id ? Category::find($row->category_id)?->name ?? 'Unknown' : 'Uncategorized',
-                'amount' => (float) $row->total,
-            ])
+            ->map(function ($row) use ($categories) {
+                $category = $row->category_id ? Category::find($row->category_id) : null;
+
+                return new \App\DataTransferObjects\Analytics\CategoryExpenseDto(
+                    category: $category?->name ?? 'Uncategorized',
+                    amount: (float) $row->total,
+                    color: $categories[$row->category_id] ?? 'gray',
+                );
+            })
             ->toArray();
     }
 }
