@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\ExpenseParserInterface;
 use App\Models\Category;
 use App\Models\CreditCard;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Prism\Prism\Facades\Prism;
 
-final readonly class ExpenseParserService
+final readonly class ExpenseParserService implements ExpenseParserInterface
 {
     public function parse(string $input, int $userId): \App\DataTransferObjects\Actions\ParsedExpenseDto
     {
