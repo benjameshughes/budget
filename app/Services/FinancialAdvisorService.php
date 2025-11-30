@@ -37,10 +37,10 @@ final readonly class FinancialAdvisorService implements FinancialAdvisorInterfac
 
             // Call Prism AI
             $response = Prism::text()
-                ->using('anthropic', 'claude-opus-4-5-20251101')
+                ->using('anthropic', 'claude-3-5-haiku-latest')
                 ->withSystemPrompt($systemPrompt)
                 ->withPrompt($userPrompt)
-                ->withMaxTokens(150)
+                ->withMaxTokens(100)
                 ->generate();
 
             $feedback = trim($response->text);

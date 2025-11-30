@@ -38,12 +38,12 @@ class AdvisorController extends Controller
         $systemPrompt = $this->advisorService->buildSystemPrompt();
         $userPrompt = $this->advisorService->buildUserPrompt($transaction, $context);
 
-        // Stream the response
+        // Stream the response using Haiku for speed
         return Prism::text()
-            ->using('anthropic', 'claude-opus-4-5-20251101')
+            ->using('anthropic', 'claude-3-5-haiku-latest')
             ->withSystemPrompt($systemPrompt)
             ->withPrompt($userPrompt)
-            ->withMaxTokens(150)
+            ->withMaxTokens(100)
             ->asEventStreamResponse();
     }
 }
