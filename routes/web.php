@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Settings\ApiTokens;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\PayCadence;
@@ -25,6 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/password', Password::class)->name('user-password.edit');
     Route::get('settings/pay-cadence', PayCadence::class)->name('pay-cadence.edit');
     Route::get('settings/appearance', Appearance::class)->name('appearance.edit');
+    Route::get('settings/api', ApiTokens::class)->name('api.tokens');
 
     Route::get('settings/two-factor', TwoFactor::class)
         ->middleware(
