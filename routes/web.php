@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('analytics', 'analytics')->name('analytics');
     Route::view('bnpl', 'bnpl')->name('bnpl');
     Route::view('credit-cards', 'credit-cards')->name('credit-cards');
+    Route::view('bills', 'bills')->name('bills');
 
     Route::redirect('settings', 'settings/profile');
 

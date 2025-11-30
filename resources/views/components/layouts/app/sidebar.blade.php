@@ -20,6 +20,7 @@
                 <flux:sidebar.item icon="chart-bar" href="{{route('analytics')}}">Analytics</flux:sidebar.item>
                 <flux:sidebar.item icon="banknotes" href="{{route('bnpl')}}">BNPL</flux:sidebar.item>
                 <flux:sidebar.item icon="credit-card" href="{{route('credit-cards')}}">Credit Cards</flux:sidebar.item>
+                <flux:sidebar.item icon="document-text" href="{{route('bills')}}">Bills</flux:sidebar.item>
             </flux:sidebar.nav>
             <flux:sidebar.spacer />
             <flux:sidebar.nav>
