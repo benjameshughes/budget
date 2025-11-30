@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdvisorController;
 use App\Livewire\Settings\ApiTokens;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
@@ -19,6 +20,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('bnpl', 'bnpl')->name('bnpl');
     Route::view('credit-cards', 'credit-cards')->name('credit-cards');
     Route::view('bills', 'bills')->name('bills');
+
+    Route::get('advisor/stream/{transaction}', [AdvisorController::class, 'stream'])
+        ->name('advisor.stream');
 
     Route::redirect('settings', 'settings/profile');
 

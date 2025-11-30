@@ -32,8 +32,9 @@ final class TransactionController extends Controller
         );
 
         $transaction = $action->handle($data);
+        $transaction->refresh();
 
-        return response()->json([
+        $response = [
             'message' => 'Transaction created successfully',
             'transaction' => [
                 'id' => $transaction->id,
@@ -42,7 +43,14 @@ final class TransactionController extends Controller
                 'type' => $transaction->type->value,
                 'date' => $transaction->payment_date->toDateString(),
             ],
-        ], 201);
+        ];
+
+        // Include AI feedback if available
+        if ($transaction->feedback && $transaction->feedback->feedback) {
+            $response['feedback'] = $transaction->feedback->feedback;
+        }
+
+        return response()->json($response, 201);
     }
 
     /**
@@ -68,8 +76,9 @@ final class TransactionController extends Controller
         );
 
         $transaction = $action->handle($data);
+        $transaction->refresh();
 
-        return response()->json([
+        $response = [
             'message' => 'Transaction created successfully',
             'parsed' => [
                 'confidence' => $parsed->confidence,
@@ -85,6 +94,13 @@ final class TransactionController extends Controller
                 'type' => $transaction->type->value,
                 'date' => $transaction->payment_date->toDateString(),
             ],
-        ], 201);
+        ];
+
+        // Include AI feedback if available
+        if ($transaction->feedback && $transaction->feedback->feedback) {
+            $response['feedback'] = $transaction->feedback->feedback;
+        }
+
+        return response()->json($response, 201);
     }
 }

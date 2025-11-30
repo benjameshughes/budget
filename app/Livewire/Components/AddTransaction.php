@@ -69,7 +69,7 @@ class AddTransaction extends Component
             description: $validated['description'] ?? null,
         );
 
-        $createTransactionAction->handle($data);
+        $transaction = $createTransactionAction->handle($data);
 
         $this->dispatch('transaction-added');
         Flux::toast(
@@ -77,6 +77,21 @@ class AddTransaction extends Component
             heading: 'Transaction Added',
             variant: 'success',
         );
+
+        // Show AI financial advisor feedback if available
+        try {
+            $transaction->refresh();
+            $feedback = $transaction->feedback;
+            if ($feedback && $feedback->feedback) {
+                Flux::toast(
+                    text: $feedback->feedback,
+                    heading: 'Financial Advisor',
+                    variant: 'info',
+                );
+            }
+        } catch (\Exception $e) {
+            // Silently fail - feedback is optional
+        }
 
         $this->reset(['amount', 'name', 'description', 'category', 'credit_card_id']);
     }

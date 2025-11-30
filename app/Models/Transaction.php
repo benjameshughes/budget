@@ -28,6 +28,11 @@ class Transaction extends Model
         'is_savings' => 'boolean',
     ];
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
@@ -41,5 +46,10 @@ class Transaction extends Model
     public function creditCard(): BelongsTo
     {
         return $this->belongsTo(CreditCard::class);
+    }
+
+    public function feedback(): HasOne
+    {
+        return $this->hasOne(TransactionFeedback::class);
     }
 }

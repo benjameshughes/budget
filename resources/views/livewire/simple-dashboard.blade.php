@@ -13,26 +13,46 @@
                 wire:model="input"
                 placeholder="What did you spend? (e.g., £25 at Tesco for groceries)"
                 submit="enter"
-                rows="1"
-                inline
             >
                 <x-slot name="actionsTrailing">
-                    <flux:button type="submit" size="sm" variant="primary" icon="sparkles">
-                        Add
-                    </flux:button>
+                    <flux:button type="submit" size="sm" variant="primary" icon="paper-airplane" />
                 </x-slot>
             </flux:composer>
         </form>
 
-        <p class="mt-2 text-center text-sm text-neutral-500 dark:text-neutral-400">
-            AI-powered parsing - just type naturally!
-        </p>
+        <div class="mt-3 flex items-center justify-center gap-3">
+            <flux:switch wire:model.live="showForm" />
+            <span class="text-sm text-zinc-500 dark:text-zinc-400">
+                {{ $showForm ? 'Review before saving' : 'Save directly' }}
+            </span>
+        </div>
     </div>
 
-    {{-- Traditional Add Transaction Form (Fallback) --}}
+    {{-- AI Advisor Terminal Output --}}
     <div class="mx-auto w-full max-w-2xl">
-        <livewire:components.add-transaction />
+        <div
+            x-data="advisorTerminal()"
+            x-init="$watch('$wire.lastTransactionId', (id) => id && startStream(id))"
+            class="min-h-[60px] rounded-lg bg-zinc-950 p-4 font-mono text-sm"
+        >
+            <div class="flex items-start gap-2">
+                <span class="text-emerald-500">></span>
+                <span
+                    x-ref="output"
+                    class="flex-1 text-emerald-400"
+                    x-text="output || 'Ready for your next transaction...'"
+                ></span>
+                <span x-show="loading" class="animate-pulse text-emerald-500">▌</span>
+            </div>
+        </div>
     </div>
+
+    {{-- Traditional Add Transaction Form (Only shown when toggle is on) --}}
+    @if($showForm)
+        <div class="mx-auto w-full max-w-2xl">
+            <livewire:components.add-transaction />
+        </div>
+    @endif
 
     {{-- 3. Recent Transactions --}}
     <div class="mx-auto w-full max-w-2xl">
@@ -47,7 +67,7 @@
         @else
             <div class="space-y-2">
                 @foreach($this->recentTransactions as $transaction)
-                    <flux:card class="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
+                    <flux:card size="sm" class="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
                         <div class="flex items-center justify-between">
                             <div class="flex flex-col gap-1">
                                 <div class="flex items-center gap-2">
@@ -55,7 +75,7 @@
                                         {{ $transaction->name ?? 'Transaction' }}
                                     </span>
                                     @if($transaction->category)
-                                        <flux:badge size="sm" color="zinc" inset="top bottom">
+                                        <flux:badge size="sm" inset="top bottom">
                                             {{ $transaction->category->name }}
                                         </flux:badge>
                                     @endif
@@ -75,4 +95,35 @@
             </div>
         @endif
     </div>
+
+    <script>
+        function advisorTerminal() {
+            return {
+                output: '',
+                loading: false,
+
+                startStream(transactionId) {
+                    this.output = '';
+                    this.loading = true;
+
+                    const eventSource = new EventSource(`/advisor/stream/${transactionId}`);
+
+                    eventSource.addEventListener('text_delta', (event) => {
+                        const data = JSON.parse(event.data);
+                        this.output += data.delta;
+                    });
+
+                    eventSource.addEventListener('stream_end', () => {
+                        this.loading = false;
+                        eventSource.close();
+                    });
+
+                    eventSource.onerror = () => {
+                        this.loading = false;
+                        eventSource.close();
+                    };
+                }
+            }
+        }
+    </script>
 </div>
