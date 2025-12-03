@@ -18,5 +18,10 @@ final readonly class ParsedExpenseDto
         public string $date,
         public float $confidence,
         public string $rawInput,
+        public string $paymentType = 'regular',
+        public ?int $billId = null,
+        public ?string $billName = null,
+        public ?int $bnplInstallmentId = null,
+        public ?string $bnplPurchaseName = null,
     ) {}
 }
