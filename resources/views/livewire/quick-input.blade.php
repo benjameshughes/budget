@@ -12,11 +12,11 @@
         x-on:close-quick-input.window="$flux.modal('quick-input').close()"
     >
         <div
-            x-data="voiceInput()"
+            x-data="quickInputState()"
             class="rounded-xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-900"
         >
             {{-- Input Section --}}
-            <form wire:submit="submit" class="flex items-center gap-3 p-4">
+            <form wire:submit="submit" x-on:submit="startLoading()" class="flex items-center gap-3 p-4">
                 <div class="flex-1 relative">
                     <input
                         type="text"
@@ -25,6 +25,7 @@
                         x-on:voice-result.window="$wire.input = $event.detail; $refs.input.focus()"
                         placeholder="£25 at Tesco for groceries..."
                         class="w-full rounded-lg border-0 bg-transparent py-2 text-lg text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-0 dark:text-zinc-100 dark:placeholder-zinc-500"
+                        x-bind:disabled="loading"
                         autofocus
                     />
                 </div>
@@ -36,6 +37,7 @@
                     x-bind:class="recording ? 'bg-red-500 text-white animate-pulse' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'"
                     class="flex h-10 w-10 items-center justify-center rounded-full transition-colors"
                     x-bind:title="recording ? 'Stop recording' : 'Start voice input'"
+                    x-bind:disabled="loading"
                 >
                     <template x-if="!recording">
                         <flux:icon.microphone class="size-5" />
@@ -46,19 +48,33 @@
                 </button>
 
                 {{-- Submit Button --}}
-                <flux:button type="submit" variant="primary" icon="paper-airplane" />
+                <flux:button type="submit" variant="primary" icon="paper-airplane" x-bind:disabled="loading" loading />
             </form>
 
             {{-- Helper Text --}}
             <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
                 <div class="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                    <span x-show="!recording">
+                    {{-- Normal state --}}
+                    <span x-show="!recording && !loading" x-cloak>
                         Type or speak: "£10 coffee" • "Paid £50 for electricity" • "Got £500 wages"
                     </span>
-                    <span x-show="recording" class="text-red-500">
+
+                    {{-- Recording state --}}
+                    <span x-show="recording" x-cloak class="text-red-500">
                         Listening... speak now
                     </span>
-                    <div class="flex items-center gap-2">
+
+                    {{-- Loading state with cycling messages --}}
+                    <span x-show="loading" x-cloak class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                        <span class="inline-flex">
+                            <span class="animate-[bounce_1s_ease-in-out_infinite]">.</span>
+                            <span class="animate-[bounce_1s_ease-in-out_0.1s_infinite]">.</span>
+                            <span class="animate-[bounce_1s_ease-in-out_0.2s_infinite]">.</span>
+                        </span>
+                        <span x-text="loadingMessage" class="transition-opacity duration-300"></span>
+                    </span>
+
+                    <div class="flex items-center gap-2" x-show="!loading" x-cloak>
                         <kbd class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs dark:bg-zinc-800">⌘K</kbd>
                         <span>to open</span>
                     </div>
@@ -82,23 +98,42 @@
     </flux:modal>
 
     <script>
-        function voiceInput() {
+        function quickInputState() {
             return {
+                // Voice input state
                 recording: false,
                 supported: false,
                 recognition: null,
                 interimText: '',
                 networkError: false,
 
+                // Loading state
+                loading: false,
+                loadingMessage: '',
+                loadingMessages: [
+                    'Got your request',
+                    'Thinking about it',
+                    'Checking your history',
+                    'Working it out',
+                    'Almost there',
+                ],
+                messageIndex: 0,
+                messageInterval: null,
+
                 init() {
-                    // Check for browser support
+                    // Listen for Livewire events to stop loading
+                    this.$wire.$on('close-quick-input', () => {
+                        this.stopLoading();
+                    });
+
+                    // Initialize speech recognition
                     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                     this.supported = !!SpeechRecognition;
 
                     if (this.supported) {
                         this.recognition = new SpeechRecognition();
-                        this.recognition.continuous = true; // Keep listening
-                        this.recognition.interimResults = true; // Show partial results
+                        this.recognition.continuous = true;
+                        this.recognition.interimResults = true;
                         this.recognition.lang = 'en-GB';
 
                         this.recognition.onresult = (event) => {
@@ -114,13 +149,11 @@
                                 }
                             }
 
-                            // Update input with interim results so user sees feedback
                             if (interimTranscript) {
                                 this.interimText = interimTranscript;
                                 window.dispatchEvent(new CustomEvent('voice-result', { detail: interimTranscript }));
                             }
 
-                            // When we get a final result, stop and use it
                             if (finalTranscript) {
                                 window.dispatchEvent(new CustomEvent('voice-result', { detail: finalTranscript }));
                                 this.stopRecording();
@@ -131,7 +164,6 @@
                             console.error('Speech recognition error:', event.error);
 
                             if (event.error === 'network') {
-                                // Network error - can't reach Google's servers
                                 this.recording = false;
                                 this.networkError = true;
                             } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
@@ -140,7 +172,6 @@
                         };
 
                         this.recognition.onend = () => {
-                            // If still recording and no network error, restart (handles browser auto-stop)
                             if (this.recording && !this.networkError) {
                                 try {
                                     this.recognition.start();
@@ -152,8 +183,31 @@
                     }
                 },
 
+                startLoading() {
+                    this.loading = true;
+                    this.messageIndex = 0;
+                    this.loadingMessage = this.loadingMessages[0];
+
+                    // Cycle through messages every 800ms
+                    this.messageInterval = setInterval(() => {
+                        this.messageIndex++;
+                        if (this.messageIndex < this.loadingMessages.length) {
+                            this.loadingMessage = this.loadingMessages[this.messageIndex];
+                        }
+                        // Stay on last message if we run out
+                    }, 800);
+                },
+
+                stopLoading() {
+                    this.loading = false;
+                    if (this.messageInterval) {
+                        clearInterval(this.messageInterval);
+                        this.messageInterval = null;
+                    }
+                },
+
                 toggleRecording() {
-                    if (!this.supported) return;
+                    if (!this.supported || this.loading) return;
 
                     if (this.recording) {
                         this.stopRecording();
@@ -164,7 +218,7 @@
 
                 startRecording() {
                     try {
-                        this.networkError = false; // Reset on new attempt
+                        this.networkError = false;
                         this.recognition.start();
                         this.recording = true;
                         this.interimText = '';
