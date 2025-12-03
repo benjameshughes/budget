@@ -5,6 +5,7 @@ use App\Livewire\Settings\ApiTokens;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\PayCadence;
+use App\Livewire\Settings\PayCycle;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\TwoFactor;
 use App\Livewire\Settings\WeeklyBudget;
@@ -31,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/profile', Profile::class)->name('profile.edit');
     Route::get('settings/password', Password::class)->name('user-password.edit');
     Route::get('settings/pay-cadence', PayCadence::class)->name('pay-cadence.edit');
+    Route::get('settings/pay-cycle', PayCycle::class)->name('pay-cycle.edit');
     Route::get('settings/weekly-budget', WeeklyBudget::class)->name('weekly-budget.edit');
     Route::get('settings/appearance', Appearance::class)->name('appearance.edit');
     Route::get('settings/api', ApiTokens::class)->name('api.tokens');

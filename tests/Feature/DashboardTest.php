@@ -17,7 +17,7 @@ test('authenticated users can visit the dashboard', function () {
         ->assertSeeLivewire(SimpleDashboard::class);
 });
 
-test('dashboard shows status message', function () {
+test('dashboard shows budget breakdown', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user);
@@ -25,9 +25,10 @@ test('dashboard shows status message', function () {
     $response = $this->get('/dashboard');
 
     $response->assertStatus(200);
-    // Should see the status message - when no transactions exist, it will show overspent by the initial amount
+    // Should see the budget breakdown section
     expect($response->getContent())
-        ->toContain('this week');
+        ->toContain('Income')
+        ->toContain('Remaining');
 });
 
 test('dashboard shows recent transactions', function () {

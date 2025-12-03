@@ -4,6 +4,48 @@
         <h1 class="text-4xl font-semibold {{ $this->statusMessage['color'] }} text-center">
             {{ $this->statusMessage['text'] }}
         </h1>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400">
+            {{ $this->budgetBreakdown['period_start']->format('D j M') }} → {{ $this->budgetBreakdown['period_end']->format('D j M') }}
+            ({{ $this->budgetBreakdown['days_remaining'] }} {{ Str::plural('day', $this->budgetBreakdown['days_remaining']) }} left)
+        </p>
+    </div>
+
+    {{-- Budget Breakdown --}}
+    <div class="mx-auto w-full max-w-md">
+        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-zinc-600 dark:text-zinc-400">Income</span>
+                    <span class="font-medium text-green-600 dark:text-green-400">+£{{ number_format($this->budgetBreakdown['income'], 2) }}</span>
+                </div>
+                @if($this->budgetBreakdown['bills_due'] > 0)
+                <div class="flex justify-between">
+                    <span class="text-zinc-600 dark:text-zinc-400">Bills due</span>
+                    <span class="font-medium text-zinc-900 dark:text-zinc-100">-£{{ number_format($this->budgetBreakdown['bills_due'], 2) }}</span>
+                </div>
+                @endif
+                @if($this->budgetBreakdown['savings_goal'] > 0)
+                <div class="flex justify-between">
+                    <span class="text-zinc-600 dark:text-zinc-400">Savings goal</span>
+                    <span class="font-medium text-zinc-900 dark:text-zinc-100">-£{{ number_format($this->budgetBreakdown['savings_goal'], 2) }}</span>
+                </div>
+                @endif
+                <div class="flex justify-between border-t border-zinc-200 pt-2 dark:border-zinc-700">
+                    <span class="text-zinc-600 dark:text-zinc-400">Available to spend</span>
+                    <span class="font-medium text-zinc-900 dark:text-zinc-100">£{{ number_format($this->budgetBreakdown['available_to_spend'], 2) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-zinc-600 dark:text-zinc-400">Spent so far</span>
+                    <span class="font-medium text-red-600 dark:text-red-400">-£{{ number_format($this->budgetBreakdown['spent'], 2) }}</span>
+                </div>
+                <div class="flex justify-between border-t border-zinc-200 pt-2 dark:border-zinc-700">
+                    <span class="font-medium text-zinc-900 dark:text-zinc-100">Remaining</span>
+                    <span class="font-semibold {{ $this->budgetBreakdown['remaining'] >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                        {{ $this->budgetBreakdown['remaining'] >= 0 ? '' : '-' }}£{{ number_format(abs($this->budgetBreakdown['remaining']), 2) }}
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- 2. Quick Input (The Hero Action) --}}
