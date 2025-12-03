@@ -15,15 +15,18 @@ class Bill extends Model
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'next_due_date' => 'date',
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'cadence' => BillCadence::class,
-        'autopay' => 'bool',
-        'active' => 'bool',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'next_due_date' => 'date',
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'cadence' => BillCadence::class,
+            'autopay' => 'bool',
+            'active' => 'bool',
+        ];
+    }
 
     public function user(): BelongsTo
     {

@@ -15,11 +15,14 @@ class SavingsTransfer extends Model
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'transfer_date' => 'date',
-        'direction' => TransferDirection::class,
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'transfer_date' => 'date',
+            'direction' => TransferDirection::class,
+        ];
+    }
 
     public function user(): BelongsTo
     {

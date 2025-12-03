@@ -21,12 +21,15 @@ class Transaction extends Model
         'updated_at',
     ];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'payment_date' => 'date',
-        'type' => TransactionType::class,
-        'is_savings' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'payment_date' => 'date',
+            'type' => TransactionType::class,
+            'is_savings' => 'boolean',
+        ];
+    }
 
     public function user(): BelongsTo
     {

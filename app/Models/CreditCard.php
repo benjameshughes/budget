@@ -15,10 +15,13 @@ class CreditCard extends Model
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    protected $casts = [
-        'starting_balance' => 'decimal:2',
-        'credit_limit' => 'decimal:2',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'starting_balance' => 'decimal:2',
+            'credit_limit' => 'decimal:2',
+        ];
+    }
 
     public function user(): BelongsTo
     {

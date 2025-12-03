@@ -14,10 +14,13 @@ class CreditCardPayment extends Model
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'payment_date' => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'payment_date' => 'date',
+        ];
+    }
 
     public function user(): BelongsTo
     {

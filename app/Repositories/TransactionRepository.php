@@ -54,13 +54,14 @@ final readonly class TransactionRepository
     public function topExpenseCategoryBetween(User $user, Carbon $from, Carbon $to): ?Collection
     {
         $row = Transaction::query()
-            ->select('category_id', DB::raw('SUM(amount) as total'))
-            ->where('user_id', $user->id)
-            ->where('type', TransactionType::Expense)
-            ->where('is_savings', false)
-            ->whereNotNull('category_id')
-            ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
-            ->groupBy('category_id')
+            ->select('transactions.category_id', 'categories.name as category_name', DB::raw('SUM(transactions.amount) as total'))
+            ->leftJoin('categories', 'transactions.category_id', '=', 'categories.id')
+            ->where('transactions.user_id', $user->id)
+            ->where('transactions.type', TransactionType::Expense)
+            ->where('transactions.is_savings', false)
+            ->whereNotNull('transactions.category_id')
+            ->whereBetween('transactions.payment_date', [$from->toDateString(), $to->toDateString()])
+            ->groupBy('transactions.category_id', 'categories.name')
             ->orderByDesc('total')
             ->first();
 
@@ -68,11 +69,9 @@ final readonly class TransactionRepository
             return null;
         }
 
-        $category = Category::find($row->category_id);
-
         return collect([
             'id' => $row->category_id,
-            'name' => $category?->name,
+            'name' => $row->category_name,
             'total' => (float) $row->total,
         ]);
     }
@@ -143,24 +142,23 @@ final readonly class TransactionRepository
      */
     public function expensesByCategoryBetween(User $user, Carbon $from, Carbon $to): array
     {
-        return Transaction::query()
-            ->select('category_id', DB::raw('SUM(amount) as total'))
-            ->where('user_id', $user->id)
-            ->where('type', TransactionType::Expense)
-            ->where('is_savings', false)
-            ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
-            ->groupBy('category_id')
+        $results = Transaction::query()
+            ->select('category_id', 'categories.name as category_name', DB::raw('SUM(transactions.amount) as total'))
+            ->leftJoin('categories', 'transactions.category_id', '=', 'categories.id')
+            ->where('transactions.user_id', $user->id)
+            ->where('transactions.type', TransactionType::Expense)
+            ->where('transactions.is_savings', false)
+            ->whereBetween('transactions.payment_date', [$from->toDateString(), $to->toDateString()])
+            ->groupBy('transactions.category_id', 'categories.name')
             ->orderByDesc('total')
-            ->get()
-            ->map(function ($row, int $index) {
-                $category = $row->category_id ? Category::find($row->category_id) : null;
+            ->get();
 
-                return new \App\DataTransferObjects\Analytics\CategoryExpenseDto(
-                    category: $category?->name ?? 'Uncategorized',
-                    amount: (float) $row->total,
-                    color: CategoryColor::fromIndex($index)->hex(),
-                );
-            })
-            ->toArray();
+        return $results->map(function ($row, int $index) {
+            return new \App\DataTransferObjects\Analytics\CategoryExpenseDto(
+                category: $row->category_name ?? 'Uncategorized',
+                amount: (float) $row->total,
+                color: CategoryColor::fromIndex($index)->hex(),
+            );
+        })->toArray();
     }
 }
