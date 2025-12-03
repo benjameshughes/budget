@@ -71,6 +71,13 @@
                     Voice input not supported in this browser. Try Chrome or Edge.
                 </div>
             </template>
+
+            {{-- Network Error Warning --}}
+            <template x-if="networkError">
+                <div class="border-t border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+                    Voice input unavailable - can't reach speech servers. Check VPN/firewall or try a different browser.
+                </div>
+            </template>
         </div>
     </flux:modal>
 
@@ -80,6 +87,8 @@
                 recording: false,
                 supported: false,
                 recognition: null,
+                interimText: '',
+                networkError: false,
 
                 init() {
                     // Check for browser support
@@ -88,23 +97,57 @@
 
                     if (this.supported) {
                         this.recognition = new SpeechRecognition();
-                        this.recognition.continuous = false;
-                        this.recognition.interimResults = false;
+                        this.recognition.continuous = true; // Keep listening
+                        this.recognition.interimResults = true; // Show partial results
                         this.recognition.lang = 'en-GB';
 
                         this.recognition.onresult = (event) => {
-                            const transcript = event.results[0][0].transcript;
-                            window.dispatchEvent(new CustomEvent('voice-result', { detail: transcript }));
-                            this.recording = false;
+                            let finalTranscript = '';
+                            let interimTranscript = '';
+
+                            for (let i = event.resultIndex; i < event.results.length; i++) {
+                                const transcript = event.results[i][0].transcript;
+                                if (event.results[i].isFinal) {
+                                    finalTranscript += transcript;
+                                } else {
+                                    interimTranscript += transcript;
+                                }
+                            }
+
+                            // Update input with interim results so user sees feedback
+                            if (interimTranscript) {
+                                this.interimText = interimTranscript;
+                                window.dispatchEvent(new CustomEvent('voice-result', { detail: interimTranscript }));
+                            }
+
+                            // When we get a final result, stop and use it
+                            if (finalTranscript) {
+                                window.dispatchEvent(new CustomEvent('voice-result', { detail: finalTranscript }));
+                                this.stopRecording();
+                            }
                         };
 
                         this.recognition.onerror = (event) => {
                             console.error('Speech recognition error:', event.error);
-                            this.recording = false;
+
+                            if (event.error === 'network') {
+                                // Network error - can't reach Google's servers
+                                this.recording = false;
+                                this.networkError = true;
+                            } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                                this.recording = false;
+                            }
                         };
 
                         this.recognition.onend = () => {
-                            this.recording = false;
+                            // If still recording and no network error, restart (handles browser auto-stop)
+                            if (this.recording && !this.networkError) {
+                                try {
+                                    this.recognition.start();
+                                } catch (e) {
+                                    this.recording = false;
+                                }
+                            }
                         };
                     }
                 },
@@ -113,10 +156,29 @@
                     if (!this.supported) return;
 
                     if (this.recording) {
-                        this.recognition.stop();
+                        this.stopRecording();
                     } else {
+                        this.startRecording();
+                    }
+                },
+
+                startRecording() {
+                    try {
+                        this.networkError = false; // Reset on new attempt
                         this.recognition.start();
                         this.recording = true;
+                        this.interimText = '';
+                    } catch (e) {
+                        console.error('Failed to start recognition:', e);
+                    }
+                },
+
+                stopRecording() {
+                    this.recording = false;
+                    try {
+                        this.recognition.stop();
+                    } catch (e) {
+                        // Ignore errors on stop
                     }
                 }
             };
