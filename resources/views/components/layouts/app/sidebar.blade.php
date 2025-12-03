@@ -61,6 +61,11 @@
 
         {{ $slot }}
 
+        {{-- Global Quick Input (⌘K) --}}
+        @auth
+            <livewire:quick-input />
+        @endauth
+
         @persist('toast')
             <flux:toast />
         @endpersist
