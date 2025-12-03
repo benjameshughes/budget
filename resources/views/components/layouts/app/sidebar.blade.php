@@ -18,6 +18,7 @@
             <flux:sidebar.nav>
                 <flux:sidebar.item icon="home" href="{{route('dashboard')}}" wire:current.exact>Home</flux:sidebar.item>
                 <flux:sidebar.item icon="chart-bar" href="{{route('analytics')}}">Analytics</flux:sidebar.item>
+                <flux:sidebar.item icon="receipt-percent" href="{{route('transactions')}}">Transactions</flux:sidebar.item>
                 <flux:sidebar.item icon="banknotes" href="{{route('bnpl')}}">BNPL</flux:sidebar.item>
                 <flux:sidebar.item icon="credit-card" href="{{route('credit-cards')}}">Credit Cards</flux:sidebar.item>
                 <flux:sidebar.item icon="document-text" href="{{route('bills')}}">Bills</flux:sidebar.item>

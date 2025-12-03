@@ -24,4 +24,28 @@ class SavingsAccount extends Model
     {
         return $this->hasMany(SavingsTransfer::class);
     }
+
+    public function currentBalance(): float
+    {
+        $deposits = (float) $this->transfers()
+            ->where('direction', 'deposit')
+            ->sum('amount');
+
+        $withdrawals = (float) $this->transfers()
+            ->where('direction', 'withdraw')
+            ->sum('amount');
+
+        return $deposits - $withdrawals;
+    }
+
+    public function progressPercentage(): float
+    {
+        if (! $this->target_amount || $this->target_amount <= 0) {
+            return 0.0;
+        }
+
+        $progress = ($this->currentBalance() / (float) $this->target_amount) * 100;
+
+        return min(100.0, max(0.0, $progress));
+    }
 }

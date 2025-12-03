@@ -20,11 +20,17 @@ class SavingsAccountsSummary extends Component
 
     protected function balance(SavingsAccount $acc): float
     {
-        // Use already-loaded transfers collection to avoid N+1 queries
-        $deposits = (float) $acc->transfers->where('direction', TransferDirection::Deposit)->sum('amount');
-        $withdrawals = (float) $acc->transfers->where('direction', TransferDirection::Withdraw)->sum('amount');
+        // Check if transfers are loaded to avoid N+1 queries
+        if ($acc->relationLoaded('transfers')) {
+            // Use already-loaded transfers collection
+            $deposits = (float) $acc->transfers->where('direction', TransferDirection::Deposit)->sum('amount');
+            $withdrawals = (float) $acc->transfers->where('direction', TransferDirection::Withdraw)->sum('amount');
 
-        return $deposits - $withdrawals;
+            return $deposits - $withdrawals;
+        }
+
+        // Otherwise use the model method
+        return $acc->currentBalance();
     }
 
     protected function computeStats($accounts): array

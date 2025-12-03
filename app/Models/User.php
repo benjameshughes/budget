@@ -28,6 +28,7 @@ class User extends Authenticatable
         'email',
         'password',
         'pay_cadence',
+        'weekly_budget',
     ];
 
     /**
@@ -53,6 +54,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'pay_cadence' => PayCadence::class,
+            'weekly_budget' => 'decimal:2',
         ];
     }
 

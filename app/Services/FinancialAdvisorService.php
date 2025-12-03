@@ -70,14 +70,14 @@ final readonly class FinancialAdvisorService implements FinancialAdvisorInterfac
 
     public function buildSpendingContext(User $user, Transaction $transaction): array
     {
-        // Get last 5 transactions in same category
+        // Get last 10 transactions in same category
         $recentTransactions = Transaction::query()
             ->where('user_id', $user->id)
             ->where('category_id', $transaction->category_id)
             ->where('type', TransactionType::Expense)
             ->where('id', '!=', $transaction->id)
             ->orderByDesc('payment_date')
-            ->limit(5)
+            ->limit(10)
             ->get();
 
         // Calculate 30-day average for this category
@@ -132,7 +132,7 @@ PROMPT;
         if ($context['recent_transactions']->isNotEmpty()) {
             $recent = $context['recent_transactions']
                 ->map(fn ($t) => "£{$t->amount} at {$t->name}")
-                ->take(3)
+                ->take(6)
                 ->join(', ');
             $recentList = "\nRecent purchases: {$recent}";
         }
