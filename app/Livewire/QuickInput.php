@@ -61,7 +61,7 @@ class QuickInput extends Component
 
             $this->reset('input');
             $this->dispatch('close-quick-input');
-            $this->dispatch('transaction-added');
+            $this->dispatch('transaction-added', transactionId: $transaction->id);
 
             Flux::toast(
                 text: "Added: {$transaction->name} - £".number_format((float) $transaction->amount, 2),

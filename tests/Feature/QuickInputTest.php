@@ -24,7 +24,7 @@ test('quick input can create a transaction', function () {
         ->test(QuickInput::class)
         ->set('input', '£25 at Tesco for groceries')
         ->call('submit')
-        ->assertDispatched('transaction-added')
+        ->assertDispatched('transaction-added', fn ($name, $params) => isset($params['transactionId']))
         ->assertDispatched('close-quick-input');
 
     expect(Transaction::where('user_id', $user->id)->count())->toBe(1);

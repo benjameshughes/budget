@@ -50,22 +50,20 @@
 
     {{-- 2. Quick Input (The Hero Action) --}}
     <div class="mx-auto w-full max-w-2xl">
-        <form wire:submit="submitInput">
-            <flux:composer
-                wire:model="input"
-                placeholder="What did you spend? (e.g., £25 at Tesco for groceries)"
-                submit="enter"
-            >
-                <x-slot name="actionsTrailing">
-                    <flux:button type="submit" size="sm" variant="primary" icon="paper-airplane" />
-                </x-slot>
-            </flux:composer>
-        </form>
+        <flux:modal.trigger name="quick-input">
+            <flux:input
+                as="button"
+                placeholder="What did you spend? Type or press ⌘K..."
+                icon="pencil-square"
+                kbd="⌘K"
+                class="w-full cursor-pointer"
+            />
+        </flux:modal.trigger>
 
         <div class="mt-3 flex items-center justify-center gap-3">
             <flux:switch wire:model.live="showForm" />
             <span class="text-sm text-zinc-500 dark:text-zinc-400">
-                {{ $showForm ? 'Review before saving' : 'Save directly' }}
+                {{ $showForm ? 'Show detailed form' : 'Quick entry only' }}
             </span>
         </div>
     </div>
