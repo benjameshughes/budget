@@ -47,6 +47,7 @@ final readonly class TransactionRepository
         return (float) Transaction::query()
             ->where('user_id', $user->id)
             ->where('type', TransactionType::Expense)
+            ->where('is_savings', false)
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->sum('amount');
     }
