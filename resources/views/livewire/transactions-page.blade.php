@@ -109,16 +109,13 @@
                         </span>
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3">
-                        <div class="flex gap-1 justify-end">
-                            <flux:button
-                                variant="ghost"
-                                size="sm"
-                                icon="trash"
-                                aria-label="Delete transaction"
-                                wire:click="deleteTransaction({{ $transaction->id }})"
-                                wire:confirm="Are you sure you want to delete this transaction?"
-                            />
-                        </div>
+                        <flux:button
+                            variant="ghost"
+                            size="sm"
+                            icon="trash"
+                            aria-label="Delete transaction"
+                            wire:click="confirmDelete({{ $transaction->id }})"
+                        />
                     </flux:table.cell>
                 </flux:table.row>
             @empty
@@ -157,4 +154,23 @@
             </div>
         </div>
     </div>
+
+    {{-- Delete Confirmation Modal --}}
+    <flux:modal wire:model.self="showDeleteModal" class="max-w-sm">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Delete transaction?</flux:heading>
+                <flux:text class="mt-2">
+                    This action cannot be undone. The transaction will be permanently removed.
+                </flux:text>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancel</flux:button>
+                </flux:modal.close>
+                <flux:button variant="danger" wire:click="deleteTransaction">Delete</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

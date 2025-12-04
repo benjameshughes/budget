@@ -33,6 +33,16 @@ class TransactionsPage extends Component
     #[Url]
     public string $sortDirection = 'desc';
 
+    public bool $showDeleteModal = false;
+
+    public ?int $transactionToDelete = null;
+
+    public function confirmDelete(int $transactionId): void
+    {
+        $this->transactionToDelete = $transactionId;
+        $this->showDeleteModal = true;
+    }
+
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -64,16 +74,26 @@ class TransactionsPage extends Component
         $this->resetPage();
     }
 
-    public function deleteTransaction(Transaction $transaction, DeleteTransactionAction $deleteTransactionAction): void
+    public function deleteTransaction(DeleteTransactionAction $deleteTransactionAction): void
     {
-        $deleteTransactionAction->handle($transaction);
+        if (! $this->transactionToDelete) {
+            return;
+        }
 
-        Flux::toast(
-            text: 'Transaction deleted successfully',
-            heading: 'Success',
-            variant: 'success'
-        );
+        $transaction = Transaction::find($this->transactionToDelete);
 
+        if ($transaction) {
+            $deleteTransactionAction->handle($transaction);
+
+            Flux::toast(
+                text: 'Transaction deleted successfully',
+                heading: 'Success',
+                variant: 'success'
+            );
+        }
+
+        $this->showDeleteModal = false;
+        $this->transactionToDelete = null;
         $this->resetPage();
     }
 

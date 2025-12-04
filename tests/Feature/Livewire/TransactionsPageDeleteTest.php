@@ -13,7 +13,11 @@ test('user can delete their own transaction via livewire', function () {
 
     Livewire::actingAs($user)
         ->test(TransactionsPage::class)
-        ->call('deleteTransaction', $transaction->id)
+        ->call('confirmDelete', $transaction->id)
+        ->assertSet('showDeleteModal', true)
+        ->assertSet('transactionToDelete', $transaction->id)
+        ->call('deleteTransaction')
+        ->assertSet('showDeleteModal', false)
         ->assertHasNoErrors();
 
     expect(Transaction::find($transaction->id))->toBeNull();
@@ -26,7 +30,8 @@ test('user cannot delete another users transaction via livewire', function () {
 
     Livewire::actingAs($user)
         ->test(TransactionsPage::class)
-        ->call('deleteTransaction', $transaction->id)
+        ->call('confirmDelete', $transaction->id)
+        ->call('deleteTransaction')
         ->assertForbidden();
 
     expect(Transaction::find($transaction->id))->not->toBeNull();
