@@ -40,95 +40,93 @@
     </div>
 
     {{-- Table --}}
-    <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'payment_date'"
-                    :direction="$sortDirection"
-                    wire:click="sort('payment_date')"
-                >
-                    Date
-                </flux:table.column>
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'name'"
-                    :direction="$sortDirection"
-                    wire:click="sort('name')"
-                >
-                    Name
-                </flux:table.column>
-                <flux:table.column>Category</flux:table.column>
-                <flux:table.column align="end">Type</flux:table.column>
-                <flux:table.column
-                    align="end"
-                    sortable
-                    :sorted="$sortBy === 'amount'"
-                    :direction="$sortDirection"
-                    wire:click="sort('amount')"
-                >
-                    Amount
-                </flux:table.column>
-            </flux:table.columns>
+    <flux:table>
+        <flux:table.columns>
+            <flux:table.column
+                sortable
+                :sorted="$sortBy === 'payment_date'"
+                :direction="$sortDirection"
+                wire:click="sort('payment_date')"
+            >
+                Date
+            </flux:table.column>
+            <flux:table.column
+                sortable
+                :sorted="$sortBy === 'name'"
+                :direction="$sortDirection"
+                wire:click="sort('name')"
+            >
+                Name
+            </flux:table.column>
+            <flux:table.column>Category</flux:table.column>
+            <flux:table.column align="end">Type</flux:table.column>
+            <flux:table.column
+                align="end"
+                sortable
+                :sorted="$sortBy === 'amount'"
+                :direction="$sortDirection"
+                wire:click="sort('amount')"
+            >
+                Amount
+            </flux:table.column>
+        </flux:table.columns>
 
-            <flux:table.rows>
-                @forelse($this->transactions as $transaction)
-                    <flux:table.row wire:key="transaction-{{ $transaction->id }}" class="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
-                        <flux:table.cell class="py-3 whitespace-nowrap tabular-nums">
-                            {{ $transaction->payment_date->format('M j, Y') }}
-                        </flux:table.cell>
-                        <flux:table.cell variant="strong" class="py-3">
-                            {{ $transaction->name }}
-                            @if($transaction->description)
-                                <div class="text-xs text-neutral-500 dark:text-neutral-400 font-normal mt-0.5">
-                                    {{ Str::limit($transaction->description, 60) }}
-                                </div>
-                            @endif
-                        </flux:table.cell>
-                        <flux:table.cell class="py-3">
-                            @if($transaction->category)
-                                <flux:badge size="sm" color="zinc">
-                                    {{ $transaction->category->name }}
-                                </flux:badge>
-                            @else
-                                <span class="text-neutral-400">—</span>
-                            @endif
-                        </flux:table.cell>
-                        <flux:table.cell align="end" class="py-3">
-                            <flux:badge
-                                size="sm"
-                                :color="$transaction->type === App\Enums\TransactionType::Income ? 'lime' : 'rose'"
-                            >
-                                {{ $transaction->type->label() }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell align="end" class="py-3 whitespace-nowrap tabular-nums">
-                            <span class="font-semibold {{ $transaction->type === App\Enums\TransactionType::Income ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500' }}">
-                                {{ $transaction->type === App\Enums\TransactionType::Income ? '+' : '-' }}£{{ number_format($transaction->amount, 2) }}
-                            </span>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="5" class="text-center py-12">
-                            <div class="flex flex-col items-center gap-3 text-neutral-500 dark:text-neutral-400">
-                                <flux:icon name="banknotes" variant="outline" class="w-12 h-12 opacity-50" />
-                                <div>
-                                    <p class="font-medium">No transactions found</p>
-                                    @if($search || $categoryFilter || $typeFilter)
-                                        <p class="text-sm mt-1">Try adjusting your filters</p>
-                                    @else
-                                        <p class="text-sm mt-1">Add your first transaction to get started</p>
-                                    @endif
-                                </div>
+        <flux:table.rows>
+            @forelse($this->transactions as $transaction)
+                <flux:table.row wire:key="transaction-{{ $transaction->id }}" class="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
+                    <flux:table.cell class="py-3 whitespace-nowrap tabular-nums">
+                        {{ $transaction->payment_date->format('M j, Y') }}
+                    </flux:table.cell>
+                    <flux:table.cell variant="strong" class="py-3">
+                        {{ $transaction->name }}
+                        @if($transaction->description)
+                            <div class="text-xs text-neutral-500 dark:text-neutral-400 font-normal mt-0.5">
+                                {{ Str::limit($transaction->description, 60) }}
                             </div>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-    </div>
+                        @endif
+                    </flux:table.cell>
+                    <flux:table.cell class="py-3">
+                        @if($transaction->category)
+                            <flux:badge size="sm" color="zinc">
+                                {{ $transaction->category->name }}
+                            </flux:badge>
+                        @else
+                            <span class="text-neutral-400">—</span>
+                        @endif
+                    </flux:table.cell>
+                    <flux:table.cell align="end" class="py-3">
+                        <flux:badge
+                            size="sm"
+                            :color="$transaction->type === App\Enums\TransactionType::Income ? 'lime' : 'rose'"
+                        >
+                            {{ $transaction->type->label() }}
+                        </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell align="end" class="py-3 whitespace-nowrap tabular-nums">
+                        <span class="font-semibold {{ $transaction->type === App\Enums\TransactionType::Income ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500' }}">
+                            {{ $transaction->type === App\Enums\TransactionType::Income ? '+' : '-' }}£{{ number_format($transaction->amount, 2) }}
+                        </span>
+                    </flux:table.cell>
+                </flux:table.row>
+            @empty
+                <flux:table.row>
+                    <flux:table.cell colspan="5" class="text-center py-12">
+                        <div class="flex flex-col items-center gap-3 text-neutral-500 dark:text-neutral-400">
+                            <flux:icon name="banknotes" variant="outline" class="w-12 h-12 opacity-50" />
+                            <div>
+                                <p class="font-medium">No transactions found</p>
+                                @if($search || $categoryFilter || $typeFilter)
+                                    <p class="text-sm mt-1">Try adjusting your filters</p>
+                                @else
+                                    <p class="text-sm mt-1">Add your first transaction to get started</p>
+                                @endif
+                            </div>
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
+            @endforelse
+        </flux:table.rows>
+    </flux:table>
 
     {{-- Pagination --}}
     @if($this->transactions->hasPages())
