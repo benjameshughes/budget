@@ -23,6 +23,7 @@ class TransactionFactory extends Factory
             'amount' => fake()->randomFloat(2, 10, 1000),
             'type' => fake()->randomElement(TransactionType::cases()),
             'is_savings' => false,
+            'is_bill' => false,
             'payment_date' => fake()->dateTimeBetween('-3 months', 'now'),
             'category_id' => null,
         ];
@@ -39,6 +40,14 @@ class TransactionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'type' => TransactionType::Expense,
+        ]);
+    }
+
+    public function bill(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => TransactionType::Expense,
+            'is_bill' => true,
         ]);
     }
 

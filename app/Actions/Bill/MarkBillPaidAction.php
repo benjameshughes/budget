@@ -30,6 +30,7 @@ final readonly class MarkBillPaidAction
             'payment_date' => $paidDate,
             'category_id' => $bill->category_id,
             'description' => $notes ?? 'Bill payment',
+            'is_bill' => true,
         ]);
 
         $bill->update([

@@ -28,6 +28,7 @@ class Transaction extends Model
             'payment_date' => 'date',
             'type' => TransactionType::class,
             'is_savings' => 'boolean',
+            'is_bill' => 'boolean',
         ];
     }
 

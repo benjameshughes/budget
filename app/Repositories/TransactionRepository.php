@@ -48,6 +48,7 @@ final readonly class TransactionRepository
             ->where('user_id', $user->id)
             ->where('type', TransactionType::Expense)
             ->where('is_savings', false)
+            ->where('is_bill', false)
             ->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()])
             ->sum('amount');
     }
@@ -60,6 +61,7 @@ final readonly class TransactionRepository
             ->where('transactions.user_id', $user->id)
             ->where('transactions.type', TransactionType::Expense)
             ->where('transactions.is_savings', false)
+            ->where('transactions.is_bill', false)
             ->whereNotNull('transactions.category_id')
             ->whereBetween('transactions.payment_date', [$from->toDateString(), $to->toDateString()])
             ->groupBy('transactions.category_id', 'categories.name')
@@ -149,6 +151,7 @@ final readonly class TransactionRepository
             ->where('transactions.user_id', $user->id)
             ->where('transactions.type', TransactionType::Expense)
             ->where('transactions.is_savings', false)
+            ->where('transactions.is_bill', false)
             ->whereBetween('transactions.payment_date', [$from->toDateString(), $to->toDateString()])
             ->groupBy('transactions.category_id', 'categories.name')
             ->orderByDesc('total')
