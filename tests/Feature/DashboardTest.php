@@ -31,7 +31,7 @@ test('dashboard shows budget breakdown', function () {
         ->toContain('Bills Pot');
 });
 
-test('dashboard shows recent transactions', function () {
+test('dashboard loads with transactions', function () {
     $user = User::factory()->create();
 
     Transaction::factory()
@@ -44,5 +44,5 @@ test('dashboard shows recent transactions', function () {
     $response = $this->get('/dashboard');
 
     $response->assertStatus(200)
-        ->assertSee('Recent Transactions');
+        ->assertSeeLivewire(SimpleDashboard::class);
 });

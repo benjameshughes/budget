@@ -13,6 +13,10 @@ use App\Models\BnplPurchase;
 use App\Models\User;
 use Carbon\Carbon;
 
+/**
+ * Simple facade for BNPL (Buy Now Pay Later) operations.
+ * Provides a consistent interface for Livewire components and tests.
+ */
 final readonly class BnplService
 {
     public function __construct(

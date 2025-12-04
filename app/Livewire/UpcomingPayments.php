@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Actions\Bill\MarkBillPaidAction;
 use App\Models\Bill;
 use App\Repositories\BillRepository;
-use App\Services\SchedulingService;
 use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -17,18 +17,12 @@ class UpcomingPayments extends Component
 {
     use AuthorizesRequests;
 
-    public function pay(int $billId): void
+    public function pay(int $billId, MarkBillPaidAction $markBillPaidAction): void
     {
         $bill = Bill::where('user_id', auth()->id())->findOrFail($billId);
         $this->authorize('update', $bill);
 
-        $repo = app(BillRepository::class);
-        $transaction = $repo->markPaid($bill, Carbon::today());
-
-        // Advance next due date
-        $schedule = app(SchedulingService::class);
-        $bill->next_due_date = $schedule->nextDue($bill, $bill->next_due_date);
-        $bill->save();
+        $markBillPaidAction->handle($bill, Carbon::today());
 
         Flux::toast(text: 'Bill paid', heading: 'Success', variant: 'success');
         $this->dispatch('bill-paid');

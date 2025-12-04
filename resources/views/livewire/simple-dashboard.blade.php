@@ -1,6 +1,6 @@
-<div class="w-full">
+<div class="w-full max-w-7xl mx-auto">
     {{-- 1. Status Message (Hero) --}}
-    <div class="flex justify-start">
+    <div class="flex flex-col py-6 justify-start">
         <h1 class="text-4xl font-semibold {{ $this->statusMessage['color'] }}">
             {{ $this->statusMessage['text'] }}
         </h1>
@@ -11,8 +11,8 @@
     </div>
 
     {{-- Budget Overview --}}
-    <div class="flex grow-1 gap-20">
-        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800/50 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
+    <div class="flex grow-1 gap-20 py-6 xs:flex-col">
+        <div class="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800/50 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
             <div class="space-y-4">
                 <div class="text-center">
                     <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Spent this week</p>
@@ -49,7 +49,7 @@
     </div>
 
     {{-- 2. Quick Input (The Hero Action) --}}
-    <div class="mx-auto w-full max-w-2xl">
+    <div class="mx-auto w-full py-6">
         <flux:modal.trigger name="quick-input">
             <flux:input
                 as="button"
@@ -69,7 +69,7 @@
     </div>
 
     {{-- AI Advisor Terminal Output --}}
-    <div class="mx-auto w-full max-w-2xl">
+    <div class="mx-auto w-full py-6">
         <div
             x-data="advisorTerminal()"
             x-init="$watch('$wire.lastTransactionId', (id) => id && startStream(id))"
@@ -89,53 +89,53 @@
 
     {{-- Traditional Add Transaction Form (Only shown when toggle is on) --}}
     @if($showForm)
-        <div class="mx-auto w-full max-w-2xl">
+        <div class="mx-auto w-full py-6">
             <livewire:components.add-transaction />
         </div>
     @endif
 
     {{-- 3. Recent Transactions --}}
-    <div class="mx-auto w-full max-w-2xl">
-        <flux:heading size="lg" class="mb-4">Recent Transactions</flux:heading>
+{{--    <div class="mx-auto w-full py-6">--}}
+{{--        <flux:heading size="lg" class="mb-4">Recent Transactions</flux:heading>--}}
 
-        @if($this->recentTransactions->isEmpty())
-            <flux:card class="animate-fade-in">
-                <div class="py-8 text-center text-neutral-500 dark:text-neutral-400">
-                    <div class="text-4xl mb-3 opacity-50">💳</div>
-                    <p>No transactions yet. Add your first one above!</p>
-                </div>
-            </flux:card>
-        @else
-            <div class="space-y-2">
-                @foreach($this->recentTransactions as $transaction)
-                    <flux:card size="sm" class="transition-all duration-200 ease-in-out hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:shadow-md hover:scale-[1.01] cursor-pointer">
-                        <div class="flex items-center justify-between">
-                            <div class="flex flex-col gap-1">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-medium">
-                                        {{ $transaction->name ?? 'Transaction' }}
-                                    </span>
-                                    @if($transaction->category)
-                                        <flux:badge size="sm" inset="top bottom">
-                                            {{ $transaction->category->name }}
-                                        </flux:badge>
-                                    @endif
-                                </div>
-                                <span class="text-sm text-neutral-500 dark:text-neutral-400">
-                                    {{ $transaction->payment_date->format('M j, Y') }}
-                                </span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-lg font-semibold {{ $transaction->type->value === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                    {{ $transaction->type->value === 'income' ? '+' : '-' }}£{{ number_format($transaction->amount, 2) }}
-                                </span>
-                            </div>
-                        </div>
-                    </flux:card>
-                @endforeach
-            </div>
-        @endif
-    </div>
+{{--        @if($this->recentTransactions->isEmpty())--}}
+{{--            <flux:card class="animate-fade-in">--}}
+{{--                <div class="py-8 text-center text-neutral-500 dark:text-neutral-400">--}}
+{{--                    <div class="text-4xl mb-3 opacity-50">💳</div>--}}
+{{--                    <p>No transactions yet. Add your first one above!</p>--}}
+{{--                </div>--}}
+{{--            </flux:card>--}}
+{{--        @else--}}
+{{--            <div class="space-y-2">--}}
+{{--                @foreach($this->recentTransactions as $transaction)--}}
+{{--                    <flux:card size="sm" class="transition-all duration-200 ease-in-out hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:shadow-md hover:scale-[1.01] cursor-pointer">--}}
+{{--                        <div class="flex items-center justify-between">--}}
+{{--                            <div class="flex flex-col gap-1">--}}
+{{--                                <div class="flex items-center gap-2">--}}
+{{--                                    <span class="font-medium">--}}
+{{--                                        {{ $transaction->name ?? 'Transaction' }}--}}
+{{--                                    </span>--}}
+{{--                                    @if($transaction->category)--}}
+{{--                                        <flux:badge size="sm" inset="top bottom">--}}
+{{--                                            {{ $transaction->category->name }}--}}
+{{--                                        </flux:badge>--}}
+{{--                                    @endif--}}
+{{--                                </div>--}}
+{{--                                <span class="text-sm text-neutral-500 dark:text-neutral-400">--}}
+{{--                                    {{ $transaction->payment_date->format('M j, Y') }}--}}
+{{--                                </span>--}}
+{{--                            </div>--}}
+{{--                            <div class="text-right">--}}
+{{--                                <span class="text-lg font-semibold {{ $transaction->type->value === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">--}}
+{{--                                    {{ $transaction->type->value === 'income' ? '+' : '-' }}£{{ number_format($transaction->amount, 2) }}--}}
+{{--                                </span>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    </flux:card>--}}
+{{--                @endforeach--}}
+{{--            </div>--}}
+{{--        @endif--}}
+{{--    </div>--}}
 
     <script>
         function advisorTerminal() {

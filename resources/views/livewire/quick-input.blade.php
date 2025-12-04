@@ -1,4 +1,4 @@
-<div>
+<div class="">
     {{-- Trigger: Hidden input that shows ⌘K hint --}}
     <flux:modal.trigger name="quick-input" shortcut="cmd.k">
         <span></span>

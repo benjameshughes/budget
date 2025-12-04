@@ -10,6 +10,10 @@ use App\Models\SavingsAccount;
 use App\Models\SavingsTransfer;
 use Carbon\Carbon;
 
+/**
+ * Simple facade for savings account operations.
+ * Provides a consistent interface for Livewire components and tests.
+ */
 final readonly class SavingsService
 {
     public function __construct(

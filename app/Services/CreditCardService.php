@@ -9,6 +9,10 @@ use App\Models\CreditCard;
 use App\Models\CreditCardPayment;
 use Carbon\Carbon;
 
+/**
+ * Simple facade for credit card operations.
+ * Provides a consistent interface for Livewire components and tests.
+ */
 final readonly class CreditCardService
 {
     public function __construct(
