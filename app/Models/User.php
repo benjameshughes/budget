@@ -70,5 +70,68 @@ class User extends Authenticatable
             ->implode('');
     }
 
+    /**
+     * Get the last pay date based on user's pay cadence and pay day
+     */
+    public function lastPayDate(): \Carbon\Carbon
+    {
+        $today = now();
+
+        if ($this->pay_cadence === PayCadence::Weekly) {
+            // pay_day is 0-6 (Sunday-Saturday)
+            $dayOfWeek = $this->pay_day ?? 5; // default Friday
+
+            // If today IS pay day, use today
+            if ($today->dayOfWeek === $dayOfWeek) {
+                return $today->startOfDay();
+            }
+
+            $lastPayDate = $today->copy()->previous($dayOfWeek);
+
+            return $lastPayDate->startOfDay();
+        }
+
+        // Monthly: pay_day is 1-31
+        $dayOfMonth = $this->pay_day ?? 1;
+        $lastPayDate = $today->copy()->day($dayOfMonth);
+
+        if ($lastPayDate->gt($today)) {
+            $lastPayDate->subMonth();
+        }
+
+        return $lastPayDate->startOfDay();
+    }
+
+    /**
+     * Get the next pay date based on user's pay cadence and pay day
+     */
+    public function nextPayDate(): \Carbon\Carbon
+    {
+        $today = now();
+
+        if ($this->pay_cadence === PayCadence::Weekly) {
+            $dayOfWeek = $this->pay_day ?? 5;
+
+            // If today is pay day, next is in 7 days
+            if ($today->dayOfWeek === $dayOfWeek) {
+                return $today->copy()->addWeek()->startOfDay();
+            }
+
+            return $today->copy()->next($dayOfWeek)->startOfDay();
+        }
+
+        // Monthly
+        $dayOfMonth = $this->pay_day ?? 1;
+        $nextPayDate = $today->copy()->day(min($dayOfMonth, $today->daysInMonth));
+
+        if ($nextPayDate->lte($today)) {
+            $nextPayDate->addMonth();
+            // Handle months with fewer days
+            $nextPayDate->day(min($dayOfMonth, $nextPayDate->daysInMonth));
+        }
+
+        return $nextPayDate->startOfDay();
+    }
+
     // Salary model removed in favor of unified transactions
 }

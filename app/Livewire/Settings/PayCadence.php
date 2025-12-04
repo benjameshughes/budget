@@ -28,7 +28,7 @@ class PayCadence extends Component
         $user = Auth::user();
 
         $validated = $this->validate([
-            'pay_cadence' => ['required', 'string', 'in:weekly,biweekly,twice_monthly,monthly'],
+            'pay_cadence' => ['required', 'string', 'in:weekly,monthly'],
         ]);
 
         $user->fill($validated);

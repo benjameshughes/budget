@@ -7,8 +7,6 @@ namespace App\Enums;
 enum PayCadence: string
 {
     case Weekly = 'weekly';
-    case Biweekly = 'biweekly';
-    case TwiceMonthly = 'twice_monthly';
     case Monthly = 'monthly';
 
     /**
@@ -18,8 +16,6 @@ enum PayCadence: string
     {
         return match ($this) {
             self::Weekly => 'Weekly',
-            self::Biweekly => 'Biweekly',
-            self::TwiceMonthly => 'Twice Monthly',
             self::Monthly => 'Monthly',
         };
     }
@@ -31,8 +27,6 @@ enum PayCadence: string
     {
         return match ($this) {
             self::Weekly => 52 / 12,        // ~4.33 paychecks per month
-            self::Biweekly => 26 / 12,      // ~2.17 paychecks per month
-            self::TwiceMonthly => 2,        // 2 paychecks per month
             self::Monthly => 1,             // 1 paycheck per month
         };
     }

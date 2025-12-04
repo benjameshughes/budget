@@ -64,16 +64,24 @@ class BillsManagement extends Component
         $payCadence = auth()->user()->pay_cadence;
         $paydayAmount = $totalMonthly / $payCadence->divisor();
 
-        $next30Days = $bills->filter(function ($bill) {
-            return $bill->next_due_date && $bill->next_due_date->lte(now()->addDays(30));
-        })->sum('amount');
+        $user = auth()->user();
+        $lastPayDate = $user->lastPayDate();
+        $nextPayDate = $user->nextPayDate();
+
+        $billsDueThisPeriod = $bills->filter(function ($bill) use ($lastPayDate, $nextPayDate) {
+            return $bill->next_due_date
+                && $bill->next_due_date->gte($lastPayDate)
+                && $bill->next_due_date->lt($nextPayDate);
+        });
+
+        $dueThisPeriod = $billsDueThisPeriod->sum('amount');
 
         return new \App\DataTransferObjects\Budget\BillStatsDto(
             totalMonthly: $totalMonthly,
             paydayAmount: $paydayAmount,
             paydayLabel: $this->getPaydayLabel($payCadence),
-            next30Days: $next30Days,
-            activeBills: $bills->count(),
+            dueThisPeriod: $dueThisPeriod,
+            billsDueThisPeriod: $billsDueThisPeriod,
         );
     }
 
@@ -81,8 +89,6 @@ class BillsManagement extends Component
     {
         return match ($payCadence) {
             PayCadence::Weekly => 'Set Aside Per Week',
-            PayCadence::Biweekly => 'Set Aside Per Paycheck',
-            PayCadence::TwiceMonthly => 'Set Aside Per Paycheck',
             PayCadence::Monthly => 'Set Aside Per Month',
         };
     }

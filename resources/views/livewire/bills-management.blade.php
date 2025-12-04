@@ -14,15 +14,28 @@
             </div>
         </div>
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Next 30 Days Due</div>
+            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Due This Period</div>
             <div class="text-2xl font-semibold text-amber-600 dark:text-amber-500">
-                £{{ number_format($this->stats->next30Days, 2) }}
+                £{{ number_format($this->stats->dueThisPeriod, 2) }}
             </div>
         </div>
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Active Bills</div>
-            <div class="text-2xl font-semibold">
-                {{ $this->stats->activeBills }}
+            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-3">Bills Due This Period</div>
+            <div class="space-y-2 max-h-32 overflow-y-auto">
+                @forelse($this->stats->billsDueThisPeriod as $bill)
+                    <div class="flex justify-between text-sm">
+                        <span class="text-neutral-700 dark:text-neutral-300">{{ $bill->name }}</span>
+                        <span class="font-medium text-neutral-900 dark:text-neutral-100">£{{ number_format($bill->amount, 2) }}</span>
+                    </div>
+                @empty
+                    <p class="text-sm text-neutral-500 dark:text-neutral-400">No bills due this period</p>
+                @endforelse
+                @if($this->stats->billsDueThisPeriod->count() > 0)
+                    <div class="border-t border-neutral-200 dark:border-neutral-600 pt-2 flex justify-between font-medium text-sm">
+                        <span class="text-neutral-700 dark:text-neutral-300">Total</span>
+                        <span class="text-neutral-900 dark:text-neutral-100">£{{ number_format($this->stats->dueThisPeriod, 2) }}</span>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
