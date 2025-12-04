@@ -74,11 +74,11 @@
 
             <flux:table.rows>
                 @forelse($this->transactions as $transaction)
-                    <flux:table.row wire:key="transaction-{{ $transaction->id }}">
-                        <flux:table.cell class="whitespace-nowrap tabular-nums">
+                    <flux:table.row wire:key="transaction-{{ $transaction->id }}" class="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
+                        <flux:table.cell class="py-3 whitespace-nowrap tabular-nums">
                             {{ $transaction->payment_date->format('M j, Y') }}
                         </flux:table.cell>
-                        <flux:table.cell variant="strong">
+                        <flux:table.cell variant="strong" class="py-3">
                             {{ $transaction->name }}
                             @if($transaction->description)
                                 <div class="text-xs text-neutral-500 dark:text-neutral-400 font-normal mt-0.5">
@@ -86,7 +86,7 @@
                                 </div>
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell>
+                        <flux:table.cell class="py-3">
                             @if($transaction->category)
                                 <flux:badge size="sm" color="zinc">
                                     {{ $transaction->category->name }}
@@ -95,7 +95,7 @@
                                 <span class="text-neutral-400">—</span>
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell align="end">
+                        <flux:table.cell align="end" class="py-3">
                             <flux:badge
                                 size="sm"
                                 :color="$transaction->type === App\Enums\TransactionType::Income ? 'lime' : 'rose'"
@@ -103,7 +103,7 @@
                                 {{ $transaction->type->label() }}
                             </flux:badge>
                         </flux:table.cell>
-                        <flux:table.cell align="end" class="whitespace-nowrap tabular-nums">
+                        <flux:table.cell align="end" class="py-3 whitespace-nowrap tabular-nums">
                             <span class="font-semibold {{ $transaction->type === App\Enums\TransactionType::Income ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500' }}">
                                 {{ $transaction->type === App\Enums\TransactionType::Income ? '+' : '-' }}£{{ number_format($transaction->amount, 2) }}
                             </span>

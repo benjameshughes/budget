@@ -12,7 +12,7 @@
                 <flux:modal.close>
                     <flux:button variant="filled" type="button">Cancel</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary" icon="plus">Save</flux:button>
+                <flux:button type="submit" variant="primary" icon="plus" loading>Save</flux:button>
             </div>
         </form>
     </flux:modal>

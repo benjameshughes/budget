@@ -29,7 +29,7 @@
             <flux:modal.close>
                 <flux:button variant="ghost">Cancel</flux:button>
             </flux:modal.close>
-            <flux:button type="submit" variant="primary">Add Purchase</flux:button>
+            <flux:button type="submit" variant="primary" loading>Add Purchase</flux:button>
         </div>
     </form>
 </flux:modal>

@@ -16,7 +16,7 @@
                     required
                 />
 
-                <flux:button variant="primary" type="submit">
+                <flux:button variant="primary" type="submit" loading>
                     {{ __('Create Token') }}
                 </flux:button>
             </form>
@@ -71,7 +71,7 @@
             @else
                 <div class="space-y-3">
                     @foreach($tokens as $token)
-                        <flux:card>
+                        <flux:card class="transition-all duration-200 ease-in-out hover:shadow-md">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <flux:heading size="base">{{ $token->name }}</flux:heading>
