@@ -6,6 +6,7 @@
             <flux:navlist.item :href="route('pay-cadence.edit')" wire:navigate>{{ __('Pay Cadence') }}</flux:navlist.item>
             <flux:navlist.item :href="route('pay-cycle.edit')" wire:navigate>{{ __('Pay Cycle') }}</flux:navlist.item>
             <flux:navlist.item :href="route('weekly-budget.edit')" wire:navigate>{{ __('Weekly Budget') }}</flux:navlist.item>
+            <flux:navlist.item :href="route('categories.edit')" wire:navigate>{{ __('Categories') }}</flux:navlist.item>
             @if (Laravel\Fortify\Features::canManageTwoFactorAuthentication())
                 <flux:navlist.item :href="route('two-factor.show')" wire:navigate>{{ __('Two-Factor Auth') }}</flux:navlist.item>
             @endif

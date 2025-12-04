@@ -28,12 +28,12 @@
             <flux:input wire:model.live="start_date" label="{{ $cadence === 'yearly' ? 'Anniversary Date' : 'Start Date' }}" type="date" required />
             <flux:input wire:model.live="interval_every" label="Every" type="number" min="1" max="12" />
 
-            <livewire:components.category-combobox
-                wire:model="category"
-                label="Category (optional)"
-                :nullable="true"
-                :creatable="true"
-            />
+            <flux:select wire:model.live="category" label="Category (optional)" placeholder="Select category">
+                <flux:select.option value="">None</flux:select.option>
+                @foreach($categories as $category)
+                    <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
 
             <flux:textarea wire:model.live="notes" label="Notes (optional)" rows="3" />
 

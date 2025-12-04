@@ -29,10 +29,12 @@
                 label="Name (optional)"
             />
 
-            <livewire:components.category-combobox
-                wire:model="category"
-                label="Category (optional)"
-            />
+            <flux:select wire:model.live="category" label="Category (optional)" placeholder="Select category">
+                <flux:select.option value="">None</flux:select.option>
+                @foreach($categories as $category)
+                    <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
 
             <flux:select variant="combobox" wire:model.live="credit_card_id" label="Paid with (optional)" placeholder="Debit">
                 <flux:select.option value="">Debit</flux:select.option>

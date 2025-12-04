@@ -7,6 +7,7 @@ namespace App\Livewire\Components;
 use App\Actions\Transaction\CreateTransactionAction;
 use App\DataTransferObjects\Actions\CreateTransactionData;
 use App\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\CreditCard;
 use Carbon\Carbon;
 use Flux\Flux;
@@ -82,13 +83,6 @@ class AddTransaction extends Component
         $this->reset(['amount', 'name', 'description', 'category', 'credit_card_id']);
     }
 
-    #[On('category-created')]
-    public function setNewCategory(int $id): void
-    {
-        // Flux combobox expects string values; ensure string to match option values strictly
-        $this->category = (string) $id;
-    }
-
     #[On('fill-transaction-form')]
     public function fillForm(array $data): void
     {
@@ -104,6 +98,10 @@ class AddTransaction extends Component
     public function render(): View
     {
         return view('livewire.components.add-transaction', [
+            'categories' => Category::select('id', 'name')
+                ->where(fn ($q) => $q->where('user_id', auth()->id())->orWhereNull('user_id'))
+                ->orderBy('name')
+                ->get(),
             'creditCards' => CreditCard::select('id', 'name')
                 ->where('user_id', auth()->id())
                 ->orderBy('name')

@@ -69,11 +69,13 @@ class CategorySeeder extends Seeder
                 DB::table('categories')
                     ->where('id', $existing->id)
                     ->update([
+                        'user_id' => auth()->id(),
                         'description' => $category['description'],
                         'updated_at' => now(),
                     ]);
             } else {
                 DB::table('categories')->insert([
+                    'user_id' => auth()->id(),
                     'name' => $category['name'],
                     'description' => $category['description'],
                     'created_at' => now(),
