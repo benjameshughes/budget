@@ -6,7 +6,6 @@ namespace App\Livewire;
 
 use App\Actions\Transaction\DeleteTransactionAction;
 use App\Enums\TransactionType;
-use App\Models\Category;
 use App\Models\Transaction;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
@@ -95,14 +94,6 @@ class TransactionsPage extends Component
         $this->showDeleteModal = false;
         $this->transactionToDelete = null;
         $this->resetPage();
-    }
-
-    #[Computed]
-    public function categories()
-    {
-        return Category::where('user_id', auth()->id())
-            ->orderBy('name')
-            ->get();
     }
 
     #[Computed]

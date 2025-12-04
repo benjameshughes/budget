@@ -7,7 +7,6 @@ namespace App\Livewire\Components;
 use App\Actions\Bill\CreateBillAction;
 use App\Enums\BillCadence;
 use App\Models\Bill;
-use App\Models\Category;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
@@ -114,9 +113,6 @@ class AddBill extends Component
     public function render(): View
     {
         return view('livewire.components.add-bill', [
-            'categories' => Category::select('id', 'name')
-                ->where(fn ($q) => $q->where('user_id', auth()->id())->orWhereNull('user_id'))
-                ->orderBy('name')->get(),
             'cadences' => BillCadence::cases(),
         ]);
     }

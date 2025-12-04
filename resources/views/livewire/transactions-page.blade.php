@@ -13,12 +13,12 @@
 
         {{-- Category Filter --}}
         <div class="w-full sm:w-48">
-            <flux:select wire:model.live="categoryFilter" placeholder="All Categories">
-                <option value="">All Categories</option>
-                @foreach($this->categories as $category)
-                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                @endforeach
-            </flux:select>
+            <livewire:components.category-combobox
+                wire:model="categoryFilter"
+                placeholder="All Categories"
+                :nullable="true"
+                :creatable="false"
+            />
         </div>
 
         {{-- Type Filter --}}
