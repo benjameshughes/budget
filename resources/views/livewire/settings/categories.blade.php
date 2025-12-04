@@ -3,8 +3,12 @@
 
     <x-settings.layout :heading="__('Categories')" :subheading="__('Manage your transaction categories')">
         <div class="my-6 w-full space-y-6">
-            {{-- Add Category Button --}}
-            <div class="flex justify-end">
+            {{-- Action Buttons --}}
+            <div class="flex justify-between items-center">
+                <flux:button wire:click="seedDefaults" variant="ghost" icon="arrow-down-tray">
+                    <span wire:loading.remove wire:target="seedDefaults">Load Defaults</span>
+                    <span wire:loading wire:target="seedDefaults">Loading...</span>
+                </flux:button>
                 <flux:button wire:click="openAddModal" variant="primary" icon="plus">
                     Add Category
                 </flux:button>

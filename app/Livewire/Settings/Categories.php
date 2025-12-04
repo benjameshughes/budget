@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Models\Category;
+use Database\Seeders\CategorySeeder;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
@@ -145,6 +146,20 @@ class Categories extends Component
 
         $this->showDeleteModal = false;
         $this->deletingCategoryId = null;
+    }
+
+    public function seedDefaults(): void
+    {
+        $result = CategorySeeder::seedForUser(auth()->id());
+
+        $message = match (true) {
+            $result['added'] > 0 && $result['updated'] > 0 => "{$result['added']} added, {$result['updated']} updated",
+            $result['added'] > 0 => "{$result['added']} categories added",
+            $result['updated'] > 0 => "{$result['updated']} categories updated",
+            default => 'All default categories already exist',
+        };
+
+        Flux::toast(text: $message, heading: 'Default Categories', variant: 'success');
     }
 
     #[Computed]

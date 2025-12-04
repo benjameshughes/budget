@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class CategorySeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Default categories available for seeding.
+     *
+     * @return array<int, array{name: string, description: string}>
      */
-    public function run(): void
+    public static function defaults(): array
     {
-        $categories = [
+        return [
             ['name' => 'Food & Dining', 'description' => 'General food and dining expenses.'],
             ['name' => 'Groceries', 'description' => 'Supermarket and grocery store purchases.'],
             ['name' => 'Restaurants', 'description' => 'Eating out at restaurants and cafes.'],
@@ -62,26 +64,46 @@ class CategorySeeder extends Seeder
             ['name' => 'Dividends', 'description' => 'Dividend income.'],
             ['name' => 'Refunds', 'description' => 'Refunds and returns.'],
         ];
+    }
 
-        foreach ($categories as $category) {
-            $existing = DB::table('categories')->where('name', $category['name'])->first();
+    /**
+     * Seed categories for a user and return counts.
+     *
+     * @return array{added: int, updated: int}
+     */
+    public static function seedForUser(int $userId): array
+    {
+        $added = 0;
+        $updated = 0;
+
+        foreach (self::defaults() as $cat) {
+            $existing = Category::where('user_id', $userId)
+                ->where('name', $cat['name'])
+                ->first();
+
             if ($existing) {
-                DB::table('categories')
-                    ->where('id', $existing->id)
-                    ->update([
-                        'user_id' => auth()->id(),
-                        'description' => $category['description'],
-                        'updated_at' => now(),
-                    ]);
+                $existing->update(['description' => $cat['description']]);
+                $updated++;
             } else {
-                DB::table('categories')->insert([
-                    'user_id' => auth()->id(),
-                    'name' => $category['name'],
-                    'description' => $category['description'],
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                Category::create([
+                    'user_id' => $userId,
+                    'name' => $cat['name'],
+                    'description' => $cat['description'],
                 ]);
+                $added++;
             }
+        }
+
+        return ['added' => $added, 'updated' => $updated];
+    }
+
+    /**
+     * Run the database seeds (CLI usage).
+     */
+    public function run(): void
+    {
+        if (auth()->check()) {
+            self::seedForUser(auth()->id());
         }
     }
 }
