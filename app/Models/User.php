@@ -7,6 +7,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\PayCadence;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -55,6 +57,8 @@ class User extends Authenticatable
             'pay_day' => 'integer',
             'weekly_budget' => 'decimal:2',
             'weekly_savings_goal' => 'decimal:2',
+            'bills_float_target' => 'decimal:2',
+            'bills_float_multiplier' => 'decimal:1',
         ];
     }
 
@@ -131,6 +135,30 @@ class User extends Authenticatable
         }
 
         return $nextPayDate->startOfDay();
+    }
+
+    /**
+     * Check if user has configured a bills float target.
+     */
+    public function hasBillsFloatTarget(): bool
+    {
+        return $this->bills_float_target !== null && $this->bills_float_target > 0;
+    }
+
+    /**
+     * Get the user's bills float account.
+     */
+    public function billsFloatAccount(): HasOne
+    {
+        return $this->hasOne(SavingsAccount::class)->where('is_bills_float', true);
+    }
+
+    /**
+     * Get the user's bills.
+     */
+    public function bills(): HasMany
+    {
+        return $this->hasMany(Bill::class);
     }
 
     // Salary model removed in favor of unified transactions

@@ -18,7 +18,7 @@ test('authenticated users can visit the dashboard', function () {
 });
 
 test('dashboard shows budget breakdown', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->withBudget(200.00)->create();
 
     $this->actingAs($user);
 
@@ -27,8 +27,8 @@ test('dashboard shows budget breakdown', function () {
     $response->assertStatus(200);
     // Should see the budget breakdown section
     expect($response->getContent())
-        ->toContain('Income')
-        ->toContain('Remaining');
+        ->toContain('Spent this week')
+        ->toContain('Bills Pot');
 });
 
 test('dashboard shows recent transactions', function () {

@@ -5,39 +5,34 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
-use App\Repositories\BillRepository;
 use App\Repositories\TransactionRepository;
 
 /**
- * Calculates the honest financial picture for a user.
+ * Provides simple weekly budget tracking.
  *
- * Takes into account: income, bills, savings goals, and actual spending
- * to show what's truly available to spend.
+ * Shows how much has been spent vs the weekly budget target.
  */
 final readonly class HonestBudgetService
 {
     public function __construct(
         private PayPeriodService $payPeriodService,
         private TransactionRepository $transactionRepository,
-        private BillRepository $billRepository,
     ) {}
 
     /**
-     * Get the complete budget breakdown for the current pay period.
+     * Get the budget breakdown for the current pay period.
      *
      * @return array{
      *     period_start: \Carbon\Carbon,
      *     period_end: \Carbon\Carbon,
      *     days_remaining: int,
-     *     income: float,
-     *     bills_due: float,
-     *     savings_goal: float,
-     *     available_to_spend: float,
+     *     weekly_budget: float,
      *     spent: float,
      *     remaining: float,
-     *     daily_allowance: float,
+     *     percentage_spent: float,
      *     status: string,
      *     status_color: string,
+     *     is_configured: bool,
      * }
      */
     public function breakdown(User $user): array
@@ -45,25 +40,8 @@ final readonly class HonestBudgetService
         $period = $this->payPeriodService->currentPeriod($user);
         $daysRemaining = $this->payPeriodService->daysRemaining($user);
 
-        // Income this pay period
-        $income = $this->transactionRepository->totalIncomeBetween(
-            $user,
-            $period['start'],
-            $period['end']
-        );
-
-        // Bills due this pay period
-        $billsDue = $this->billRepository->totalDueBetween(
-            $user,
-            $period['start'],
-            $period['end']
-        );
-
-        // Weekly savings goal (from user settings)
-        $savingsGoal = (float) ($user->weekly_savings_goal ?? 0);
-
-        // What's actually available to spend after bills and savings
-        $availableToSpend = $income - $billsDue - $savingsGoal;
+        $weeklyBudget = (float) ($user->weekly_budget ?? 0);
+        $isConfigured = $weeklyBudget > 0;
 
         // What's been spent this period (expenses only)
         $spent = $this->transactionRepository->totalExpensesBetween(
@@ -72,51 +50,42 @@ final readonly class HonestBudgetService
             $period['end']
         );
 
-        // True remaining
-        $remaining = $availableToSpend - $spent;
+        // Simple calculation: budget - spent = remaining
+        $remaining = $weeklyBudget - $spent;
 
-        // Daily allowance for remaining days
-        $dailyAllowance = $daysRemaining > 0
-            ? max(0, $remaining / $daysRemaining)
+        // Calculate percentage spent
+        $percentageSpent = $weeklyBudget > 0
+            ? min(100, ($spent / $weeklyBudget) * 100)
             : 0;
 
-        // Determine status
-        [$status, $statusColor] = $this->determineStatus($remaining, $daysRemaining, $dailyAllowance);
+        // Determine status based on spending percentage
+        [$status, $statusColor] = $this->determineStatus($remaining, $percentageSpent, $daysRemaining);
 
         return [
             'period_start' => $period['start'],
             'period_end' => $period['end'],
             'days_remaining' => $daysRemaining,
-            'income' => $income,
-            'bills_due' => $billsDue,
-            'savings_goal' => $savingsGoal,
-            'available_to_spend' => $availableToSpend,
+            'weekly_budget' => $weeklyBudget,
             'spent' => $spent,
             'remaining' => $remaining,
-            'daily_allowance' => round($dailyAllowance, 2),
+            'percentage_spent' => round($percentageSpent, 1),
             'status' => $status,
             'status_color' => $statusColor,
+            'is_configured' => $isConfigured,
         ];
     }
 
     /**
-     * Determine the status message and color based on remaining budget.
+     * Determine the status message and color based on spending percentage.
      *
      * @return array{0: string, 1: string}
      */
-    private function determineStatus(float $remaining, int $daysRemaining, float $dailyAllowance): array
+    private function determineStatus(float $remaining, float $percentageSpent, int $daysRemaining): array
     {
         if ($remaining < 0) {
             return [
                 "You're £".number_format(abs($remaining), 2).' over budget.',
                 'text-red-600 dark:text-red-400',
-            ];
-        }
-
-        if ($remaining === 0.0) {
-            return [
-                'You\'ve spent exactly your budget. Tight!',
-                'text-amber-600 dark:text-amber-400',
             ];
         }
 
@@ -127,22 +96,29 @@ final readonly class HonestBudgetService
             ];
         }
 
-        if ($dailyAllowance < 10) {
+        if ($percentageSpent >= 100) {
             return [
-                '£'.number_format($remaining, 2).' left. That\'s only £'.number_format($dailyAllowance, 2).'/day - be careful.',
+                "You've hit your budget limit. Time to hold back!",
+                'text-red-600 dark:text-red-400',
+            ];
+        }
+
+        if ($percentageSpent >= 80) {
+            return [
+                '£'.number_format($remaining, 2).' left. Be careful, you\'re at '.round($percentageSpent).'%.',
                 'text-amber-600 dark:text-amber-400',
             ];
         }
 
-        if ($dailyAllowance < 20) {
+        if ($percentageSpent >= 50) {
             return [
-                '£'.number_format($remaining, 2).' left (£'.number_format($dailyAllowance, 2).'/day). You\'re doing okay.',
+                '£'.number_format($remaining, 2).' left. You\'re doing okay.',
                 'text-green-600 dark:text-green-400',
             ];
         }
 
         return [
-            '£'.number_format($remaining, 2).' left (£'.number_format($dailyAllowance, 2).'/day). Looking good!',
+            '£'.number_format($remaining, 2).' left. Looking good!',
             'text-green-600 dark:text-green-400',
         ];
     }

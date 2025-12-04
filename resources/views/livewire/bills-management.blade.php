@@ -7,12 +7,7 @@
                 £{{ number_format($this->stats->totalMonthly, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">{{ $this->stats->paydayLabel }}</div>
-            <div class="text-2xl font-semibold text-sky-600 dark:text-sky-500">
-                £{{ number_format($this->stats->paydayAmount, 2) }}
-            </div>
-        </div>
+        <livewire:components.bills-pot-summary />
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Due This Period</div>
             <div class="text-2xl font-semibold text-amber-600 dark:text-amber-500">

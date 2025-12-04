@@ -49,4 +49,12 @@ class SavingsAccountFactory extends Factory
             'name' => $name,
         ]);
     }
+
+    public function asBillsFloat(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_bills_float' => true,
+            'name' => 'Bills Float',
+        ]);
+    }
 }

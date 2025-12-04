@@ -15,6 +15,13 @@ class SavingsAccount extends Model
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    protected function casts(): array
+    {
+        return [
+            'is_bills_float' => 'boolean',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

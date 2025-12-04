@@ -58,4 +58,15 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => null,
         ]);
     }
+
+    /**
+     * Indicate that the model has budget settings configured.
+     */
+    public function withBudget(float $weeklyBudget = 200.00, ?float $billsFloatTarget = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'weekly_budget' => $weeklyBudget,
+            'bills_float_target' => $billsFloatTarget,
+        ]);
+    }
 }

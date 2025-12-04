@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Models\Transaction;
+use App\Services\BillsFloatService;
 use App\Services\HonestBudgetService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -21,11 +22,18 @@ class SimpleDashboard extends Component
     {
         unset($this->budgetBreakdown);
         unset($this->recentTransactions);
+        unset($this->billsFloatStatus);
 
         // Set last transaction ID to trigger AI advisor streaming
         if ($transactionId) {
             $this->lastTransactionId = $transactionId;
         }
+    }
+
+    #[On('savings-transfer-created')]
+    public function onSavingsTransferCreated(): void
+    {
+        unset($this->billsFloatStatus);
     }
 
     #[Computed]
@@ -43,6 +51,12 @@ class SimpleDashboard extends Component
             'text' => $breakdown['status'],
             'color' => $breakdown['status_color'],
         ];
+    }
+
+    #[Computed]
+    public function billsFloatStatus(): array
+    {
+        return app(BillsFloatService::class)->status(auth()->user());
     }
 
     #[Computed]

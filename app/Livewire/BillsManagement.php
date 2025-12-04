@@ -6,7 +6,6 @@ namespace App\Livewire;
 
 use App\Actions\Bill\DeleteBillAction;
 use App\Actions\Bill\ToggleBillActiveAction;
-use App\Enums\PayCadence;
 use App\Models\Bill;
 use Flux\Flux;
 use Illuminate\Support\Collection;
@@ -61,8 +60,6 @@ class BillsManagement extends Component
             ->get();
 
         $totalMonthly = $bills->sum(fn ($bill) => $bill->monthlyEquivalent());
-        $payCadence = auth()->user()->pay_cadence;
-        $paydayAmount = $totalMonthly / $payCadence->divisor();
 
         $user = auth()->user();
         $lastPayDate = $user->lastPayDate();
@@ -78,19 +75,9 @@ class BillsManagement extends Component
 
         return new \App\DataTransferObjects\Budget\BillStatsDto(
             totalMonthly: $totalMonthly,
-            paydayAmount: $paydayAmount,
-            paydayLabel: $this->getPaydayLabel($payCadence),
             dueThisPeriod: $dueThisPeriod,
             billsDueThisPeriod: $billsDueThisPeriod,
         );
-    }
-
-    public function getPaydayLabel(PayCadence $payCadence): string
-    {
-        return match ($payCadence) {
-            PayCadence::Weekly => 'Set Aside Per Week',
-            PayCadence::Monthly => 'Set Aside Per Month',
-        };
     }
 
     public function toggleActive(Bill $bill, ToggleBillActiveAction $toggleBillActiveAction): void

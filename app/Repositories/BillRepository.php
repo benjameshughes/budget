@@ -46,4 +46,16 @@ final readonly class BillRepository
     {
         return $this->markBillPaidAction->handle($bill, $date);
     }
+
+    /**
+     * Calculate the total monthly equivalent of all active bills for a user.
+     */
+    public function monthlyTotal(User $user): float
+    {
+        return (float) Bill::query()
+            ->where('user_id', $user->id)
+            ->where('active', true)
+            ->get()
+            ->sum(fn (Bill $bill) => $bill->monthlyEquivalent());
+    }
 }
