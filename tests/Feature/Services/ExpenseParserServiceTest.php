@@ -424,3 +424,174 @@ test('parse defaults to regular payment type when invalid type provided', functi
 
     expect($result->paymentType)->toBe('regular');
 });
+
+test('parse detects savings transfer deposit', function () {
+    $user = User::factory()->create();
+    $savingsAccount = \App\Models\SavingsAccount::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Bills Pot',
+        'is_bills_float' => true,
+    ]);
+
+    fakePrismResponse([
+        'amount' => 216.71,
+        'name' => 'Transfer to Bills Pot',
+        'type' => 'expense',
+        'category' => null,
+        'date' => Carbon::today()->toDateString(),
+        'credit_card' => null,
+        'is_credit_card_payment' => false,
+        'payment_type' => 'savings_transfer',
+        'bill' => null,
+        'bnpl_purchase' => null,
+        'savings_account' => 'Bills Pot (Bills Pot)',
+        'transfer_direction' => 'deposit',
+        'bnpl_provider' => null,
+        'bnpl_merchant' => null,
+        'bnpl_fee' => null,
+        'confidence' => 0.95,
+    ]);
+
+    $result = $this->service->parse('Transfer £216.71 to bills pot', $user->id);
+
+    expect($result)
+        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->and($result->amount)->toBe(216.71)
+        ->and($result->paymentType)->toBe('savings_transfer')
+        ->and($result->savingsAccountId)->toBe($savingsAccount->id)
+        ->and($result->transferDirection)->toBe('deposit');
+});
+
+test('parse detects savings transfer withdrawal', function () {
+    $user = User::factory()->create();
+    $savingsAccount = \App\Models\SavingsAccount::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Emergency Fund',
+        'is_bills_float' => false,
+    ]);
+
+    fakePrismResponse([
+        'amount' => 100.00,
+        'name' => 'Withdrawal from Emergency Fund',
+        'type' => 'expense',
+        'category' => null,
+        'date' => Carbon::today()->toDateString(),
+        'credit_card' => null,
+        'is_credit_card_payment' => false,
+        'payment_type' => 'savings_transfer',
+        'bill' => null,
+        'bnpl_purchase' => null,
+        'savings_account' => 'Emergency Fund',
+        'transfer_direction' => 'withdraw',
+        'bnpl_provider' => null,
+        'bnpl_merchant' => null,
+        'bnpl_fee' => null,
+        'confidence' => 0.92,
+    ]);
+
+    $result = $this->service->parse('Withdraw £100 from emergency fund', $user->id);
+
+    expect($result)
+        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->and($result->amount)->toBe(100.00)
+        ->and($result->paymentType)->toBe('savings_transfer')
+        ->and($result->savingsAccountId)->toBe($savingsAccount->id)
+        ->and($result->transferDirection)->toBe('withdraw');
+});
+
+test('parse detects new BNPL purchase with Zilch', function () {
+    $user = User::factory()->create();
+
+    fakePrismResponse([
+        'amount' => 200.00,
+        'name' => 'Zilch purchase at Amazon',
+        'type' => 'expense',
+        'category' => 'Shopping',
+        'date' => Carbon::today()->toDateString(),
+        'credit_card' => null,
+        'is_credit_card_payment' => false,
+        'payment_type' => 'bnpl_purchase',
+        'bill' => null,
+        'bnpl_purchase' => null,
+        'savings_account' => null,
+        'transfer_direction' => null,
+        'bnpl_provider' => 'Zilch',
+        'bnpl_merchant' => 'Amazon',
+        'bnpl_fee' => 2.50,
+        'confidence' => 0.93,
+    ]);
+
+    $result = $this->service->parse('Spent £200 on Zilch at Amazon, fee was £2.50', $user->id);
+
+    expect($result)
+        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->and($result->amount)->toBe(200.00)
+        ->and($result->paymentType)->toBe('bnpl_purchase')
+        ->and($result->bnplProvider)->toBe('zilch')
+        ->and($result->bnplMerchant)->toBe('Amazon')
+        ->and($result->bnplFee)->toBe(2.50);
+});
+
+test('parse detects new BNPL purchase without fee', function () {
+    $user = User::factory()->create();
+
+    fakePrismResponse([
+        'amount' => 150.00,
+        'name' => 'ClearPay purchase at Boots',
+        'type' => 'expense',
+        'category' => 'Health',
+        'date' => Carbon::today()->toDateString(),
+        'credit_card' => null,
+        'is_credit_card_payment' => false,
+        'payment_type' => 'bnpl_purchase',
+        'bill' => null,
+        'bnpl_purchase' => null,
+        'savings_account' => null,
+        'transfer_direction' => null,
+        'bnpl_provider' => 'ClearPay',
+        'bnpl_merchant' => 'Boots',
+        'bnpl_fee' => null,
+        'confidence' => 0.91,
+    ]);
+
+    $result = $this->service->parse('Used ClearPay for £150 at Boots', $user->id);
+
+    expect($result)
+        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->and($result->amount)->toBe(150.00)
+        ->and($result->paymentType)->toBe('bnpl_purchase')
+        ->and($result->bnplProvider)->toBe('clearpay')
+        ->and($result->bnplMerchant)->toBe('Boots')
+        ->and($result->bnplFee)->toBeNull();
+});
+
+test('parse defaults transfer direction to deposit when invalid', function () {
+    $user = User::factory()->create();
+    $savingsAccount = \App\Models\SavingsAccount::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Holiday Fund',
+    ]);
+
+    fakePrismResponse([
+        'amount' => 50.00,
+        'name' => 'Holiday savings',
+        'type' => 'expense',
+        'category' => null,
+        'date' => Carbon::today()->toDateString(),
+        'credit_card' => null,
+        'is_credit_card_payment' => false,
+        'payment_type' => 'savings_transfer',
+        'bill' => null,
+        'bnpl_purchase' => null,
+        'savings_account' => 'Holiday Fund',
+        'transfer_direction' => 'invalid_direction',
+        'bnpl_provider' => null,
+        'bnpl_merchant' => null,
+        'bnpl_fee' => null,
+        'confidence' => 0.85,
+    ]);
+
+    $result = $this->service->parse('Put £50 in holiday fund', $user->id);
+
+    expect($result->transferDirection)->toBe('deposit');
+});
