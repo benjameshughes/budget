@@ -28,36 +28,20 @@
 
             <flux:sidebar.nav class="space-y-1">
                 <flux:sidebar.item icon="cog-6-tooth" href="{{route('profile.edit')}}" class="transition-all duration-200 ease-in-out">Settings</flux:sidebar.item>
-                <flux:sidebar.item icon="information-circle" href="#" class="transition-all duration-200 ease-in-out">Help</flux:sidebar.item>
+                <form method="POST" action="{{route('logout')}}">
+                    @csrf
+                    <flux:sidebar.item type="submit" icon="arrow-right-start-on-rectangle" class="transition-all duration-200 ease-in-out">Logout</flux:sidebar.item>
+                </form>
             </flux:sidebar.nav>
-
-            <flux:dropdown position="top" align="start" class="max-lg:hidden">
-                <flux:sidebar.profile name="{{ auth()->user()->name }}" />
-                <flux:menu>
-                    <flux:menu.item disabled>{{ auth()->user()->email }}</flux:menu.item>
-                    <flux:menu.separator />
-                    <form method="POST" action="{{route('logout')}}">
-                        @csrf
-                        <flux:menu.item type="submit" icon="arrow-right-start-on-rectangle">Logout</flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
         </flux:sidebar>
 
         <flux:header class="lg:hidden">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
             <flux:spacer />
-            <flux:dropdown position="top" align="start">
-                <flux:profile name="{{ auth()->user()->name }}" />
-                <flux:menu>
-                    <flux:menu.item disabled>{{ auth()->user()->email }}</flux:menu.item>
-                    <flux:menu.separator />
-                    <form method="POST" action="{{route('logout')}}">
-                        @csrf
-                        <flux:menu.item type="submit" icon="arrow-right-start-on-rectangle">Logout</flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
+            <form method="POST" action="{{route('logout')}}">
+                @csrf
+                <flux:button type="submit" variant="ghost" icon="arrow-right-start-on-rectangle" />
+            </form>
         </flux:header>
 
         {{ $slot }}
