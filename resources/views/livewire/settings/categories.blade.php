@@ -14,29 +14,25 @@
                 </flux:button>
             </div>
 
-            {{-- Categories List --}}
-            @if($this->categories->isEmpty())
-                <div class="rounded-lg border border-neutral-200 dark:border-neutral-700 p-8 text-center">
-                    <div class="flex flex-col items-center gap-3 text-neutral-500 dark:text-neutral-400">
-                        <flux:icon name="tag" variant="outline" class="w-12 h-12 opacity-50" />
-                        <div>
-                            <p class="font-medium">No categories yet</p>
-                            <p class="text-sm mt-1">Create your first category to organize transactions</p>
-                        </div>
-                    </div>
-                </div>
-            @else
-                <div class="space-y-2">
-                    @foreach($this->categories as $category)
-                        <div wire:key="category-{{ $category->id }}" class="rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <h3 class="font-medium text-neutral-900 dark:text-neutral-100">{{ $category->name }}</h3>
-                                    @if($category->description)
-                                        <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{{ $category->description }}</p>
-                                    @endif
-                                </div>
-                                <div class="flex gap-2 ml-4">
+            {{-- Categories Table --}}
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column>Name</flux:table.column>
+                    <flux:table.column>Description</flux:table.column>
+                    <flux:table.column align="end">Actions</flux:table.column>
+                </flux:table.columns>
+
+                <flux:table.rows>
+                    @forelse($this->categories as $category)
+                        <flux:table.row wire:key="category-{{ $category->id }}">
+                            <flux:table.cell variant="strong">
+                                {{ $category->name }}
+                            </flux:table.cell>
+                            <flux:table.cell class="text-neutral-500 dark:text-neutral-400">
+                                {{ $category->description ?? '—' }}
+                            </flux:table.cell>
+                            <flux:table.cell align="end">
+                                <div class="flex gap-1 justify-end">
                                     <flux:button
                                         wire:click="openEditModal({{ $category->id }})"
                                         variant="ghost"
@@ -52,11 +48,23 @@
                                         aria-label="Delete category"
                                     />
                                 </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @empty
+                        <flux:table.row>
+                            <flux:table.cell colspan="3" class="text-center py-12">
+                                <div class="flex flex-col items-center gap-3 text-neutral-500 dark:text-neutral-400">
+                                    <flux:icon name="tag" variant="outline" class="w-12 h-12 opacity-50" />
+                                    <div>
+                                        <p class="font-medium">No categories yet</p>
+                                        <p class="text-sm mt-1">Create your first category or load defaults</p>
+                                    </div>
+                                </div>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforelse
+                </flux:table.rows>
+            </flux:table>
         </div>
     </x-settings.layout>
 
