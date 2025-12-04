@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('bnpl', 'bnpl')->name('bnpl');
     Route::view('credit-cards', 'credit-cards')->name('credit-cards');
     Route::view('bills', 'bills')->name('bills');
+    Route::view('savings', 'savings')->name('savings');
 
     Route::get('advisor/stream/{transaction}', [AdvisorController::class, 'stream'])
         ->name('advisor.stream');

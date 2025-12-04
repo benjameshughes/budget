@@ -63,7 +63,7 @@
         <div class="mt-3 flex items-center justify-center gap-3">
             <flux:switch wire:model.live="showForm" />
             <span class="text-sm text-zinc-500 dark:text-zinc-400">
-                {{ $showForm ? 'Show detailed form' : 'Quick entry only' }}
+                {{ $showForm ? 'Quick entry only' : 'Show detailed form' }}
             </span>
         </div>
     </div>

@@ -21,6 +21,7 @@
                 <flux:sidebar.item icon="banknotes" href="{{route('bnpl')}}" class="transition-all duration-200 ease-in-out">BNPL</flux:sidebar.item>
                 <flux:sidebar.item icon="credit-card" href="{{route('credit-cards')}}" class="transition-all duration-200 ease-in-out">Credit Cards</flux:sidebar.item>
                 <flux:sidebar.item icon="document-text" href="{{route('bills')}}" class="transition-all duration-200 ease-in-out">Bills</flux:sidebar.item>
+                <flux:sidebar.item icon="building-library" href="{{route('savings')}}" class="transition-all duration-200 ease-in-out">Savings</flux:sidebar.item>
             </flux:sidebar.nav>
 
             <flux:sidebar.spacer />
