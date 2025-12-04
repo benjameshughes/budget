@@ -15,18 +15,18 @@
                     />
             </flux:sidebar.header>
 
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="home" href="{{route('dashboard')}}" wire:current.exact>Home</flux:sidebar.item>
-                <flux:sidebar.item icon="chart-bar" href="{{route('analytics')}}">Analytics</flux:sidebar.item>
-                <flux:sidebar.item icon="receipt-percent" href="{{route('transactions')}}">Transactions</flux:sidebar.item>
-                <flux:sidebar.item icon="banknotes" href="{{route('bnpl')}}">BNPL</flux:sidebar.item>
-                <flux:sidebar.item icon="credit-card" href="{{route('credit-cards')}}">Credit Cards</flux:sidebar.item>
-                <flux:sidebar.item icon="document-text" href="{{route('bills')}}">Bills</flux:sidebar.item>
+            <flux:sidebar.nav class="space-y-1">
+                <flux:sidebar.item icon="home" href="{{route('dashboard')}}" wire:current.exact class="transition-all duration-200 ease-in-out">Home</flux:sidebar.item>
+                <flux:sidebar.item icon="chart-bar" href="{{route('analytics')}}" class="transition-all duration-200 ease-in-out">Analytics</flux:sidebar.item>
+                <flux:sidebar.item icon="receipt-percent" href="{{route('transactions')}}" class="transition-all duration-200 ease-in-out">Transactions</flux:sidebar.item>
+                <flux:sidebar.item icon="banknotes" href="{{route('bnpl')}}" class="transition-all duration-200 ease-in-out">BNPL</flux:sidebar.item>
+                <flux:sidebar.item icon="credit-card" href="{{route('credit-cards')}}" class="transition-all duration-200 ease-in-out">Credit Cards</flux:sidebar.item>
+                <flux:sidebar.item icon="document-text" href="{{route('bills')}}" class="transition-all duration-200 ease-in-out">Bills</flux:sidebar.item>
             </flux:sidebar.nav>
             <flux:sidebar.spacer />
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="cog-6-tooth" href="{{route('profile.edit')}}">Settings</flux:sidebar.item>
-                <flux:sidebar.item icon="information-circle" href="#">Help</flux:sidebar.item>
+            <flux:sidebar.nav class="space-y-1">
+                <flux:sidebar.item icon="cog-6-tooth" href="{{route('profile.edit')}}" class="transition-all duration-200 ease-in-out">Settings</flux:sidebar.item>
+                <flux:sidebar.item icon="information-circle" href="#" class="transition-all duration-200 ease-in-out">Help</flux:sidebar.item>
             </flux:sidebar.nav>
             <flux:dropdown position="top" align="start" class="max-lg:hidden">
                 <flux:sidebar.profile avatar="https://fluxui.dev/img/demo/user.png" name="Olivia Martin" />

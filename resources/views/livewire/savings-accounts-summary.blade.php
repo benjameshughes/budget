@@ -1,4 +1,4 @@
-<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm">
+<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
     <div class="flex items-center justify-between mb-3">
         <flux:heading size="sm" class="text-zinc-700 dark:text-zinc-300 font-medium">Saving Spaces</flux:heading>
         <div class="flex gap-1">
@@ -12,7 +12,7 @@
     </div>
 
     @if($accounts->isEmpty())
-        <div class="text-center py-8 text-zinc-500 dark:text-zinc-400">
+        <div class="text-center py-8 text-zinc-500 dark:text-zinc-400 animate-fade-in">
             <flux:icon name="banknotes" variant="mini" class="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p class="text-xs">No saving spaces yet</p>
         </div>
@@ -20,7 +20,7 @@
         @if($stats['hasTargets'])
             <div class="mb-3 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm overflow-hidden">
                 <div
-                    class="{{ $stats['progressBarColor'] }} h-full rounded-sm transition-all duration-500"
+                    class="{{ $stats['progressBarColor'] }} h-full rounded-sm transition-all duration-500 ease-out"
                     style="width: {{ $stats['overallProgress'] }}%"
                 ></div>
             </div>

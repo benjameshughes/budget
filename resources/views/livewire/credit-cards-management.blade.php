@@ -1,13 +1,13 @@
 <div>
     {{-- Stats Cards --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Debt</div>
             <div class="text-2xl font-semibold text-rose-600 dark:text-rose-500">
                 £{{ number_format($this->stats->totalDebt, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Limit</div>
             <div class="text-2xl font-semibold">
                 @if($this->stats->hasLimits)
@@ -17,7 +17,7 @@
                 @endif
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Utilization</div>
             @php
                 $utilizationTextClass = match($this->stats->utilizationColor) {
@@ -35,7 +35,7 @@
                 @endif
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Active Cards</div>
             <div class="text-2xl font-semibold">
                 {{ $this->stats->cardsCount }}
@@ -81,11 +81,11 @@
                             default => 'bg-emerald-500',
                         };
                     @endphp
-                    <flux:table.row wire:key="card-{{ $card->id }}">
-                        <flux:table.cell variant="strong">
+                    <flux:table.row wire:key="card-{{ $card->id }}" class="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
+                        <flux:table.cell variant="strong" class="py-3">
                             {{ $card->name }}
                         </flux:table.cell>
-                        <flux:table.cell align="end" class="whitespace-nowrap">
+                        <flux:table.cell align="end" class="py-3 whitespace-nowrap">
                             @if($balance > 0)
                                 <span class="text-rose-600 dark:text-rose-500 font-medium">
                                     £{{ number_format($balance, 2) }}
@@ -94,14 +94,14 @@
                                 <flux:badge size="sm" color="green">Paid</flux:badge>
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell align="end" class="whitespace-nowrap">
+                        <flux:table.cell align="end" class="py-3 whitespace-nowrap">
                             @if($card->credit_limit)
                                 £{{ number_format($card->credit_limit, 2) }}
                             @else
                                 <span class="text-neutral-400">-</span>
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell align="center">
+                        <flux:table.cell align="center" class="py-3">
                             @if($utilization !== null)
                                 <div class="flex items-center justify-center gap-2">
                                     <div
@@ -113,7 +113,7 @@
                                         aria-label="Credit utilization"
                                     >
                                         <div
-                                            class="h-full {{ $utilizationBarClass }} rounded-full transition-all"
+                                            class="h-full {{ $utilizationBarClass }} rounded-full transition-all duration-500 ease-out"
                                             style="width: {{ min(100, $utilization) }}%"
                                         ></div>
                                     </div>
@@ -125,7 +125,7 @@
                                 <span class="text-neutral-400">-</span>
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell align="end">
+                        <flux:table.cell align="end" class="py-3">
                             <flux:button
                                 variant="ghost"
                                 size="sm"

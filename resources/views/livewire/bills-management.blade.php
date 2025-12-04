@@ -1,25 +1,25 @@
 <div>
     {{-- Stats Cards --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Monthly Bills</div>
             <div class="text-2xl font-semibold text-rose-600 dark:text-rose-500">
                 £{{ number_format($this->stats->totalMonthly, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">{{ $this->stats->paydayLabel }}</div>
             <div class="text-2xl font-semibold text-sky-600 dark:text-sky-500">
                 £{{ number_format($this->stats->paydayAmount, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Next 30 Days Due</div>
             <div class="text-2xl font-semibold text-amber-600 dark:text-amber-500">
                 £{{ number_format($this->stats->next30Days, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Active Bills</div>
             <div class="text-2xl font-semibold">
                 {{ $this->stats->activeBills }}
@@ -69,31 +69,31 @@
 
             <flux:table.rows>
                 @forelse($this->bills as $bill)
-                    <flux:table.row wire:key="bill-{{ $bill->id }}">
-                        <flux:table.cell variant="strong">
+                    <flux:table.row wire:key="bill-{{ $bill->id }}" class="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
+                        <flux:table.cell variant="strong" class="py-3">
                             {{ $bill->name }}
                         </flux:table.cell>
-                        <flux:table.cell align="end" class="whitespace-nowrap">
+                        <flux:table.cell align="end" class="py-3 whitespace-nowrap">
                             £{{ number_format($bill->amount, 2) }}
                         </flux:table.cell>
-                        <flux:table.cell>
+                        <flux:table.cell class="py-3">
                             <flux:badge size="sm" color="sky">
                                 {{ ucfirst($bill->cadence->value) }}@if($bill->interval_every > 1) ({{ $bill->interval_every }}x)@endif
                             </flux:badge>
                         </flux:table.cell>
-                        <flux:table.cell class="whitespace-nowrap">
+                        <flux:table.cell class="py-3 whitespace-nowrap">
                             @if($bill->next_due_date)
                                 {{ $bill->next_due_date->format('M j, Y') }}
                             @else
                                 <span class="text-neutral-400">-</span>
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell align="end" class="whitespace-nowrap">
+                        <flux:table.cell align="end" class="py-3 whitespace-nowrap">
                             <span class="text-neutral-600 dark:text-neutral-300">
                                 £{{ number_format($bill->monthlyEquivalent(), 2) }}
                             </span>
                         </flux:table.cell>
-                        <flux:table.cell align="end">
+                        <flux:table.cell align="end" class="py-3">
                             <div class="flex gap-1 justify-end">
                                 <flux:button
                                     variant="ghost"

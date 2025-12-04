@@ -1,4 +1,4 @@
-<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm">
+<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
     <div class="flex items-center justify-between mb-3">
         <flux:heading size="sm" class="text-zinc-700 dark:text-zinc-300 font-medium">Overview</flux:heading>
         <flux:select wire:model.live="period" class="w-36 text-xs h-7">

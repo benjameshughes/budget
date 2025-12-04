@@ -1,4 +1,4 @@
-<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm overflow-hidden">
+<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm overflow-hidden transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
     <div class="flex items-center justify-between mb-3">
         <flux:heading size="sm" class="text-zinc-700 dark:text-zinc-300 font-medium">Spending by Category</flux:heading>
         <flux:select wire:model.live="period" class="w-32 text-xs h-7">
@@ -54,7 +54,7 @@
                     </div>
                     <div class="h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm overflow-hidden">
                         <div
-                            class="{{ $color }} h-full rounded-sm transition-all duration-500"
+                            class="{{ $color }} h-full rounded-sm transition-all duration-500 ease-out"
                             style="width: {{ $barWidth }}%"
                         ></div>
                     </div>
@@ -67,7 +67,7 @@
             <span class="text-sm font-semibold text-rose-700 dark:text-rose-400 tabular-nums">£{{ number_format($this->totalExpenses, 2) }}</span>
         </div>
     @else
-        <div class="text-center py-8 text-zinc-500">
+        <div class="text-center py-8 text-zinc-500 animate-fade-in">
             <flux:icon name="chart-bar" class="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p class="text-xs">No expenses in this period</p>
         </div>

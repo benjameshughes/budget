@@ -1,25 +1,25 @@
 <div>
     {{-- Stats Cards --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Outstanding</div>
             <div class="text-2xl font-semibold text-rose-600 dark:text-rose-500">
                 £{{ number_format($this->stats->totalOutstanding, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Active Purchases</div>
             <div class="text-2xl font-semibold">
                 {{ $this->stats->activePurchases }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Purchases</div>
             <div class="text-2xl font-semibold">
                 {{ $this->stats->totalPurchases }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Overdue Payments</div>
             <div class="text-2xl font-semibold {{ $this->stats->overdueInstallments > 0 ? 'text-rose-600 dark:text-rose-500' : 'text-emerald-600 dark:text-emerald-500' }}">
                 {{ $this->stats->overdueInstallments }}
@@ -70,22 +70,22 @@
 
             <flux:table.rows>
                 @forelse($this->purchases as $purchase)
-                    <flux:table.row wire:key="purchase-{{ $purchase->id }}">
-                        <flux:table.cell variant="strong">
+                    <flux:table.row wire:key="purchase-{{ $purchase->id }}" class="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
+                        <flux:table.cell variant="strong" class="py-3">
                             {{ $purchase->merchant }}
                         </flux:table.cell>
-                        <flux:table.cell>
+                        <flux:table.cell class="py-3">
                             <flux:badge size="sm" color="rose">
                                 {{ $purchase->provider->label() }}
                             </flux:badge>
                         </flux:table.cell>
-                        <flux:table.cell class="whitespace-nowrap">
+                        <flux:table.cell class="py-3 whitespace-nowrap">
                             {{ $purchase->purchase_date->format('M j, Y') }}
                         </flux:table.cell>
-                        <flux:table.cell align="end" class="whitespace-nowrap">
+                        <flux:table.cell align="end" class="py-3 whitespace-nowrap">
                             £{{ number_format($purchase->total_amount, 2) }}
                         </flux:table.cell>
-                        <flux:table.cell align="center">
+                        <flux:table.cell align="center" class="py-3">
                             @php
                                 $paidCount = $purchase->paidInstallmentsCount();
                                 $totalCount = $purchase->installments->count();
@@ -100,7 +100,7 @@
                                     aria-label="Payment progress"
                                 >
                                     <div
-                                        class="h-full bg-emerald-500 rounded-full transition-all"
+                                        class="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
                                         style="width: {{ ($paidCount / $totalCount) * 100 }}%"
                                     ></div>
                                 </div>
@@ -109,7 +109,7 @@
                                 </span>
                             </div>
                         </flux:table.cell>
-                        <flux:table.cell align="end" class="whitespace-nowrap">
+                        <flux:table.cell align="end" class="py-3 whitespace-nowrap">
                             @php $remaining = $purchase->remainingBalance(); @endphp
                             @if($remaining > 0)
                                 <span class="text-rose-600 dark:text-rose-500 font-medium">
@@ -119,7 +119,7 @@
                                 <flux:badge size="sm" color="green">Paid</flux:badge>
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell align="end">
+                        <flux:table.cell align="end" class="py-3">
                             <flux:button
                                 variant="ghost"
                                 size="sm"

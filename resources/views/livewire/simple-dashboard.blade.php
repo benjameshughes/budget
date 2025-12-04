@@ -12,7 +12,7 @@
 
     {{-- Budget Breakdown --}}
     <div class="mx-auto w-full max-w-md">
-        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span class="text-zinc-600 dark:text-zinc-400">Income</span>
@@ -56,7 +56,7 @@
                 placeholder="What did you spend? Type or press ⌘K..."
                 icon="pencil-square"
                 kbd="⌘K"
-                class="w-full cursor-pointer"
+                class="w-full cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]"
             />
         </flux:modal.trigger>
 
@@ -73,7 +73,7 @@
         <div
             x-data="advisorTerminal()"
             x-init="$watch('$wire.lastTransactionId', (id) => id && startStream(id))"
-            class="min-h-[60px] rounded-lg bg-zinc-950 p-4 font-mono text-sm"
+            class="min-h-[60px] rounded-lg bg-zinc-950 p-4 font-mono text-sm transition-all duration-200 ease-in-out hover:shadow-lg"
         >
             <div class="flex items-start gap-2">
                 <span class="text-emerald-500">></span>
@@ -99,15 +99,16 @@
         <flux:heading size="lg" class="mb-4">Recent Transactions</flux:heading>
 
         @if($this->recentTransactions->isEmpty())
-            <flux:card>
+            <flux:card class="animate-fade-in">
                 <div class="py-8 text-center text-neutral-500 dark:text-neutral-400">
-                    No transactions yet. Add your first one above!
+                    <div class="text-4xl mb-3 opacity-50">💳</div>
+                    <p>No transactions yet. Add your first one above!</p>
                 </div>
             </flux:card>
         @else
             <div class="space-y-2">
                 @foreach($this->recentTransactions as $transaction)
-                    <flux:card size="sm" class="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
+                    <flux:card size="sm" class="transition-all duration-200 ease-in-out hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:shadow-md hover:scale-[1.01] cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div class="flex flex-col gap-1">
                                 <div class="flex items-center gap-2">

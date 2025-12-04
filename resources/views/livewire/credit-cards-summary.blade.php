@@ -1,4 +1,4 @@
-<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm">
+<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
     <div class="flex items-center justify-between mb-3">
         <flux:heading size="sm" class="text-zinc-700 dark:text-zinc-300 font-medium">Credit Cards</flux:heading>
         <a href="{{ route('credit-cards') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline">
@@ -7,10 +7,10 @@
     </div>
 
     @if($cards->isEmpty())
-        <div class="text-center py-8 text-zinc-500 dark:text-zinc-400">
+        <div class="text-center py-8 text-zinc-500 dark:text-zinc-400 animate-fade-in">
             <flux:icon name="credit-card" variant="mini" class="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p class="text-xs">No credit cards yet</p>
-            <a href="{{ route('credit-cards') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline mt-2 inline-block">
+            <a href="{{ route('credit-cards') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline mt-2 inline-block transition-all duration-200">
                 Add your first card
             </a>
         </div>
@@ -18,7 +18,7 @@
         @if($stats['hasLimits'])
             <div class="mb-3 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm overflow-hidden">
                 <div
-                    class="{{ $stats['utilizationBarColor'] }} h-full rounded-sm transition-all duration-500"
+                    class="{{ $stats['utilizationBarColor'] }} h-full rounded-sm transition-all duration-500 ease-out"
                     style="width: {{ $stats['utilizationPercent'] }}%"
                 ></div>
             </div>

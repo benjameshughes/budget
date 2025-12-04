@@ -1,4 +1,4 @@
-<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm">
+<div class="rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
     <div class="flex items-center justify-between mb-3">
         <flux:heading size="sm" class="text-zinc-700 dark:text-zinc-300 font-medium">Buy Now Pay Later</flux:heading>
         <a href="{{ route('bnpl') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline">
@@ -7,10 +7,10 @@
     </div>
 
     @if($purchases->isEmpty())
-        <div class="text-center py-8 text-zinc-500 dark:text-zinc-400">
+        <div class="text-center py-8 text-zinc-500 dark:text-zinc-400 animate-fade-in">
             <flux:icon name="banknotes" variant="mini" class="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p class="text-xs">No BNPL purchases yet</p>
-            <a href="{{ route('bnpl') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline mt-2 inline-block">
+            <a href="{{ route('bnpl') }}" class="text-xs text-sky-700 dark:text-sky-400 hover:underline mt-2 inline-block transition-all duration-200">
                 Add your first purchase
             </a>
         </div>
@@ -36,7 +36,7 @@
                 @foreach($upcomingInstallments->take(3) as $installment)
                     <div
                         wire:key="installment-{{ $installment->id }}"
-                        class="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50"
+                        class="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 transition-all duration-200 ease-in-out hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:scale-[1.02] cursor-pointer"
                     >
                         <div class="flex-1">
                             <div class="font-medium text-sm">{{ $installment->purchase->merchant }}</div>

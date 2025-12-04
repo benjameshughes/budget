@@ -62,7 +62,10 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <flux:button type="submit" icon="plus">Add Transaction</flux:button>
+            <flux:button type="submit" icon="plus">
+                <span wire:loading.remove wire:target="add">Add Transaction</span>
+                <span wire:loading wire:target="add">Adding...</span>
+            </flux:button>
         </div>
     </form>
     <livewire:components.add-category />
