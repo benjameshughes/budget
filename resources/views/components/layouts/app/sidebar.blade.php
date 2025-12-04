@@ -6,12 +6,11 @@
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky collapsible class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
-                <flux:sidebar.brand
-                    href="{{route('home')}}"
-                    logo=""
-                    logo:dark=""
-                    name="Money"
-                    />
+                <flux:sidebar.brand href="{{route('home')}}" name="Money">
+                    <x-slot name="logo" class="size-6 rounded bg-emerald-500 text-white">
+                        <flux:icon name="hand-coins" variant="micro" />
+                    </x-slot>
+                </flux:sidebar.brand>
                 <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
             </flux:sidebar.header>
 
