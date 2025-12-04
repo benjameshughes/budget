@@ -29,23 +29,10 @@
                 label="Name (optional)"
             />
 
-            <div class="grid grid-cols-3 gap-2">
-                <div class="col-span-2">
-                    <flux:select variant="combobox" wire:model.live="category" label="Category (optional)" placeholder="Select category" wire:key="category-select-{{ $categories->count() }}-{{ $category }}">
-                        <flux:select.option value="">None</flux:select.option>
-                        @foreach($categories as $category)
-                            <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
-                <div class="flex items-end">
-                    <flux:modal.trigger name="add-category">
-                        <flux:button type="button" variant="outline" icon="plus">
-                            Add
-                        </flux:button>
-                    </flux:modal.trigger>
-                </div>
-            </div>
+            <livewire:components.category-combobox
+                wire:model="category"
+                label="Category (optional)"
+            />
 
             <flux:select variant="combobox" wire:model.live="credit_card_id" label="Paid with (optional)" placeholder="Debit">
                 <flux:select.option value="">Debit</flux:select.option>
@@ -68,5 +55,4 @@
             </flux:button>
         </div>
     </form>
-    <livewire:components.add-category />
 </div>

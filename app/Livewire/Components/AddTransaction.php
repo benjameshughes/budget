@@ -7,7 +7,6 @@ namespace App\Livewire\Components;
 use App\Actions\Transaction\CreateTransactionAction;
 use App\DataTransferObjects\Actions\CreateTransactionData;
 use App\Enums\TransactionType;
-use App\Models\Category;
 use App\Models\CreditCard;
 use Carbon\Carbon;
 use Flux\Flux;
@@ -105,10 +104,6 @@ class AddTransaction extends Component
     public function render(): View
     {
         return view('livewire.components.add-transaction', [
-            'categories' => Category::select('id', 'name')
-                ->where(fn ($q) => $q->where('user_id', auth()->id())->orWhereNull('user_id'))
-                ->orderBy('name')
-                ->get(),
             'creditCards' => CreditCard::select('id', 'name')
                 ->where('user_id', auth()->id())
                 ->orderBy('name')
