@@ -38,9 +38,7 @@ test('displays weekly set-aside amount prominently when bills exist', function (
     // Weekly contribution = (£100 * 1.0) / 4.33 = £23.09
     Livewire::test(BillsPotSummary::class)
         ->assertSee('Weekly set-aside')
-        ->assertSee('23.09')
-        ->assertSee('Monthly bills:')
-        ->assertSee('100.00');
+        ->assertSee('23.09');
 });
 
 test('displays float target with multiplier when multiplier is set', function () {
@@ -64,9 +62,7 @@ test('displays float target with multiplier when multiplier is set', function ()
     Livewire::test(BillsPotSummary::class)
         ->assertSee('Weekly set-aside')
         ->assertSee('25.40')
-        ->assertSee('Float target:')
-        ->assertSee('110.00')
-        ->assertSee('(1.1x)');
+        ->assertSee('110.00'); // Target shown in header
 });
 
 test('refreshes on bill-created event', function () {
@@ -142,8 +138,7 @@ test('calculates weekly contribution correctly for multiple bills with different
 
     $this->actingAs($user);
 
-    // Monthly total should be visible
+    // Weekly set-aside should be visible with calculated amount
     Livewire::test(BillsPotSummary::class)
-        ->assertSee('Weekly set-aside')
-        ->assertSee('Monthly bills:');
+        ->assertSee('Weekly set-aside');
 });

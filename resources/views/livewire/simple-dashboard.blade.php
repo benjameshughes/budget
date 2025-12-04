@@ -11,37 +11,32 @@
     </div>
 
     {{-- Budget Overview --}}
-    <div class="flex grow-1 gap-20 py-6 xs:flex-col">
-        <div class="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800/50 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
-            <div class="space-y-4">
-                <div class="text-center">
-                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Spent this week</p>
-                    <p class="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
-                        £{{ number_format($this->budgetBreakdown['spent'], 2) }}
-                    </p>
-                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                        of £{{ number_format($this->budgetBreakdown['weekly_budget'], 2) }}
-                    </p>
-                </div>
-
-                {{-- Progress Bar --}}
-                @if($this->budgetBreakdown['is_configured'])
-                    <div class="w-full bg-zinc-200 rounded-full h-2 dark:bg-zinc-700">
-                        <div
-                            class="h-2 rounded-full transition-all duration-300 {{ $this->budgetBreakdown['percentage_spent'] >= 100 ? 'bg-red-600 dark:bg-red-400' : ($this->budgetBreakdown['percentage_spent'] >= 80 ? 'bg-amber-600 dark:bg-amber-400' : 'bg-green-600 dark:bg-green-400') }}"
-                            style="width: {{ min(100, $this->budgetBreakdown['percentage_spent']) }}%"
-                        ></div>
-                    </div>
-                    <div class="flex justify-between text-xs text-zinc-600 dark:text-zinc-400">
-                        <span>{{ round($this->budgetBreakdown['percentage_spent']) }}% used</span>
-                        <span>£{{ number_format($this->budgetBreakdown['remaining'], 2) }} left</span>
-                    </div>
-                @else
-                    <p class="text-sm text-center text-zinc-500 dark:text-zinc-400">
-                        Set your weekly budget in settings to track spending
-                    </p>
-                @endif
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
+        {{-- Spent This Week Card --}}
+        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Spent this week</p>
+                <span class="text-xs text-zinc-500 dark:text-zinc-400">
+                    of £{{ number_format($this->budgetBreakdown['weekly_budget'], 2) }}
+                </span>
             </div>
+            <p class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                £{{ number_format($this->budgetBreakdown['spent'], 2) }}
+            </p>
+            @if($this->budgetBreakdown['is_configured'])
+                <div class="w-full bg-zinc-200 rounded-full h-1.5 dark:bg-zinc-700 mb-1">
+                    <div
+                        class="h-1.5 rounded-full transition-all duration-300 {{ $this->budgetBreakdown['percentage_spent'] >= 100 ? 'bg-red-500' : ($this->budgetBreakdown['percentage_spent'] >= 80 ? 'bg-amber-500' : 'bg-emerald-500') }}"
+                        style="width: {{ min(100, $this->budgetBreakdown['percentage_spent']) }}%"
+                    ></div>
+                </div>
+                <div class="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+                    <span>{{ round($this->budgetBreakdown['percentage_spent']) }}%</span>
+                    <span class="font-medium {{ $this->budgetBreakdown['remaining'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
+                        £{{ number_format($this->budgetBreakdown['remaining'], 2) }} left
+                    </span>
+                </div>
+            @endif
         </div>
 
         {{-- Bills Pot Summary --}}
