@@ -30,7 +30,10 @@ class CategoryCombobox extends Component
     {
         return Category::where(function ($q) {
             $q->where('user_id', auth()->id())->orWhereNull('user_id');
-        })->orderBy('name')->get();
+        })
+            ->when($this->search, fn ($query) => $query->where('name', 'like', '%'.$this->search.'%'))
+            ->orderBy('name')
+            ->get();
     }
 
     public function createCategory(): void

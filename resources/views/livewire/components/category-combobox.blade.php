@@ -24,8 +24,8 @@
             </flux:select.option>
         @endforeach
 
-        @if($creatable && !empty($search))
-            <x-slot name="empty">
+        <x-slot name="empty">
+            @if($creatable && !empty($search))
                 <div class="p-2">
                     <flux:button
                         type="button"
@@ -37,8 +37,10 @@
                         Create "{{ $search }}"
                     </flux:button>
                 </div>
-            </x-slot>
-        @endif
+            @else
+                <div class="p-2 text-sm text-zinc-500">No categories found</div>
+            @endif
+        </x-slot>
     </flux:select>
 
     @error('search')
