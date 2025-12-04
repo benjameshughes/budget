@@ -69,6 +69,7 @@
             >
                 Amount
             </flux:table.column>
+            <flux:table.column align="end">Actions</flux:table.column>
         </flux:table.columns>
 
         <flux:table.rows>
@@ -107,10 +108,22 @@
                             {{ $transaction->type === App\Enums\TransactionType::Income ? '+' : '-' }}£{{ number_format($transaction->amount, 2) }}
                         </span>
                     </flux:table.cell>
+                    <flux:table.cell align="end" class="py-3">
+                        <div class="flex gap-1 justify-end">
+                            <flux:button
+                                variant="ghost"
+                                size="sm"
+                                icon="trash"
+                                aria-label="Delete transaction"
+                                wire:click="deleteTransaction({{ $transaction->id }})"
+                                wire:confirm="Are you sure you want to delete this transaction?"
+                            />
+                        </div>
+                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="5" class="text-center py-12">
+                    <flux:table.cell colspan="6" class="text-center py-12">
                         <div class="flex flex-col items-center gap-3 text-neutral-500 dark:text-neutral-400">
                             <flux:icon name="banknotes" variant="outline" class="w-12 h-12 opacity-50" />
                             <div>

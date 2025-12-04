@@ -71,27 +71,14 @@ class AddTransaction extends Component
 
         $transaction = $createTransactionAction->handle($data);
 
-        $this->dispatch('transaction-added');
+        // Dispatch with transaction ID to trigger advisor terminal streaming
+        $this->dispatch('transaction-added', transactionId: $transaction->id);
+
         Flux::toast(
             text: 'Transaction added successfully',
             heading: 'Transaction Added',
             variant: 'success',
         );
-
-        // Show AI financial advisor feedback if available
-        try {
-            $transaction->refresh();
-            $feedback = $transaction->feedback;
-            if ($feedback && $feedback->feedback) {
-                Flux::toast(
-                    text: $feedback->feedback,
-                    heading: 'Financial Advisor',
-                    variant: 'info',
-                );
-            }
-        } catch (\Exception $e) {
-            // Silently fail - feedback is optional
-        }
 
         $this->reset(['amount', 'name', 'description', 'category', 'credit_card_id']);
     }

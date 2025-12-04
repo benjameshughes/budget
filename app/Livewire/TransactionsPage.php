@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Actions\Transaction\DeleteTransactionAction;
 use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Transaction;
+use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -59,6 +61,19 @@ class TransactionsPage extends Component
     public function clearFilters(): void
     {
         $this->reset(['search', 'categoryFilter', 'typeFilter']);
+        $this->resetPage();
+    }
+
+    public function deleteTransaction(Transaction $transaction, DeleteTransactionAction $deleteTransactionAction): void
+    {
+        $deleteTransactionAction->handle($transaction);
+
+        Flux::toast(
+            text: 'Transaction deleted successfully',
+            heading: 'Success',
+            variant: 'success'
+        );
+
         $this->resetPage();
     }
 
