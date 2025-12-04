@@ -39,7 +39,8 @@ test('createPurchase creates purchase, transaction, and 4 installments', functio
 
     expect($transaction)->not->toBeNull()
         ->and($transaction->amount)->toBe('100.00')
-        ->and($transaction->type)->toBe(TransactionType::Expense);
+        ->and($transaction->type)->toBe(TransactionType::Expense)
+        ->and($transaction->is_bill)->toBeTrue(); // Excluded from weekly spending
 });
 
 test('createPurchase calculates installment amounts correctly with fee on first', function () {
@@ -110,6 +111,49 @@ test('markInstallmentPaid updates installment correctly', function () {
 
     expect($updated->is_paid)->toBeTrue()
         ->and($updated->paid_date->toDateString())->toBe($paidDate->toDateString());
+});
+
+test('markInstallmentPaid auto-deducts from bills float account when it exists', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    // Create a bills float account with a balance
+    $billsFloat = \App\Models\SavingsAccount::create([
+        'user_id' => $user->id,
+        'name' => 'Bills Pot',
+        'is_bills_float' => true,
+    ]);
+    \App\Models\SavingsTransfer::create([
+        'user_id' => $user->id,
+        'savings_account_id' => $billsFloat->id,
+        'amount' => 100.00,
+        'direction' => 'deposit',
+        'transfer_date' => now(),
+    ]);
+
+    $purchase = BnplPurchase::factory()->for($user)->create(['merchant' => 'TestStore']);
+    $installment = BnplInstallment::create([
+        'user_id' => $user->id,
+        'bnpl_purchase_id' => $purchase->id,
+        'installment_number' => 1,
+        'amount' => 25.00,
+        'due_date' => now(),
+        'is_paid' => false,
+    ]);
+
+    $service = app(BnplService::class);
+    $service->markInstallmentPaid($installment);
+
+    // Should have withdrawn from bills float
+    expect($billsFloat->fresh()->currentBalance())->toBe(75.0);
+
+    // Check withdrawal was recorded
+    $withdrawal = \App\Models\SavingsTransfer::where('savings_account_id', $billsFloat->id)
+        ->where('direction', 'withdraw')
+        ->first();
+    expect($withdrawal)->not->toBeNull()
+        ->and((float) $withdrawal->amount)->toBe(25.0)
+        ->and($withdrawal->notes)->toContain('TestStore');
 });
 
 test('markInstallmentPaid does NOT create transaction', function () {

@@ -42,6 +42,7 @@ final readonly class CreatePurchaseAction
                 'amount' => $total,
                 'type' => TransactionType::Expense,
                 'payment_date' => $purchaseDate,
+                'is_bill' => true, // Exclude from weekly spending - covered by bills pot
             ]);
 
             // Split purchase total evenly across 4 installments

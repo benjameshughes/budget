@@ -1,7 +1,7 @@
-<div class="flex h-full w-full flex-col gap-8">
+<div class="w-full">
     {{-- 1. Status Message (Hero) --}}
-    <div class="flex flex-col items-center justify-center gap-2 pt-8">
-        <h1 class="text-4xl font-semibold {{ $this->statusMessage['color'] }} text-center">
+    <div class="flex justify-start">
+        <h1 class="text-4xl font-semibold {{ $this->statusMessage['color'] }}">
             {{ $this->statusMessage['text'] }}
         </h1>
         <p class="text-sm text-zinc-500 dark:text-zinc-400">
@@ -11,7 +11,7 @@
     </div>
 
     {{-- Budget Overview --}}
-    <div class="flex w-full space-y-4">
+    <div class="flex grow-1 gap-20">
         <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800/50 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]">
             <div class="space-y-4">
                 <div class="text-center">
