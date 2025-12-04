@@ -7,6 +7,7 @@ namespace App\Livewire;
 use App\Actions\Savings\DeleteSavingsAccountAction;
 use App\DataTransferObjects\Budget\SavingsStatsDto;
 use App\Models\SavingsAccount;
+use App\Services\BillsFloatService;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -22,10 +23,23 @@ class SavingsManagement extends Component
     #[On('savings-account-created')]
     #[On('savings-account-updated')]
     #[On('savings-transfer-completed')]
+    #[On('savings-transfer-created')]
+    #[On('bill-created')]
+    #[On('bill-updated')]
+    #[On('bill-deleted')]
+    #[On('bill-paid')]
+    #[On('bnpl-installment-paid')]
     public function refresh(): void
     {
         unset($this->accounts);
         unset($this->stats);
+        unset($this->billsPotStatus);
+    }
+
+    #[Computed]
+    public function billsPotStatus(): array
+    {
+        return app(BillsFloatService::class)->status(auth()->user());
     }
 
     public function sort(string $column): void
@@ -42,6 +56,7 @@ class SavingsManagement extends Component
     public function accounts(): Collection
     {
         return SavingsAccount::where('user_id', auth()->id())
+            ->where('is_bills_float', false) // Bills Pot has its own card
             ->orderBy($this->sortBy, $this->sortDirection)
             ->get();
     }
