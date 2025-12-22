@@ -39,9 +39,11 @@ class UpcomingPayments extends Component
     public function render()
     {
         $repo = app(BillRepository::class);
+        $today = Carbon::today();
 
         return view('livewire.upcoming-payments', [
-            'upcoming' => $repo->upcomingBetween(auth()->user(), Carbon::today(), Carbon::today()->copy()->addDays(30)),
+            'upcoming' => $repo->upcomingBetween(auth()->user(), $today, $today->copy()->addDays(30)),
+            'today' => $today,
         ]);
     }
 }

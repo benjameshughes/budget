@@ -7,7 +7,6 @@ use App\Livewire\Components\TotalMoney;
 use App\Livewire\SavingsAccountsSummary;
 use App\Livewire\SpendingChart;
 use App\Livewire\TransactionTable;
-use App\Livewire\UpcomingPayments;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -33,6 +32,5 @@ test('analytics page contains all required livewire components', function () {
         ->assertSeeLivewire(SavingsAccountsSummary::class)
         ->assertSeeLivewire(SpendingChart::class)
         ->assertSeeLivewire(CategoryBreakdown::class)
-        ->assertSeeLivewire(TransactionTable::class)
-        ->assertSeeLivewire(UpcomingPayments::class);
+        ->assertSeeLivewire(TransactionTable::class);
 });

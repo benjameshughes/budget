@@ -25,10 +25,5 @@
         <div class="w-full">
             <livewire:transaction-table />
         </div>
-
-        {{-- Upcoming Payments --}}
-        <div class="w-full">
-            <livewire:upcoming-payments />
-        </div>
     </div>
 </x-layouts.app>

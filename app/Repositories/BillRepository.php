@@ -16,7 +16,12 @@ final readonly class BillRepository
         return Bill::query()
             ->forUser($user)
             ->where('active', true)
-            ->whereBetween('next_due_date', [$from->toDateString(), $to->toDateString()])
+            ->where(function ($query) use ($from, $to) {
+                // Include bills that are overdue (next_due_date < from)
+                $query->where('next_due_date', '<', $from->toDateString())
+                    // OR bills that are due between from and to
+                    ->orWhereBetween('next_due_date', [$from->toDateString(), $to->toDateString()]);
+            })
             ->orderBy('next_due_date')
             ->get();
     }
