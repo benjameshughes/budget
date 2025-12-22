@@ -8,10 +8,5 @@
 
         {{-- Content --}}
         <livewire:bills-management />
-
-        {{-- Upcoming & Overdue Payments --}}
-        <div class="w-full">
-            <livewire:upcoming-payments />
-        </div>
     </div>
 </x-layouts.app>

@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Actions\Bill\DeleteBillAction;
+use App\Actions\Bill\MarkBillPaidAction;
 use App\Actions\Bill\ToggleBillActiveAction;
 use App\Models\Bill;
+use Carbon\Carbon;
 use Flux\Flux;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -15,6 +18,8 @@ use Livewire\Component;
 
 class BillsManagement extends Component
 {
+    use AuthorizesRequests;
+
     public string $sortBy = 'name';
 
     public string $sortDirection = 'asc';
@@ -32,6 +37,7 @@ class BillsManagement extends Component
     }
 
     #[On('bill-saved')]
+    #[On('bill-paid')]
     public function refresh(): void
     {
         unset($this->bills);
@@ -104,6 +110,18 @@ class BillsManagement extends Component
         );
 
         $this->refresh();
+    }
+
+    public function pay(int $billId, MarkBillPaidAction $markBillPaidAction): void
+    {
+        $bill = Bill::where('user_id', auth()->id())->findOrFail($billId);
+        $this->authorize('update', $bill);
+
+        $markBillPaidAction->handle($bill, Carbon::today());
+
+        Flux::toast(text: 'Bill paid', heading: 'Success', variant: 'success');
+        $this->dispatch('bill-paid');
+        $this->dispatch('transaction-added');
     }
 
     public function render()

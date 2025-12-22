@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Livewire\BillsManagement;
-use App\Livewire\UpcomingPayments;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -19,11 +18,10 @@ test('authenticated users can visit the bills page', function () {
         ->assertSee('Manage your recurring bills and payments');
 });
 
-test('bills page contains all required livewire components', function () {
+test('bills page contains bills management component', function () {
     $this->actingAs($user = User::factory()->create());
 
     $this->get('/bills')
         ->assertStatus(200)
-        ->assertSeeLivewire(BillsManagement::class)
-        ->assertSeeLivewire(UpcomingPayments::class);
+        ->assertSeeLivewire(BillsManagement::class);
 });

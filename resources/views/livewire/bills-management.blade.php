@@ -90,7 +90,17 @@
                     </flux:table.cell>
                     <flux:table.cell class="py-3 whitespace-nowrap">
                         @if($bill->next_due_date)
-                            {{ $bill->next_due_date->format('M j, Y') }}
+                            @php
+                                $isOverdue = $bill->next_due_date->lt(today());
+                            @endphp
+                            <div class="flex items-center gap-2">
+                                <span @class(['text-red-600 dark:text-red-400 font-semibold' => $isOverdue])>
+                                    {{ $bill->next_due_date->format('M j, Y') }}
+                                </span>
+                                @if($isOverdue)
+                                    <flux:badge size="sm" color="red" inset="top bottom">Overdue</flux:badge>
+                                @endif
+                            </div>
                         @else
                             <span class="text-neutral-400">-</span>
                         @endif
@@ -102,6 +112,18 @@
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3">
                         <div class="flex gap-1 justify-end">
+                            @if($bill->active && $bill->next_due_date)
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="credit-card"
+                                    aria-label="Pay bill"
+                                    wire:click="pay({{ $bill->id }})"
+                                >
+                                    <span wire:loading.remove wire:target="pay({{ $bill->id }})">Pay</span>
+                                    <span wire:loading wire:target="pay({{ $bill->id }})">...</span>
+                                </flux:button>
+                            @endif
                             <flux:button
                                 variant="ghost"
                                 size="sm"
