@@ -44,11 +44,11 @@ class BnplPurchaseDetail extends Component
 
         $service->markInstallmentPaid($installment);
 
-        // Reload purchase to get fresh installment data
-        $this->loadPurchase();
-
         Flux::toast(text: 'Payment marked as paid', variant: 'success');
         $this->dispatch('bnpl-installment-paid');
+
+        // Close modal so user sees the satisfying row fill animation
+        Flux::modals()->close('bnpl-purchase-detail');
     }
 
     public function render(): View

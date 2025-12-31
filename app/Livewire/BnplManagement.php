@@ -13,9 +13,9 @@ use Livewire\Component;
 
 class BnplManagement extends Component
 {
-    public string $sortBy = 'purchase_date';
+    public string $sortBy = 'next_due_date';
 
-    public string $sortDirection = 'desc';
+    public string $sortDirection = 'asc';
 
     public string $filter = 'active';
 
@@ -34,6 +34,7 @@ class BnplManagement extends Component
     {
         unset($this->purchases);
         unset($this->stats);
+        unset($this->dueThisPeriod);
     }
 
     #[Computed]
@@ -48,7 +49,16 @@ class BnplManagement extends Component
             $query->whereDoesntHave('installments', fn ($q) => $q->where('is_paid', false));
         }
 
-        return $query->orderBy($this->sortBy, $this->sortDirection)->get();
+        $query->when($this->sortBy === 'next_due_date', function ($q) {
+            $q->addSelect(['next_due_date' => BnplInstallment::selectRaw('MIN(due_date)')
+                ->whereColumn('bnpl_purchase_id', 'bnpl_purchases.id')
+                ->where('is_paid', false),
+            ])->orderBy('next_due_date', $this->sortDirection);
+        }, function ($q) {
+            $q->orderBy($this->sortBy, $this->sortDirection);
+        });
+
+        return $query->get();
     }
 
     #[Computed]
@@ -69,11 +79,21 @@ class BnplManagement extends Component
             ->where('due_date', '<', now())
             ->count();
 
+        // Due in next 2 weeks (including overdue)
+        $dueThisPeriod = BnplInstallment::with('purchase')
+            ->where('user_id', auth()->id())
+            ->where('is_paid', false)
+            ->where('due_date', '<=', now()->addWeeks(2))
+            ->orderBy('due_date')
+            ->get();
+
         return new \App\DataTransferObjects\Budget\BnplStatsDto(
             totalOutstanding: (float) $totalOutstanding,
             activePurchases: $activePurchases,
             totalPurchases: $totalPurchases,
             overdueInstallments: $overdueInstallments,
+            dueThisPeriodAmount: (float) $dueThisPeriod->sum('amount'),
+            dueThisPeriod: $dueThisPeriod,
         );
     }
 

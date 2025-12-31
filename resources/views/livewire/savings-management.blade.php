@@ -1,100 +1,93 @@
 <div>
     {{-- Bills Pot Card (Special) --}}
     @if($this->billsPotStatus['is_configured'])
-        <div class="mb-6 rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-900/20 p-6 transition-all duration-200 ease-in-out hover:shadow-md">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/50">
-                        <flux:icon name="banknotes" class="w-6 h-6 text-violet-600 dark:text-violet-400" />
+        <div class="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 shadow-sm ring-1 ring-violet-200/50 dark:from-violet-950/30 dark:to-purple-950/30 dark:ring-violet-500/20">
+            <div class="px-6 py-5">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-500 shadow-sm">
+                            <flux:icon name="banknotes" class="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <div class="flex items-baseline gap-2">
+                                <h3 class="text-base font-semibold text-zinc-900 dark:text-white">Bills Pot</h3>
+                                <flux:badge size="sm" color="violet">System</flux:badge>
+                            </div>
+                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Automatic buffer for upcoming bills & BNPL</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="font-semibold text-violet-900 dark:text-violet-100 flex items-center gap-2">
-                            Bills Pot
-                            <flux:badge size="sm" color="violet">System</flux:badge>
-                        </h3>
-                        <p class="text-sm text-violet-600 dark:text-violet-400">Automatic buffer for upcoming bills & BNPL</p>
+
+                    <div class="flex items-center gap-6">
+                        <div class="text-center">
+                            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Weekly</div>
+                            <div class="mt-1 text-xl font-semibold text-zinc-900 dark:text-white">
+                                £{{ number_format($this->billsPotStatus['weekly_contribution'], 2) }}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Current</div>
+                            <div class="mt-1 text-xl font-semibold text-emerald-600 dark:text-emerald-400">
+                                £{{ number_format($this->billsPotStatus['current'], 2) }}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                Target @if($this->billsPotStatus['multiplier'] != 1.0)<span class="text-violet-500">({{ number_format($this->billsPotStatus['multiplier'], 1) }}x)</span>@endif
+                            </div>
+                            <div class="mt-1 text-xl font-semibold text-zinc-900 dark:text-white">
+                                £{{ number_format($this->billsPotStatus['target'], 2) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Progress Bar --}}
+                <div class="mt-4">
+                    <div class="h-1.5 overflow-hidden rounded-full bg-white/60 dark:bg-zinc-800">
+                        <div
+                            class="h-full rounded-full transition-all duration-300 {{ $this->billsPotStatus['is_healthy'] ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : ($this->billsPotStatus['progress_percentage'] >= 75 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : 'bg-gradient-to-r from-amber-500 to-amber-600') }}"
+                            style="width: {{ min($this->billsPotStatus['progress_percentage'], 100) }}%"
+                        ></div>
+                    </div>
+                    <div class="mt-2 flex justify-between text-sm">
+                        <span class="{{ $this->billsPotStatus['color'] }}">
+                            {{ $this->billsPotStatus['message'] }}
+                        </span>
+                        <span class="font-medium {{ $this->billsPotStatus['is_healthy'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-violet-600 dark:text-violet-400' }}">
+                            {{ round($this->billsPotStatus['progress_percentage']) }}%
+                        </span>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-6">
-                    {{-- Weekly Set-Aside --}}
-                    <div class="text-center">
-                        <p class="text-xs text-violet-600 dark:text-violet-400 uppercase tracking-wide">Weekly</p>
-                        <p class="text-2xl font-bold text-violet-900 dark:text-violet-100">
-                            £{{ number_format($this->billsPotStatus['weekly_contribution'], 2) }}
-                        </p>
-                    </div>
-
-                    {{-- Current Balance --}}
-                    <div class="text-center">
-                        <p class="text-xs text-violet-600 dark:text-violet-400 uppercase tracking-wide">Current</p>
-                        <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                            £{{ number_format($this->billsPotStatus['current'], 2) }}
-                        </p>
-                    </div>
-
-                    {{-- Target --}}
-                    <div class="text-center">
-                        <p class="text-xs text-violet-600 dark:text-violet-400 uppercase tracking-wide">
-                            Target
-                            @if($this->billsPotStatus['multiplier'] != 1.0)
-                                <span class="text-violet-500">({{ number_format($this->billsPotStatus['multiplier'], 1) }}x)</span>
-                            @endif
-                        </p>
-                        <p class="text-2xl font-bold text-violet-900 dark:text-violet-100">
-                            £{{ number_format($this->billsPotStatus['target'], 2) }}
-                        </p>
-                    </div>
+                {{-- Quick Actions --}}
+                <div class="mt-4">
+                    <flux:modal.trigger name="savings-transfer">
+                        <flux:button size="sm" variant="filled" icon="arrows-right-left">
+                            Transfer
+                        </flux:button>
+                    </flux:modal.trigger>
                 </div>
-            </div>
-
-            {{-- Progress Bar --}}
-            <div class="mt-4 space-y-2">
-                <div class="w-full bg-violet-200 dark:bg-violet-800 rounded-full h-2.5 overflow-hidden">
-                    <div
-                        class="h-2.5 rounded-full transition-all duration-300 {{ $this->billsPotStatus['is_healthy'] ? 'bg-emerald-500' : ($this->billsPotStatus['progress_percentage'] >= 75 ? 'bg-emerald-500' : 'bg-amber-500') }}"
-                        style="width: {{ min($this->billsPotStatus['progress_percentage'], 100) }}%"
-                    ></div>
-                </div>
-                <div class="flex justify-between text-sm">
-                    <span class="{{ $this->billsPotStatus['color'] }}">
-                        {{ $this->billsPotStatus['message'] }}
-                    </span>
-                    <span class="font-medium {{ $this->billsPotStatus['is_healthy'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-violet-600 dark:text-violet-400' }}">
-                        {{ round($this->billsPotStatus['progress_percentage']) }}%
-                    </span>
-                </div>
-            </div>
-
-            {{-- Quick Actions --}}
-            <div class="mt-4 flex gap-2">
-                <flux:modal.trigger name="savings-transfer">
-                    <flux:button size="sm" variant="filled">
-                        <flux:icon name="arrows-right-left" class="w-4 h-4 mr-1" />
-                        Transfer
-                    </flux:button>
-                </flux:modal.trigger>
             </div>
         </div>
     @endif
 
     {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Saved</div>
-            <div class="text-2xl font-semibold text-emerald-600 dark:text-emerald-500">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
+        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Saved</div>
+            <div class="mt-2 text-3xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-500">
                 £{{ number_format($this->stats->totalSaved, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Target</div>
-            <div class="text-2xl font-semibold text-blue-600 dark:text-blue-500">
+        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Target</div>
+            <div class="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
                 £{{ number_format($this->stats->totalTarget, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Savings Spaces</div>
-            <div class="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Savings Spaces</div>
+            <div class="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
                 {{ $this->stats->accountCount }}
             </div>
         </div>

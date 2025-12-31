@@ -1,36 +1,38 @@
 <div class="w-full max-w-7xl mx-auto">
     {{-- 1. Status Message (Hero) --}}
-    <div class="flex flex-col py-6 justify-start">
-        <h1 class="text-4xl font-semibold {{ $this->statusMessage['color'] }}">
-            {{ $this->statusMessage['text'] }}
-        </h1>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400">
+    <div class="mb-8 rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 p-6 ring-1 ring-emerald-600/10 dark:from-emerald-950/30 dark:to-green-950/30 dark:ring-emerald-500/20">
+        <div class="flex items-baseline gap-3">
+            <div class="text-4xl font-semibold tracking-tight {{ $this->statusMessage['color'] }}">
+                {{ $this->statusMessage['text'] }}
+            </div>
+        </div>
+        <div class="mt-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
             {{ $this->budgetBreakdown['period_start']->format('D j M') }} → {{ $this->budgetBreakdown['period_end']->format('D j M') }}
-            ({{ $this->budgetBreakdown['days_remaining'] }} {{ Str::plural('day', $this->budgetBreakdown['days_remaining']) }} left)
-        </p>
+            <span class="text-zinc-500">({{ $this->budgetBreakdown['days_remaining'] }} {{ Str::plural('day', $this->budgetBreakdown['days_remaining']) }} left)</span>
+        </div>
     </div>
 
     {{-- Budget Overview --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {{-- Spent This Week Card --}}
-        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
-            <div class="flex items-center justify-between mb-2">
-                <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Spent this week</p>
+        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+            <div class="flex items-center justify-between">
+                <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Spent this week</div>
                 <span class="text-xs text-zinc-500 dark:text-zinc-400">
                     of £{{ number_format($this->budgetBreakdown['weekly_budget'], 2) }}
                 </span>
             </div>
-            <p class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            <p class="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
                 £{{ number_format($this->budgetBreakdown['spent'], 2) }}
             </p>
             @if($this->budgetBreakdown['is_configured'])
-                <div class="w-full bg-zinc-200 rounded-full h-1.5 dark:bg-zinc-700 mb-1">
+                <div class="mt-3 w-full bg-zinc-100 rounded-full h-1.5 dark:bg-zinc-700">
                     <div
                         class="h-1.5 rounded-full transition-all duration-300 {{ $this->budgetBreakdown['percentage_spent'] >= 100 ? 'bg-red-500' : ($this->budgetBreakdown['percentage_spent'] >= 80 ? 'bg-amber-500' : 'bg-emerald-500') }}"
                         style="width: {{ min(100, $this->budgetBreakdown['percentage_spent']) }}%"
                     ></div>
                 </div>
-                <div class="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+                <div class="mt-1 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
                     <span>{{ round($this->budgetBreakdown['percentage_spent']) }}%</span>
                     <span class="font-medium {{ $this->budgetBreakdown['remaining'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
                         £{{ number_format($this->budgetBreakdown['remaining'], 2) }} left

@@ -1,34 +1,34 @@
 <div>
     {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Monthly Bills</div>
-            <div class="text-2xl font-semibold text-rose-600 dark:text-rose-500">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Monthly Bills</div>
+            <div class="mt-2 text-3xl font-semibold tracking-tight text-red-600 dark:text-red-500">
                 £{{ number_format($this->stats->totalMonthly, 2) }}
             </div>
         </div>
         <livewire:components.bills-pot-summary />
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Due This Period</div>
-            <div class="text-2xl font-semibold text-amber-600 dark:text-amber-500">
+        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Due This Period</div>
+            <div class="mt-2 text-3xl font-semibold tracking-tight text-amber-600 dark:text-amber-500">
                 £{{ number_format($this->stats->dueThisPeriod, 2) }}
             </div>
         </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-3">Bills Due This Period</div>
+        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">Bills Due This Period</div>
             <div class="space-y-2 max-h-32 overflow-y-auto">
                 @forelse($this->stats->billsDueThisPeriod as $bill)
                     <div class="flex justify-between text-sm">
-                        <span class="text-neutral-700 dark:text-neutral-300">{{ $bill->name }}</span>
-                        <span class="font-medium text-neutral-900 dark:text-neutral-100">£{{ number_format($bill->amount, 2) }}</span>
+                        <span class="text-zinc-700 dark:text-zinc-300">{{ $bill->name }}</span>
+                        <span class="font-medium text-zinc-900 dark:text-white">£{{ number_format($bill->amount, 2) }}</span>
                     </div>
                 @empty
-                    <p class="text-sm text-neutral-500 dark:text-neutral-400">No bills due this period</p>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">No bills due this period</p>
                 @endforelse
                 @if($this->stats->billsDueThisPeriod->count() > 0)
-                    <div class="border-t border-neutral-200 dark:border-neutral-600 pt-2 flex justify-between font-medium text-sm">
-                        <span class="text-neutral-700 dark:text-neutral-300">Total</span>
-                        <span class="text-neutral-900 dark:text-neutral-100">£{{ number_format($this->stats->dueThisPeriod, 2) }}</span>
+                    <div class="border-t border-zinc-100 dark:border-zinc-700 pt-2 flex justify-between font-medium text-sm">
+                        <span class="text-zinc-700 dark:text-zinc-300">Total</span>
+                        <span class="text-zinc-900 dark:text-white">£{{ number_format($this->stats->dueThisPeriod, 2) }}</span>
                     </div>
                 @endif
             </div>
@@ -84,7 +84,7 @@
                         £{{ number_format($bill->amount, 2) }}
                     </flux:table.cell>
                     <flux:table.cell class="py-3">
-                        <flux:badge size="sm" color="sky">
+                        <flux:badge size="sm" color="zinc">
                             {{ ucfirst($bill->cadence->value) }}@if($bill->interval_every > 1) ({{ $bill->interval_every }}x)@endif
                         </flux:badge>
                     </flux:table.cell>
