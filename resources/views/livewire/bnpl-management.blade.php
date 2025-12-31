@@ -7,54 +7,9 @@
         @if($this->stats->overdueInstallments > 0)
             <x-stat-item :value="$this->stats->overdueInstallments" label="overdue" color="red" separator />
         @endif
+        <span class="text-zinc-300 dark:text-zinc-600">·</span>
+        <x-upcoming-popover :items="$this->stats->dueThisPeriod" label="due soon" emptyText="No payments due soon" />
     </x-page-header>
-
-    {{-- Due This Period Card --}}
-    @if($this->stats->dueThisPeriod->isNotEmpty())
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10 mb-8">
-            <div class="border-b border-zinc-100 dark:border-zinc-800 px-5 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                            <flux:icon name="calendar" class="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">Due This Period</h3>
-                            <p class="text-xs text-zinc-500 dark:text-zinc-400">next 2 weeks</p>
-                        </div>
-                    </div>
-                    <span class="text-xl font-semibold text-zinc-900 dark:text-white">
-                        £{{ number_format($this->stats->dueThisPeriodAmount, 2) }}
-                    </span>
-                </div>
-            </div>
-            <div class="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-48 overflow-y-auto">
-                @foreach($this->stats->dueThisPeriod as $installment)
-                    @php $isOverdue = $installment->due_date->lt(today()); @endphp
-                    <div class="flex justify-between items-center px-5 py-3">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-medium text-zinc-900 dark:text-white">{{ $installment->purchase->merchant }}</span>
-                            @if($isOverdue)
-                                <flux:badge size="sm" color="red">Overdue</flux:badge>
-                            @endif
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span @class([
-                                'text-sm',
-                                'text-red-600 dark:text-red-400 font-medium' => $isOverdue,
-                                'text-zinc-500 dark:text-zinc-400' => !$isOverdue,
-                            ])>
-                                {{ $installment->due_date->format('l jS F Y') }}
-                            </span>
-                            <span class="text-sm font-semibold text-zinc-900 dark:text-white">
-                                £{{ number_format($installment->amount, 2) }}
-                            </span>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    @endif
 
     {{-- Filters and Actions --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

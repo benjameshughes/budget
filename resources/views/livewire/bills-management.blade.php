@@ -2,8 +2,8 @@
     {{-- Header with Inline Stats --}}
     <x-page-header heading="Bills" subheading="Manage your recurring bills and payments">
         <x-stat-item :value="'£' . number_format($this->stats->totalMonthly, 2)" label="monthly" color="red" size="lg" />
-        <x-stat-item :value="'£' . number_format($this->stats->dueThisPeriod, 2)" label="due this period" color="amber" separator />
-        <x-stat-item :value="$this->stats->billsDueThisPeriod->count()" label="bills upcoming" separator />
+        <span class="text-zinc-300 dark:text-zinc-600">·</span>
+        <x-upcoming-popover :items="$this->stats->billsDueThisPeriod" label="due this period" emptyText="No bills due this period" />
     </x-page-header>
 
     {{-- Bills Pot Summary --}}
