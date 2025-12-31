@@ -11,8 +11,7 @@ use Livewire\Component;
 
 class SavingsAccountsSummary extends Component
 {
-    #[On('savings-account-created')]
-    #[On('savings-transfer-completed')]
+    #[On(['savings-account-created', 'savings-transfer-completed'])]
     public function refreshSummary(): void
     {
         // Trigger re-render

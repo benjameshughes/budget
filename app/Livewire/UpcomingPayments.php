@@ -29,8 +29,7 @@ class UpcomingPayments extends Component
         $this->dispatch('transaction-added');
     }
 
-    #[On('bill-saved')]
-    #[On('bill-paid')]
+    #[On(['bill-saved', 'bill-paid'])]
     public function refreshList(): void
     {
         // re-render

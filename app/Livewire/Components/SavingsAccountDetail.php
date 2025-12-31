@@ -52,8 +52,7 @@ class SavingsAccountDetail extends Component
         $this->dispatch('show-edit-savings-account', accountId: $this->account->id);
     }
 
-    #[On('savings-transfer-completed')]
-    #[On('savings-account-updated')]
+    #[On(['savings-transfer-completed', 'savings-account-updated'])]
     public function refreshAccount(): void
     {
         $this->loadAccount();

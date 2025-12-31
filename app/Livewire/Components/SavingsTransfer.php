@@ -11,6 +11,7 @@ use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class SavingsTransfer extends Component
@@ -18,6 +19,13 @@ class SavingsTransfer extends Component
     use AuthorizesRequests;
 
     public ?string $account = null;
+
+    #[On('show-savings-transfer')]
+    public function showWithAccount(int $accountId): void
+    {
+        $this->account = (string) $accountId;
+        Flux::modals()->show('savings-transfer');
+    }
 
     public string $direction = TransferDirection::Deposit->value;
 

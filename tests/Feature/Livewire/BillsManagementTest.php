@@ -57,8 +57,16 @@ test('cannot pay another users bill', function () {
 
 test('bills are filtered by active status', function () {
     $user = User::factory()->create();
-    $activeBill = Bill::factory()->create(['user_id' => $user->id, 'active' => true]);
-    $inactiveBill = Bill::factory()->create(['user_id' => $user->id, 'active' => false]);
+    $activeBill = Bill::factory()->create([
+        'user_id' => $user->id,
+        'active' => true,
+        'name' => 'Active Test Bill 12345',
+    ]);
+    $inactiveBill = Bill::factory()->create([
+        'user_id' => $user->id,
+        'active' => false,
+        'name' => 'Inactive Test Bill 67890',
+    ]);
 
     Livewire::actingAs($user)
         ->test(BillsManagement::class)

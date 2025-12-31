@@ -15,8 +15,7 @@ class BudgetSummary extends Component
 {
     public string $period = 'week';
 
-    #[On('transaction-added')]
-    #[On('bill-paid')]
+    #[On(['transaction-added', 'bill-paid'])]
     public function refreshCards(): void
     {
         unset($this->income, $this->expenses, $this->remaining, $this->spendingPercentage);

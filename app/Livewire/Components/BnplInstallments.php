@@ -13,8 +13,7 @@ use Livewire\Component;
 
 class BnplInstallments extends Component
 {
-    #[On('bnpl-purchase-created')]
-    #[On('bnpl-installment-paid')]
+    #[On(['bnpl-purchase-created', 'bnpl-installment-paid'])]
     public function refreshPurchases(): void
     {
         unset($this->purchases);

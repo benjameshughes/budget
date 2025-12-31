@@ -26,8 +26,7 @@ class CreditCardsManagement extends Component
         }
     }
 
-    #[On('credit-card-created')]
-    #[On('credit-card-payment-completed')]
+    #[On(['credit-card-created', 'credit-card-payment-completed'])]
     public function refresh(): void
     {
         unset($this->cards);

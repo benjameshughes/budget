@@ -30,7 +30,7 @@ class AddCategory extends Component
     {
         $this->resetValidation();
         $this->reset(['name', 'description']);
-        $this->dispatch('open-modal', 'add-category');
+        Flux::modals()->show('add-category');
     }
 
     public function save(): void
@@ -45,7 +45,7 @@ class AddCategory extends Component
         ]);
 
         $this->dispatch('category-created', id: $category->id);
-        $this->dispatch('close-modal', 'add-category');
+        Flux::modals()->close('add-category');
 
         Flux::toast(
             text: 'Category created',

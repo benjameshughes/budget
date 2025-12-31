@@ -14,8 +14,7 @@ class CategoryBreakdown extends Component
 {
     public string $period = '30';
 
-    #[On('transaction-added')]
-    #[On('category-created')]
+    #[On(['transaction-added', 'category-created'])]
     public function refresh(): void
     {
         unset($this->categories);

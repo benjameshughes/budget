@@ -11,8 +11,7 @@ use Livewire\Component;
 
 class CreditCardsSummary extends Component
 {
-    #[On('credit-card-created')]
-    #[On('credit-card-payment-completed')]
+    #[On(['credit-card-created', 'credit-card-payment-completed'])]
     public function refreshSummary(): void
     {
         // Trigger re-render

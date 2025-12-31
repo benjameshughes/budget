@@ -7,10 +7,9 @@ namespace App\DataTransferObjects\Actions;
 use App\Enums\BillCadence;
 use Carbon\Carbon;
 
-final readonly class CreateBillData
+final readonly class UpdateBillData
 {
     public function __construct(
-        public int $userId,
         public string $name,
         public float $amount,
         public BillCadence $cadence,

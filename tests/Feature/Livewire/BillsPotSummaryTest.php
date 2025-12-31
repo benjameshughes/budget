@@ -65,23 +65,23 @@ test('displays float target with multiplier when multiplier is set', function ()
         ->assertSee('110.00'); // Target shown in header
 });
 
-test('refreshes on bill-created event', function () {
+test('refreshes on bill-saved event', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
     Livewire::test(BillsPotSummary::class)
-        ->dispatch('bill-created')
+        ->dispatch('bill-saved')
         ->assertStatus(200);
 });
 
-test('refreshes on bill-updated event', function () {
+test('refreshes on bill-toggled event', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
     Livewire::test(BillsPotSummary::class)
-        ->dispatch('bill-updated')
+        ->dispatch('bill-toggled')
         ->assertStatus(200);
 });
 

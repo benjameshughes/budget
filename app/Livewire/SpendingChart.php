@@ -14,8 +14,7 @@ class SpendingChart extends Component
 {
     public string $period = '30';
 
-    #[On('transaction-added')]
-    #[On('bill-paid')]
+    #[On(['transaction-added', 'bill-paid'])]
     public function refreshChart(): void
     {
         unset($this->chartData);

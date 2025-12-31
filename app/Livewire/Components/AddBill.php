@@ -5,113 +5,68 @@ declare(strict_types=1);
 namespace App\Livewire\Components;
 
 use App\Actions\Bill\CreateBillAction;
-use App\DataTransferObjects\Actions\CreateBillData;
+use App\Actions\Bill\UpdateBillAction;
 use App\Enums\BillCadence;
+use App\Livewire\Forms\BillForm;
 use App\Models\Bill;
 use App\Models\Category;
-use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class AddBill extends Component
 {
     use AuthorizesRequests;
 
-    public string $name = '';
+    public BillForm $form;
 
-    public string $amount = '';
-
-    public string $cadence = BillCadence::Monthly->value;
-
-    public ?int $day_of_month = 1;
-
-    public ?int $weekday = null;
-
-    public int $interval_every = 1;
-
-    public ?string $start_date = null;
-
-    public ?string $notes = null;
-
-    public ?string $category = null;
-
-    protected function rules(): array
-    {
-        $cadence = BillCadence::tryFrom($this->cadence);
-
-        $dayOfMonthRules = ['nullable', 'integer', 'between:1,31'];
-        $weekdayRules = ['nullable', 'integer', 'between:0,6'];
-
-        if ($cadence === BillCadence::Monthly) {
-            $dayOfMonthRules = ['required', 'integer', 'between:1,31'];
-        } elseif (in_array($cadence, [BillCadence::Weekly, BillCadence::Biweekly])) {
-            $weekdayRules = ['required', 'integer', 'between:0,6'];
-        }
-
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
-            'cadence' => ['required', Rule::enum(BillCadence::class)],
-            'day_of_month' => $dayOfMonthRules,
-            'weekday' => $weekdayRules,
-            'interval_every' => ['required', 'integer', 'min:1', 'max:12'],
-            'start_date' => ['required', 'date'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-            'category' => ['nullable', 'exists:categories,id'],
-        ];
-    }
+    public ?Bill $bill = null;
 
     public function mount(): void
     {
-        $this->start_date = now()->toDateString();
+        $this->form->cadence = BillCadence::Monthly->value;
     }
 
-    public function updatedCadence(): void
+    #[On('edit-bill')]
+    public function editBill(int $billId): void
     {
-        $cadence = BillCadence::tryFrom($this->cadence);
+        $bill = Bill::findOrFail($billId);
+        $this->authorize('update', $bill);
 
-        // Clear fields based on cadence
-        if (in_array($cadence, [BillCadence::Weekly, BillCadence::Biweekly])) {
-            $this->day_of_month = null;
-        } elseif ($cadence === BillCadence::Monthly) {
-            $this->weekday = null;
-            if ($this->day_of_month === null) {
-                $this->day_of_month = 1;
-            }
-        } elseif ($cadence === BillCadence::Yearly) {
-            $this->weekday = null;
-            $this->day_of_month = null;
+        $this->bill = $bill;
+        $this->form->setBill($bill);
+    }
+
+    public function save(CreateBillAction $createBillAction, UpdateBillAction $updateBillAction): void
+    {
+        if ($this->bill) {
+            $this->authorize('update', $this->bill);
+            $this->form->validate();
+
+            $updateBillAction->handle($this->bill, $this->form->toUpdateData());
+
+            Flux::toast(text: 'Bill updated', heading: 'Success', variant: 'success');
+        } else {
+            $this->authorize('create', Bill::class);
+            $this->form->validate();
+
+            $createBillAction->handle($this->form->toCreateData(auth()->id()));
+
+            Flux::toast(text: 'Bill added', heading: 'Success', variant: 'success');
         }
-    }
-
-    public function save(CreateBillAction $createBillAction): void
-    {
-        $this->authorize('create', Bill::class);
-        $data = $this->validate();
-
-        $billData = new CreateBillData(
-            userId: auth()->id(),
-            name: $data['name'],
-            amount: (float) $data['amount'],
-            cadence: BillCadence::from($data['cadence']),
-            startDate: Carbon::parse($data['start_date']),
-            categoryId: $this->category ? (int) $this->category : null,
-            dayOfMonth: $data['day_of_month'],
-            weekday: $data['weekday'],
-            intervalEvery: $data['interval_every'],
-            autopay: false,
-            notes: $data['notes'] ?? null,
-        );
-
-        $createBillAction->handle($billData);
-
-        Flux::toast(text: 'Bill added', heading: 'Success', variant: 'success');
 
         $this->dispatch('bill-saved');
-        $this->reset(['name', 'amount', 'notes', 'category']);
+        Flux::modals()->close('add-bill');
+        $this->resetForm();
+    }
+
+    protected function resetForm(): void
+    {
+        $this->bill = null;
+        $this->form->reset();
+        $this->form->cadence = BillCadence::Monthly->value;
     }
 
     public function render(): View

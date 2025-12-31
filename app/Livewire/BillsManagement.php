@@ -36,8 +36,7 @@ class BillsManagement extends Component
         }
     }
 
-    #[On('bill-saved')]
-    #[On('bill-paid')]
+    #[On(['bill-saved', 'bill-paid'])]
     public function refresh(): void
     {
         unset($this->bills);
@@ -96,6 +95,7 @@ class BillsManagement extends Component
             variant: 'success'
         );
 
+        $this->dispatch('bill-toggled');
         $this->refresh();
     }
 
@@ -109,6 +109,7 @@ class BillsManagement extends Component
             variant: 'success'
         );
 
+        $this->dispatch('bill-deleted');
         $this->refresh();
     }
 

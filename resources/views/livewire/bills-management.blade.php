@@ -124,6 +124,15 @@
                                     <span wire:loading wire:target="pay({{ $bill->id }})">...</span>
                                 </flux:button>
                             @endif
+                            <flux:modal.trigger name="add-bill">
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="pencil"
+                                    aria-label="Edit bill"
+                                    wire:click="$dispatch('edit-bill', { billId: {{ $bill->id }} })"
+                                />
+                            </flux:modal.trigger>
                             <flux:button
                                 variant="ghost"
                                 size="sm"

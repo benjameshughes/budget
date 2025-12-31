@@ -14,8 +14,7 @@ final class TotalMoney extends Component
 {
     public string $period = 'month';
 
-    #[On('transaction-added')]
-    #[On('category-created')]
+    #[On(['transaction-added', 'category-created'])]
     public function refreshOverview(): void
     {
         unset($this->income);

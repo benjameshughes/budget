@@ -20,15 +20,17 @@ class SavingsManagement extends Component
 
     public string $sortDirection = 'asc';
 
-    #[On('savings-account-created')]
-    #[On('savings-account-updated')]
-    #[On('savings-transfer-completed')]
-    #[On('savings-transfer-created')]
-    #[On('bill-created')]
-    #[On('bill-updated')]
-    #[On('bill-deleted')]
-    #[On('bill-paid')]
-    #[On('bnpl-installment-paid')]
+    #[On([
+        'savings-account-created',
+        'savings-account-updated',
+        'savings-transfer-completed',
+        'savings-transfer-created',
+        'bill-saved',
+        'bill-toggled',
+        'bill-deleted',
+        'bill-paid',
+        'bnpl-installment-paid',
+    ])]
     public function refresh(): void
     {
         unset($this->accounts);

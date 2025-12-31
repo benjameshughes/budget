@@ -11,13 +11,15 @@ use Livewire\Component;
 
 class BillsPotSummary extends Component
 {
-    #[On('bill-created')]
-    #[On('bill-updated')]
-    #[On('bill-deleted')]
-    #[On('weekly-budget-updated')]
-    #[On('bnpl-installment-paid')]
-    #[On('savings-transfer-created')]
-    #[On('bill-paid')]
+    #[On([
+        'bill-saved',
+        'bill-deleted',
+        'bill-toggled',
+        'bill-paid',
+        'weekly-budget-updated',
+        'bnpl-installment-paid',
+        'savings-transfer-created',
+    ])]
     public function refreshStatus(): void
     {
         unset($this->status);
