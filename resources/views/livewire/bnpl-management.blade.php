@@ -191,13 +191,27 @@
                         @endif
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3">
-                        <flux:button
-                            variant="ghost"
-                            size="sm"
-                            icon="eye"
-                            aria-label="View purchase details"
-                            wire:click="$dispatch('show-bnpl-purchase-detail', { purchaseId: {{ $purchase->id }} })"
-                        />
+                        <div class="flex gap-1 justify-end">
+                            @if($nextInstallment)
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="credit-card"
+                                    aria-label="Pay next installment"
+                                    wire:click="payNextInstallment({{ $purchase->id }})"
+                                >
+                                    <span wire:loading.remove wire:target="payNextInstallment({{ $purchase->id }})">Pay</span>
+                                    <span wire:loading wire:target="payNextInstallment({{ $purchase->id }})">...</span>
+                                </flux:button>
+                            @endif
+                            <flux:button
+                                variant="ghost"
+                                size="sm"
+                                icon="eye"
+                                aria-label="View purchase details"
+                                wire:click="$dispatch('show-bnpl-purchase-detail', { purchaseId: {{ $purchase->id }} })"
+                            />
+                        </div>
                     </flux:table.cell>
                 </flux:table.row>
             @empty
