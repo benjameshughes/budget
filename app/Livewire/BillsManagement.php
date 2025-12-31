@@ -121,6 +121,7 @@ class BillsManagement extends Component
         $markBillPaidAction->handle($bill, Carbon::today());
 
         Flux::toast(text: 'Bill paid', heading: 'Success', variant: 'success');
+        $this->dispatch('celebrate', type: 'default');
         $this->dispatch('bill-paid');
         $this->dispatch('transaction-added');
     }

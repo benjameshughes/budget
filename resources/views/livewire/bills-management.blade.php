@@ -26,7 +26,7 @@
     </div>
 
     {{-- Mobile: Swipeable Cards --}}
-    <div class="md:hidden space-y-2" x-data x-auto-animate>
+    <div class="md:hidden space-y-2 overflow-hidden" x-data x-auto-animate>
         @forelse($this->bills as $bill)
             @php $isOverdue = $bill->next_due_date?->lt(today()); @endphp
             <x-swipeable-row
@@ -66,7 +66,7 @@
     </div>
 
     {{-- Desktop: Table --}}
-    <div class="hidden md:block">
+    <div class="hidden md:block overflow-hidden">
         <flux:table>
             <flux:table.columns>
                 <flux:table.column

@@ -47,6 +47,12 @@ class BnplManagement extends Component
 
         if ($nextInstallment) {
             $action->handle($nextInstallment);
+
+            // Check if this was the last installment
+            $purchase->refresh();
+            $isComplete = $purchase->nextUnpaidInstallment() === null;
+
+            $this->dispatch('celebrate', type: $isComplete ? 'completion' : 'default');
             $this->refresh();
         }
     }
