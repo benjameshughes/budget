@@ -9,13 +9,15 @@
 @php
     $valueClasses = match($color) {
         'red' => 'text-red-600 dark:text-red-500',
+        'rose' => 'text-rose-600 dark:text-rose-500',
         'amber' => 'text-amber-600 dark:text-amber-500',
+        'sky' => 'text-sky-600 dark:text-sky-500',
         'emerald' => 'text-emerald-600 dark:text-emerald-500',
         default => 'text-zinc-900 dark:text-white',
     };
 
     $labelClasses = match($color) {
-        'red' => 'text-red-600 dark:text-red-500',
+        'red', 'rose' => 'text-red-600 dark:text-red-500',
         default => 'text-zinc-500 dark:text-zinc-400',
     };
 

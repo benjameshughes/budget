@@ -1,47 +1,13 @@
 <div>
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Debt</div>
-            <div class="text-2xl font-semibold text-rose-600 dark:text-rose-500">
-                £{{ number_format($this->stats->totalDebt, 2) }}
-            </div>
-        </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Total Limit</div>
-            <div class="text-2xl font-semibold">
-                @if($this->stats->hasLimits)
-                    £{{ number_format($this->stats->totalLimit, 2) }}
-                @else
-                    <span class="text-neutral-400">-</span>
-                @endif
-            </div>
-        </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Utilization</div>
-            @php
-                $utilizationTextClass = match($this->stats->utilizationColor) {
-                    'rose' => 'text-rose-600 dark:text-rose-500',
-                    'amber' => 'text-amber-600 dark:text-amber-500',
-                    'sky' => 'text-sky-600 dark:text-sky-500',
-                    default => 'text-emerald-600 dark:text-emerald-500',
-                };
-            @endphp
-            <div class="text-2xl font-semibold {{ $utilizationTextClass }}">
-                @if($this->stats->hasLimits)
-                    {{ number_format($this->stats->utilizationPercent, 1) }}%
-                @else
-                    <span class="text-neutral-400">-</span>
-                @endif
-            </div>
-        </div>
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02]">
-            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">Active Cards</div>
-            <div class="text-2xl font-semibold">
-                {{ $this->stats->cardsCount }}
-            </div>
-        </div>
-    </div>
+    {{-- Header with Inline Stats --}}
+    <x-page-header heading="Credit Cards" subheading="Track your credit card balances and utilization">
+        <x-stat-item :value="'£' . number_format($this->stats->totalDebt, 2)" label="debt" color="rose" size="lg" />
+        @if($this->stats->hasLimits)
+            <x-stat-item :value="'£' . number_format($this->stats->totalLimit, 2)" label="limit" separator />
+            <x-stat-item :value="number_format($this->stats->utilizationPercent, 1) . '%'" label="used" :color="$this->stats->utilizationColor" separator />
+        @endif
+        <x-stat-item :value="$this->stats->cardsCount" label="cards" separator />
+    </x-page-header>
 
     {{-- Actions --}}
     <div class="flex justify-end mb-6">
