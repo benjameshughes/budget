@@ -5,3 +5,13 @@
  */
 
 import './echo';
+
+/**
+ * Auto-animate directive for Alpine.js
+ * Provides smooth animations for list additions, removals, and reordering
+ */
+import { autoAnimate } from '@formkit/auto-animate';
+
+document.addEventListener('alpine:init', () => {
+    Alpine.directive('auto-animate', (el) => autoAnimate(el));
+});

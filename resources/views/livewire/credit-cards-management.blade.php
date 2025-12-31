@@ -33,7 +33,7 @@
             <flux:table.column align="end">Actions</flux:table.column>
         </flux:table.columns>
 
-        <flux:table.rows>
+        <flux:table.rows x-data x-auto-animate>
             @forelse($this->cards as $card)
                 @php
                     $balance = $card->currentBalance();

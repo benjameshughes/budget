@@ -26,7 +26,7 @@
     </div>
 
     {{-- Mobile: Swipeable Cards --}}
-    <div class="md:hidden space-y-2">
+    <div class="md:hidden space-y-2" x-data x-auto-animate>
         @forelse($this->bills as $bill)
             @php $isOverdue = $bill->next_due_date?->lt(today()); @endphp
             <x-swipeable-row
@@ -91,7 +91,7 @@
                 <flux:table.column align="end">Actions</flux:table.column>
             </flux:table.columns>
 
-            <flux:table.rows>
+            <flux:table.rows x-data x-auto-animate>
                 @forelse($this->bills as $bill)
                     <flux:table.row wire:key="bill-{{ $bill->id }}" class="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
                         <flux:table.cell variant="strong" class="py-3">

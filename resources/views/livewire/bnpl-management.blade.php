@@ -26,7 +26,7 @@
     </div>
 
     {{-- Mobile: Swipeable Cards --}}
-    <div class="md:hidden space-y-2">
+    <div class="md:hidden space-y-2" x-data x-auto-animate>
         @forelse($this->purchases as $purchase)
             @php
                 $paidCount = $purchase->paidInstallmentsCount();
@@ -120,7 +120,7 @@
             <flux:table.column align="end">Actions</flux:table.column>
         </flux:table.columns>
 
-        <flux:table.rows>
+        <flux:table.rows x-data x-auto-animate>
             @forelse($this->purchases as $purchase)
                 @php
                     $paidCount = $purchase->paidInstallmentsCount();
