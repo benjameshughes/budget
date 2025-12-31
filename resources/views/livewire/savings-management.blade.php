@@ -1,4 +1,11 @@
 <div>
+    {{-- Header with Inline Stats --}}
+    <x-page-header heading="Savings Spaces" subheading="Track your savings goals and progress">
+        <x-stat-item :value="'£' . number_format($this->stats->totalSaved, 2)" label="saved" color="emerald" size="lg" />
+        <x-stat-item :value="'£' . number_format($this->stats->totalTarget, 2)" label="target" separator />
+        <x-stat-item :value="$this->stats->accountCount" label="spaces" separator />
+    </x-page-header>
+
     {{-- Bills Pot Card (Special) --}}
     @if($this->billsPotStatus['is_configured'])
         <div class="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 shadow-sm ring-1 ring-violet-200/50 dark:from-violet-950/30 dark:to-purple-950/30 dark:ring-violet-500/20">
@@ -71,27 +78,6 @@
         </div>
     @endif
 
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Saved</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-500">
-                £{{ number_format($this->stats->totalSaved, 2) }}
-            </div>
-        </div>
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Target</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-                £{{ number_format($this->stats->totalTarget, 2) }}
-            </div>
-        </div>
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Savings Spaces</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-                {{ $this->stats->accountCount }}
-            </div>
-        </div>
-    </div>
 
     {{-- Actions --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 mb-6">

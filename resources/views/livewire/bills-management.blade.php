@@ -1,38 +1,14 @@
 <div>
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Monthly Bills</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight text-red-600 dark:text-red-500">
-                £{{ number_format($this->stats->totalMonthly, 2) }}
-            </div>
-        </div>
+    {{-- Header with Inline Stats --}}
+    <x-page-header heading="Bills" subheading="Manage your recurring bills and payments">
+        <x-stat-item :value="'£' . number_format($this->stats->totalMonthly, 2)" label="monthly" color="red" size="lg" />
+        <x-stat-item :value="'£' . number_format($this->stats->dueThisPeriod, 2)" label="due this period" color="amber" separator />
+        <x-stat-item :value="$this->stats->billsDueThisPeriod->count()" label="bills upcoming" separator />
+    </x-page-header>
+
+    {{-- Bills Pot Summary --}}
+    <div class="mb-8">
         <livewire:components.bills-pot-summary />
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Due This Period</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight text-amber-600 dark:text-amber-500">
-                £{{ number_format($this->stats->dueThisPeriod, 2) }}
-            </div>
-        </div>
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">Bills Due This Period</div>
-            <div class="space-y-2 max-h-32 overflow-y-auto">
-                @forelse($this->stats->billsDueThisPeriod as $bill)
-                    <div class="flex justify-between text-sm">
-                        <span class="text-zinc-700 dark:text-zinc-300">{{ $bill->name }}</span>
-                        <span class="font-medium text-zinc-900 dark:text-white">£{{ number_format($bill->amount, 2) }}</span>
-                    </div>
-                @empty
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400">No bills due this period</p>
-                @endforelse
-                @if($this->stats->billsDueThisPeriod->count() > 0)
-                    <div class="border-t border-zinc-100 dark:border-zinc-700 pt-2 flex justify-between font-medium text-sm">
-                        <span class="text-zinc-700 dark:text-zinc-300">Total</span>
-                        <span class="text-zinc-900 dark:text-white">£{{ number_format($this->stats->dueThisPeriod, 2) }}</span>
-                    </div>
-                @endif
-            </div>
-        </div>
     </div>
 
     {{-- Filters and Actions --}}

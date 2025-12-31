@@ -1,31 +1,13 @@
 <div>
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Outstanding</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight text-red-600 dark:text-red-500">
-                £{{ number_format($this->stats->totalOutstanding, 2) }}
-            </div>
-        </div>
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Active Purchases</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-                {{ $this->stats->activePurchases }}
-            </div>
-        </div>
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Purchases</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-                {{ $this->stats->totalPurchases }}
-            </div>
-        </div>
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Overdue Payments</div>
-            <div class="mt-2 text-3xl font-semibold tracking-tight {{ $this->stats->overdueInstallments > 0 ? 'text-red-600 dark:text-red-500' : 'text-emerald-600 dark:text-emerald-500' }}">
-                {{ $this->stats->overdueInstallments }}
-            </div>
-        </div>
-    </div>
+    {{-- Header with Inline Stats --}}
+    <x-page-header heading="Buy Now Pay Later" subheading="Manage your BNPL purchases and installments">
+        <x-stat-item :value="'£' . number_format($this->stats->totalOutstanding, 2)" label="outstanding" color="red" size="lg" />
+        <x-stat-item :value="$this->stats->activePurchases" label="active" separator />
+        <x-stat-item :value="$this->stats->totalPurchases" label="total" separator />
+        @if($this->stats->overdueInstallments > 0)
+            <x-stat-item :value="$this->stats->overdueInstallments" label="overdue" color="red" separator />
+        @endif
+    </x-page-header>
 
     {{-- Due This Period Card --}}
     @if($this->stats->dueThisPeriod->isNotEmpty())
