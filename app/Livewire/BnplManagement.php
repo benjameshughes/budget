@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Actions\Bnpl\MarkInstallmentPaidAction;
 use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;
 use Illuminate\Support\Collection;
@@ -35,6 +36,19 @@ class BnplManagement extends Component
         unset($this->purchases);
         unset($this->stats);
         unset($this->dueThisPeriod);
+    }
+
+    public function payNextInstallment(int $purchaseId, MarkInstallmentPaidAction $action): void
+    {
+        $purchase = BnplPurchase::where('user_id', auth()->id())
+            ->findOrFail($purchaseId);
+
+        $nextInstallment = $purchase->nextUnpaidInstallment();
+
+        if ($nextInstallment) {
+            $action->handle($nextInstallment);
+            $this->refresh();
+        }
     }
 
     #[Computed]

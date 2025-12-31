@@ -25,7 +25,67 @@
         </flux:modal.trigger>
     </div>
 
-    {{-- Purchases Table --}}
+    {{-- Mobile: Swipeable Cards --}}
+    <div class="md:hidden space-y-2">
+        @forelse($this->purchases as $purchase)
+            @php
+                $paidCount = $purchase->paidInstallmentsCount();
+                $totalCount = $purchase->installments->count();
+                $progressPercent = $totalCount > 0 ? ($paidCount / $totalCount) * 100 : 0;
+                $nextInstallment = $purchase->nextUnpaidInstallment();
+                $isOverdue = $nextInstallment && $nextInstallment->due_date->lt(today());
+                $isComplete = $paidCount === $totalCount;
+                $remaining = $purchase->remainingBalance();
+            @endphp
+            <x-swipeable-row
+                wire:key="bnpl-mobile-{{ $purchase->id }}"
+                on-swipe="$wire.payNextInstallment({{ $purchase->id }})"
+                :disabled="$isComplete"
+            >
+                <div
+                    class="p-4 bg-white dark:bg-zinc-900 rounded-xl ring-1 ring-zinc-950/5 dark:ring-white/10"
+                    style="background: linear-gradient(to right, {{ $isComplete ? 'rgb(16 185 129 / 0.15)' : 'rgb(16 185 129 / 0.1)' }} {{ $progressPercent }}%, transparent {{ $progressPercent }}%);"
+                >
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold text-zinc-900 dark:text-white truncate">{{ $purchase->merchant }}</span>
+                                <flux:badge size="sm" color="zinc">{{ $purchase->provider->label() }}</flux:badge>
+                            </div>
+                            @if($nextInstallment)
+                                <p @class([
+                                    'text-sm mt-1',
+                                    'text-red-600 dark:text-red-400 font-medium' => $isOverdue,
+                                    'text-zinc-500 dark:text-zinc-400' => !$isOverdue,
+                                ])>
+                                    {{ $nextInstallment->due_date->format('D j M') }}
+                                    @if($isOverdue) <span class="text-red-600">· Overdue</span> @endif
+                                </p>
+                            @elseif($isComplete)
+                                <p class="text-sm mt-1 text-emerald-600 dark:text-emerald-400 font-medium">Completed</p>
+                            @endif
+                        </div>
+                        <div class="text-right pl-4">
+                            @if($nextInstallment)
+                                <p class="text-lg font-semibold text-zinc-900 dark:text-white">£{{ number_format($nextInstallment->amount, 2) }}</p>
+                            @endif
+                            <p class="text-xs {{ $isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-500 dark:text-zinc-400' }}">
+                                {{ $paidCount }}/{{ $totalCount }} · £{{ number_format($remaining, 2) }} left
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </x-swipeable-row>
+        @empty
+            <div class="text-center py-8 text-neutral-500 dark:text-neutral-400">
+                <flux:icon name="banknotes" variant="outline" class="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No {{ $filter === 'all' ? '' : $filter }} purchases found</p>
+            </div>
+        @endforelse
+    </div>
+
+    {{-- Desktop: Table --}}
+    <div class="hidden md:block">
     <flux:table>
         <flux:table.columns>
             <flux:table.column
@@ -152,6 +212,7 @@
             @endforelse
         </flux:table.rows>
     </flux:table>
+    </div>
 
     {{-- Modals --}}
     <livewire:components.add-bnpl-purchase />
