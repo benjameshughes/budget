@@ -22,13 +22,13 @@
                 <flux:input
                     wire:model="bills_float_multiplier"
                     type="number"
-                    step="0.1"
-                    min="0.1"
-                    max="10.0"
+                    step="0.01"
+                    min="0"
+                    max="10"
                     required
                     autocomplete="off"
                 />
-                <flux:description>{{ __('Buffer multiplier - 1.0 = one month, 1.5 = six weeks, 2.0 = two months') }}</flux:description>
+                <flux:description>{{ __('Extra buffer on top of your bills — 0 = exact coverage, 0.5 = half month buffer, 1 = one month buffer, 2 = two months') }}</flux:description>
                 <flux:error name="bills_float_multiplier" />
             </flux:field>
 

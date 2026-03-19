@@ -36,7 +36,7 @@ class WeeklyBudget extends Component
         $validated = $this->validate([
             'weekly_budget' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'bills_float_target' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
-            'bills_float_multiplier' => ['required', 'numeric', 'min:0.1', 'max:10.0'],
+            'bills_float_multiplier' => ['required', 'numeric', 'min:0', 'max:10'],
         ]);
 
         // Convert empty strings to null for nullable decimal fields
