@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Models\ConnectedAccount;
 use App\Repositories\BillRepository;
 use App\Repositories\BnplRepository;
 use App\Services\BillsFloatService;
 use App\Services\HonestBudgetService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -83,6 +85,15 @@ class SimpleDashboard extends Component
     public function upcomingBnpl(): Collection
     {
         return app(BnplRepository::class)->getUpcomingInstallments(auth()->user(), 5);
+    }
+
+    #[Computed]
+    public function connectedAccounts(): EloquentCollection
+    {
+        return ConnectedAccount::forUser()
+            ->where('is_active', true)
+            ->where('balance_pence', '>', 0)
+            ->get();
     }
 
     public function render(): mixed

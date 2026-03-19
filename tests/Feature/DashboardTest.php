@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 use App\Livewire\SimpleDashboard;
+use App\Models\ConnectedAccount;
 use App\Models\Transaction;
 use App\Models\User;
 
@@ -46,4 +47,48 @@ test('dashboard loads with transactions', function () {
 
     $response->assertStatus(200)
         ->assertSeeLivewire(SimpleDashboard::class);
+});
+
+test('dashboard shows connected account balances as pills', function () {
+    $user = User::factory()->create();
+
+    ConnectedAccount::factory()->monzo()->create([
+        'user_id' => $user->id,
+        'balance_pence' => 150075,
+        'is_active' => true,
+    ]);
+
+    ConnectedAccount::factory()->starling()->create([
+        'user_id' => $user->id,
+        'balance_pence' => 42000,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertStatus(200);
+    expect($response->getContent())
+        ->toContain('1,500.75')
+        ->toContain('Monzo')
+        ->toContain('420.00')
+        ->toContain('Starling');
+});
+
+test('dashboard hides account pill when balance is zero', function () {
+    $user = User::factory()->create();
+
+    ConnectedAccount::factory()->monzo()->create([
+        'user_id' => $user->id,
+        'balance_pence' => 0,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertStatus(200);
+    expect($response->getContent())->not->toContain('building-library');
 });

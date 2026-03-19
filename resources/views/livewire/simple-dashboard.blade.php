@@ -33,6 +33,16 @@
                 :progress="$this->billsFloatStatus['progress_percentage']"
             />
         @endif
+
+        @foreach($this->connectedAccounts as $account)
+            @php $pillColor = match($account->provider) { \App\Enums\BankProvider::Monzo => 'rose', \App\Enums\BankProvider::Starling => 'sky' }; @endphp
+            <x-pill
+                :value="'£' . number_format($account->balanceInPounds(), 2)"
+                :label="$account->provider->label()"
+                :color="$pillColor"
+                icon="building-library"
+            />
+        @endforeach
     </x-page-header>
 
     {{-- 2. Quick Input --}}
