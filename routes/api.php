@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\RuleTriggerController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\VoiceTranscriptionController;
 use App\Http\Controllers\BankWebhookController;
@@ -11,6 +12,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/transactions', [TransactionController::class, 'store']);
     Route::post('/transactions/parse', [TransactionController::class, 'parse']);
     Route::post('/voice/transcribe', [VoiceTranscriptionController::class, 'transcribe']);
+
+    Route::post('/rules/trigger', [RuleTriggerController::class, 'trigger'])->name('api.rules.trigger');
+    Route::post('/rules/{ruleId}/trigger', [RuleTriggerController::class, 'trigger'])->name('api.rules.trigger.specific');
 });
 
 // Bank webhooks — no auth middleware, verified via HMAC/token
