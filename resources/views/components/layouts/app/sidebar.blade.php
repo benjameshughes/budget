@@ -30,6 +30,7 @@
                     <flux:sidebar.item icon="document-text" href="{{route('bills')}}" class="text-white hover:bg-white/10 [&[data-current]]:bg-violet-700 [&[data-current]]:text-white [&[data-current]]:ring-1 [&[data-current]]:ring-violet-900 transition-all duration-200 ease-in-out">Bills</flux:sidebar.item>
                     <flux:sidebar.item icon="building-library" href="{{route('savings')}}" class="text-white hover:bg-white/10 [&[data-current]]:bg-violet-700 [&[data-current]]:text-white [&[data-current]]:ring-1 [&[data-current]]:ring-violet-900 transition-all duration-200 ease-in-out">Savings</flux:sidebar.item>
                     <flux:sidebar.item icon="sparkles" href="{{route('penny-challenge')}}" class="text-white hover:bg-white/10 [&[data-current]]:bg-violet-700 [&[data-current]]:text-white [&[data-current]]:ring-1 [&[data-current]]:ring-violet-900 transition-all duration-200 ease-in-out">1p Challenge</flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-days" href="{{route('calendar')}}" class="text-white hover:bg-white/10 [&[data-current]]:bg-violet-700 [&[data-current]]:text-white [&[data-current]]:ring-1 [&[data-current]]:ring-violet-900 transition-all duration-200 ease-in-out">Calendar</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
