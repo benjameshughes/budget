@@ -10,46 +10,32 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class WeeklyBudget extends Component
+class BillsFloat extends Component
 {
-    public string $weekly_budget = '';
-
     public string $bills_float_target = '';
 
     public string $bills_float_multiplier = '';
 
-    /**
-     * Mount the component.
-     */
     public function mount(): void
     {
         $user = Auth::user();
-        $this->weekly_budget = $user->weekly_budget !== null ? (string) $user->weekly_budget : '0.00';
         $this->bills_float_target = $user->bills_float_target !== null ? (string) $user->bills_float_target : '';
         $this->bills_float_multiplier = $user->getAttributes()['bills_float_multiplier'] ?? '1.0';
     }
 
-    /**
-     * Update the weekly budget for the currently authenticated user.
-     */
-    public function updateWeeklyBudget(): void
+    public function save(): void
     {
         $user = Auth::user();
 
         $validated = $this->validate([
-            'weekly_budget' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'bills_float_target' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'bills_float_multiplier' => ['required', 'numeric', 'min:0', 'max:10'],
         ]);
 
-        // Convert empty strings to null for nullable decimal fields
         if ($validated['bills_float_target'] === '' || $validated['bills_float_target'] === null) {
             $validated['bills_float_target'] = null;
         }
 
-        $user->weekly_budget = $validated['weekly_budget'];
-
-        // Set nullable/decimal fields directly to avoid cast issues
         $user->setRawAttributes(array_merge(
             $user->getAttributes(),
             [
@@ -60,7 +46,7 @@ class WeeklyBudget extends Component
 
         $user->save();
 
-        $this->dispatch('weekly-budget-updated');
+        $this->dispatch('bills-float-updated');
     }
 
     #[Computed]
@@ -72,8 +58,8 @@ class WeeklyBudget extends Component
             + app(BnplRepository::class)->getRemainingBalance($user);
     }
 
-    public function render()
+    public function render(): mixed
     {
-        return view('livewire.settings.weekly-budget');
+        return view('livewire.settings.bills-float');
     }
 }

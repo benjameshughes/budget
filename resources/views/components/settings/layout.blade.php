@@ -3,9 +3,8 @@
         <flux:navlist>
             <flux:navlist.item :href="route('profile.edit')" wire:navigate>{{ __('Profile') }}</flux:navlist.item>
             <flux:navlist.item :href="route('user-password.edit')" wire:navigate>{{ __('Password') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('pay-cadence.edit')" wire:navigate>{{ __('Pay Cadence') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('pay-cycle.edit')" wire:navigate>{{ __('Pay Cycle') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('weekly-budget.edit')" wire:navigate>{{ __('Weekly Budget') }}</flux:navlist.item>
+            <flux:navlist.item :href="route('pay-budget.edit')" wire:navigate>{{ __('Pay & Budget') }}</flux:navlist.item>
+            <flux:navlist.item :href="route('bills-float.edit')" wire:navigate>{{ __('Bills Float') }}</flux:navlist.item>
             <flux:navlist.item :href="route('categories.edit')" wire:navigate>{{ __('Categories') }}</flux:navlist.item>
             @if (Laravel\Fortify\Features::canManageTwoFactorAuthentication())
                 <flux:navlist.item :href="route('two-factor.show')" wire:navigate>{{ __('Two-Factor Auth') }}</flux:navlist.item>
