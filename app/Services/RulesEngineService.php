@@ -11,6 +11,11 @@ use App\Enums\TriggerEvent;
 use App\Models\AutomationRule;
 use App\Models\AutomationRuleLog;
 use App\Models\BankPot;
+use App\Models\CreditCard;
+use App\Models\User;
+use App\Repositories\BillRepository;
+use App\Repositories\BnplRepository;
+use App\Repositories\TransactionRepository;
 use App\Services\Bank\MonzoService;
 use App\Services\Bank\StarlingService;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +25,102 @@ final readonly class RulesEngineService
     public function __construct(
         private MonzoService $monzoService,
         private StarlingService $starlingService,
+        private BillsFloatService $billsFloatService,
+        private HonestBudgetService $budgetService,
+        private PayPeriodService $payPeriodService,
+        private BudgetService $fullBudgetService,
+        private TransactionRepository $transactionRepository,
+        private BillRepository $billRepository,
+        private BnplRepository $bnplRepository,
     ) {}
+
+    /**
+     * Enrich context with app-level budget/float variables.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function enrichContext(int $userId, array $context): array
+    {
+        $user = User::findOrFail($userId);
+
+        $floatStatus = $this->billsFloatService->status($user);
+        $budgetBreakdown = $this->budgetService->breakdown($user);
+        $payPeriod = $this->payPeriodService->currentPeriod($user);
+
+        // Trigger amount in pounds (convenience)
+        $triggerAmount = $context['trigger']['amount'] ?? 0;
+        $context['trigger']['amount_pounds'] = round($triggerAmount / 100, 2);
+
+        // Pay period
+        $context['pay'] = [
+            'days_remaining' => $this->payPeriodService->daysRemaining($user),
+            'day_of_period' => $this->payPeriodService->currentDayOfPeriod($user),
+            'next_pay_date' => $user->nextPayDate()->toDateString(),
+            'last_pay_date' => $user->lastPayDate()->toDateString(),
+            'pay_day_name' => $this->payPeriodService->payDayName($user),
+        ];
+
+        // Budget
+        $context['budget'] = [
+            'weekly_budget' => $budgetBreakdown['weekly_budget'],
+            'weekly_budget_pence' => (int) round($budgetBreakdown['weekly_budget'] * 100),
+            'spent' => $budgetBreakdown['spent'],
+            'spent_pence' => (int) round($budgetBreakdown['spent'] * 100),
+            'remaining' => $budgetBreakdown['remaining'],
+            'remaining_pence' => (int) round($budgetBreakdown['remaining'] * 100),
+            'percentage_spent' => $budgetBreakdown['percentage_spent'],
+            'is_over_budget' => $budgetBreakdown['remaining'] < 0,
+            'status' => $budgetBreakdown['status'],
+            'daily_remaining' => $this->fullBudgetService->dailyBudgetRemaining($user),
+        ];
+
+        // Bills float
+        $context['bills'] = [
+            'weekly_contribution' => $floatStatus['weekly_contribution'],
+            'weekly_contribution_pence' => (int) round($floatStatus['weekly_contribution'] * 100),
+            'monthly_total' => $floatStatus['monthly_total'],
+            'monthly_total_pence' => (int) round($floatStatus['monthly_total'] * 100),
+            'float_target' => $floatStatus['target'],
+            'float_current' => $floatStatus['current'],
+            'float_progress' => $floatStatus['progress_percentage'] ?? 0,
+            'float_is_healthy' => $floatStatus['is_healthy'],
+            'upcoming_7_days' => $this->billRepository->totalDueBetween($user, now(), now()->addDays(7)),
+        ];
+
+        // Spending insights
+        $context['spending'] = [
+            'weekly_expenses' => $this->fullBudgetService->weeklyExpenses($user),
+            'monthly_income' => $this->fullBudgetService->monthlyIncome($user),
+            'monthly_expenses' => $this->fullBudgetService->monthlyExpenses($user),
+            'spending_percentage' => $this->fullBudgetService->spendingPercentage($user),
+            'average_daily' => $this->transactionRepository->averageDailyExpenseBetween($user, $payPeriod['start'], $payPeriod['end']),
+        ];
+
+        // BNPL
+        $context['bnpl'] = [
+            'remaining_balance' => $this->bnplRepository->getRemainingBalance($user),
+            'remaining_balance_pence' => (int) round($this->bnplRepository->getRemainingBalance($user) * 100),
+        ];
+
+        // Savings
+        $context['savings'] = [
+            'weekly_goal' => (float) ($user->weekly_savings_goal ?? 0),
+            'weekly_goal_pence' => (int) round((float) ($user->weekly_savings_goal ?? 0) * 100),
+        ];
+
+        // Credit cards
+        $creditCards = CreditCard::where('user_id', $userId)->get();
+        $totalCreditBalance = $creditCards->sum(fn ($card) => $card->currentBalance());
+        $totalCreditLimit = $creditCards->whereNotNull('credit_limit')->sum('credit_limit');
+        $context['credit'] = [
+            'total_balance' => $totalCreditBalance,
+            'total_limit' => $totalCreditLimit,
+            'utilisation' => $totalCreditLimit > 0 ? round(($totalCreditBalance / $totalCreditLimit) * 100, 1) : 0,
+        ];
+
+        return $context;
+    }
 
     /**
      * Evaluate all active rules for a user given a trigger event and context.
@@ -30,6 +130,8 @@ final readonly class RulesEngineService
      */
     public function evaluateAllForUser(int $userId, TriggerEvent $event, array $context): array
     {
+        $context = $this->enrichContext($userId, $context);
+
         $rules = AutomationRule::where('user_id', $userId)
             ->where('is_active', true)
             ->where('trigger_event', $event->value)

@@ -110,7 +110,9 @@ class AutomationRuleBuilder extends Component
     public function dryRun(int $ruleId): void
     {
         $rule = AutomationRule::forUser()->findOrFail($ruleId);
-        $log = app(RulesEngineService::class)->execute($rule, $this->sampleContext(), dryRun: true);
+        $rulesEngine = app(RulesEngineService::class);
+        $context = $rulesEngine->enrichContext(Auth::id(), $this->sampleContext());
+        $log = $rulesEngine->execute($rule, $context, dryRun: true);
 
         Flux::toast(
             text: 'Dry run complete — '.$log->status.'. Check logs for details.',
@@ -121,7 +123,9 @@ class AutomationRuleBuilder extends Component
     public function manualTrigger(int $ruleId): void
     {
         $rule = AutomationRule::forUser()->findOrFail($ruleId);
-        $log = app(RulesEngineService::class)->execute($rule, $this->sampleContext());
+        $rulesEngine = app(RulesEngineService::class);
+        $context = $rulesEngine->enrichContext(Auth::id(), $this->sampleContext());
+        $log = $rulesEngine->execute($rule, $context);
 
         Flux::toast(
             text: $log->isSuccess()
