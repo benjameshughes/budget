@@ -57,58 +57,59 @@ class PaymentsCalendar extends Component
         $end = $this->calendarEnd;
         $today = today();
 
-        $events = collect();
-
-        Bill::query()
+        $billEvents = Bill::query()
             ->forUser($user)
             ->where('active', true)
             ->whereBetween('next_due_date', [$start->toDateString(), $end->toDateString()])
             ->get()
-            ->each(function (Bill $bill) use ($events, $today): void {
-                $events->push([
-                    'date' => $bill->next_due_date,
-                    'label' => $bill->name,
-                    'amount' => (float) $bill->amount,
-                    'type' => 'bill',
-                    'is_overdue' => $bill->next_due_date->lt($today),
-                ]);
-            });
+            ->map(fn (Bill $bill): array => [
+                'date' => $bill->next_due_date,
+                'label' => $bill->name,
+                'amount' => (float) $bill->amount,
+                'type' => 'bill',
+                'is_overdue' => $bill->next_due_date->lt($today),
+            ]);
 
-        BnplInstallment::query()
+        $bnplEvents = BnplInstallment::query()
             ->where('user_id', $user->id)
             ->where('is_paid', false)
             ->with('purchase')
             ->whereBetween('due_date', [$start->toDateString(), $end->toDateString()])
             ->get()
-            ->each(function (BnplInstallment $installment) use ($events, $today): void {
-                $events->push([
-                    'date' => $installment->due_date,
-                    'label' => $installment->purchase->merchant,
-                    'amount' => (float) $installment->amount,
-                    'type' => 'bnpl',
-                    'is_overdue' => $installment->due_date->lt($today),
-                ]);
-            });
+            ->map(fn (BnplInstallment $installment): array => [
+                'date' => $installment->due_date,
+                'label' => $installment->purchase->merchant,
+                'amount' => (float) $installment->amount,
+                'type' => 'bnpl',
+                'is_overdue' => $installment->due_date->lt($today),
+            ]);
 
-        return $events->groupBy(fn (array $e): string => $e['date']->format('Y-m-d'));
+        return $billEvents->concat($bnplEvents)
+            ->groupBy(fn (array $e): string => $e['date']->format('Y-m-d'));
+    }
+
+    #[Computed]
+    public function flattenedEvents(): Collection
+    {
+        return $this->events->flatten(1);
     }
 
     #[Computed]
     public function monthlyTotal(): float
     {
-        return (float) $this->events->flatten(1)->sum('amount');
+        return (float) $this->flattenedEvents->sum('amount');
     }
 
     #[Computed]
     public function billCount(): int
     {
-        return $this->events->flatten(1)->where('type', 'bill')->count();
+        return $this->flattenedEvents->where('type', 'bill')->count();
     }
 
     #[Computed]
     public function bnplCount(): int
     {
-        return $this->events->flatten(1)->where('type', 'bnpl')->count();
+        return $this->flattenedEvents->where('type', 'bnpl')->count();
     }
 
     #[Computed]

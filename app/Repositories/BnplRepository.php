@@ -10,13 +10,18 @@ use Illuminate\Support\Collection;
 
 final readonly class BnplRepository
 {
-    public function getUpcomingInstallments(User $user): Collection
+    public function getUpcomingInstallments(User $user, int $limit = 0): Collection
     {
-        return BnplInstallment::where('user_id', $user->id)
+        $query = BnplInstallment::where('user_id', $user->id)
             ->where('is_paid', false)
             ->with('purchase')
-            ->orderBy('due_date')
-            ->get();
+            ->orderBy('due_date');
+
+        if ($limit > 0) {
+            $query->limit($limit);
+        }
+
+        return $query->get();
     }
 
     public function getRemainingBalance(User $user): float

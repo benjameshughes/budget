@@ -6,6 +6,7 @@ namespace App\Livewire\Settings;
 
 use App\Enums\PayCadence as PayCadenceEnum;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -33,7 +34,7 @@ class PayBudget extends Component
         $user = Auth::user();
 
         $validated = $this->validate([
-            'pay_cadence' => ['required', 'string', 'in:weekly,monthly'],
+            'pay_cadence' => ['required', Rule::enum(PayCadenceEnum::class)],
             'pay_day' => ['required', 'integer', 'min:0', 'max:31'],
             'weekly_budget' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'weekly_savings_goal' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],

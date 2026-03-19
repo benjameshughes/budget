@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use App\Models\Transaction;
 use App\Repositories\BillRepository;
 use App\Repositories\BnplRepository;
 use App\Services\BillsFloatService;
 use App\Services\HonestBudgetService;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -23,7 +23,6 @@ class SimpleDashboard extends Component
     public function onTransactionAdded(?int $transactionId = null): void
     {
         unset($this->budgetBreakdown);
-        unset($this->recentTransactions);
         unset($this->billsFloatStatus);
         unset($this->upcomingBills);
 
@@ -75,29 +74,18 @@ class SimpleDashboard extends Component
     }
 
     #[Computed]
-    public function upcomingBills(): \Illuminate\Support\Collection
+    public function upcomingBills(): Collection
     {
         return app(BillRepository::class)->nextN(auth()->user(), 5);
     }
 
     #[Computed]
-    public function upcomingBnpl(): \Illuminate\Support\Collection
+    public function upcomingBnpl(): Collection
     {
-        return app(BnplRepository::class)->getUpcomingInstallments(auth()->user())->take(5);
+        return app(BnplRepository::class)->getUpcomingInstallments(auth()->user(), 5);
     }
 
-    #[Computed]
-    public function recentTransactions(): \Illuminate\Database\Eloquent\Collection
-    {
-        return Transaction::query()
-            ->where('user_id', auth()->id())
-            ->orderBy('payment_date', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-    }
-
-    public function render()
+    public function render(): mixed
     {
         return view('livewire.simple-dashboard');
     }

@@ -20,7 +20,7 @@ class BillsFloat extends Component
     {
         $user = Auth::user();
         $this->bills_float_target = $user->bills_float_target !== null ? (string) $user->bills_float_target : '';
-        $this->bills_float_multiplier = $user->getAttributes()['bills_float_multiplier'] ?? '1.0';
+        $this->bills_float_multiplier = (string) ($user->bills_float_multiplier ?? '1.0');
     }
 
     public function save(): void
@@ -36,14 +36,8 @@ class BillsFloat extends Component
             $validated['bills_float_target'] = null;
         }
 
-        $user->setRawAttributes(array_merge(
-            $user->getAttributes(),
-            [
-                'bills_float_target' => $validated['bills_float_target'],
-                'bills_float_multiplier' => $validated['bills_float_multiplier'],
-            ]
-        ));
-
+        $user->bills_float_target = $validated['bills_float_target'];
+        $user->bills_float_multiplier = $validated['bills_float_multiplier'];
         $user->save();
 
         $this->dispatch('bills-float-updated');
