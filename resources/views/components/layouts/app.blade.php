@@ -1,5 +1,5 @@
 <x-layouts.app.sidebar :title="$title ?? null">
-    <flux:main class="my-3 mr-3">
+    <flux:main class="my-4 mr-4">
         <div class="flex h-full w-full flex-col gap-6 p-6">
             @if(isset($heading))
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
