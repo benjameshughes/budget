@@ -1,11 +1,11 @@
 <div>
     {{-- Header with Inline Stats --}}
     <x-page-header heading="Buy Now Pay Later" subheading="Manage your BNPL purchases and installments">
-        <x-stat-item :value="'£' . number_format($this->stats->totalOutstanding, 2)" label="outstanding" color="red" size="lg" />
-        <x-stat-item :value="$this->stats->activePurchases" label="active" separator />
-        <x-stat-item :value="$this->stats->totalPurchases" label="total" separator />
+        <x-pill :value="'£' . number_format($this->stats->totalOutstanding, 2)" label="outstanding" color="red" size="lg" icon="banknotes" />
+        <x-pill :value="$this->stats->activePurchases" label="active" separator icon="shopping-bag" />
+        <x-pill :value="$this->stats->totalPurchases" label="total" separator icon="squares-2x2" />
         @if($this->stats->overdueInstallments > 0)
-            <x-stat-item :value="$this->stats->overdueInstallments" label="overdue" color="red" separator />
+            <x-pill :value="$this->stats->overdueInstallments" label="overdue" color="red" separator icon="exclamation-triangle" />
         @endif
         <x-upcoming-popover :items="$this->stats->dueThisPeriod" label="due soon" emptyText="No payments due soon" />
     </x-page-header>

@@ -4,6 +4,8 @@
     'color' => 'default',
     'size' => 'default',
     'separator' => false,
+    'icon' => null,
+    'progress' => null,
 ])
 
 @php
@@ -37,13 +39,41 @@
         default   => 'text-zinc-500 dark:text-zinc-400',
     };
 
+    $progressBarClasses = match($color) {
+        'red'     => 'bg-red-500',
+        'rose'    => 'bg-rose-500',
+        'amber'   => 'bg-amber-500',
+        'sky'     => 'bg-sky-500',
+        'emerald' => 'bg-emerald-500',
+        'violet'  => 'bg-violet-500',
+        default   => 'bg-zinc-500',
+    };
+
     $valueSize = match($size) {
         'lg'    => 'text-sm font-bold',
         default => 'text-xs font-semibold',
     };
 @endphp
 
-<span class="inline-flex items-baseline gap-1 rounded-full px-2.5 py-1 ring-1 {{ $pillClasses }}">
-    <span class="{{ $valueClasses }} {{ $valueSize }}">{{ $value }}</span>
-    <span class="text-xs {{ $labelClasses }}">{{ $label }}</span>
-</span>
+@if($progress !== null)
+    <span class="inline-flex flex-col gap-1.5 rounded-full px-4 py-2 ring-1 {{ $pillClasses }}">
+        <span class="inline-flex items-center gap-1.5">
+            @if($icon)
+                <flux:icon :name="$icon" class="w-3.5 h-3.5 shrink-0 {{ $valueClasses }}" />
+            @endif
+            <span class="{{ $valueClasses }} {{ $valueSize }}">{{ $value }}</span>
+            <span class="text-xs {{ $labelClasses }}">{{ $label }}</span>
+        </span>
+        <span class="w-full h-1 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
+            <span class="block h-full rounded-full {{ $progressBarClasses }}" style="width: {{ min((float) $progress, 100) }}%"></span>
+        </span>
+    </span>
+@else
+    <span class="inline-flex items-center gap-1.5 rounded-full px-4 py-2 ring-1 {{ $pillClasses }}">
+        @if($icon)
+            <flux:icon :name="$icon" class="w-3.5 h-3.5 shrink-0 {{ $valueClasses }}" />
+        @endif
+        <span class="{{ $valueClasses }} {{ $valueSize }}">{{ $value }}</span>
+        <span class="text-xs {{ $labelClasses }}">{{ $label }}</span>
+    </span>
+@endif

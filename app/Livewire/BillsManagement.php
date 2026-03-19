@@ -8,6 +8,7 @@ use App\Actions\Bill\DeleteBillAction;
 use App\Actions\Bill\MarkBillPaidAction;
 use App\Actions\Bill\ToggleBillActiveAction;
 use App\Models\Bill;
+use App\Services\BillsFloatService;
 use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -41,6 +42,13 @@ class BillsManagement extends Component
     {
         unset($this->bills);
         unset($this->stats);
+        unset($this->floatStatus);
+    }
+
+    #[Computed]
+    public function floatStatus(): array
+    {
+        return app(BillsFloatService::class)->status(auth()->user());
     }
 
     #[Computed]

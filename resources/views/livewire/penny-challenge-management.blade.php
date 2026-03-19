@@ -1,76 +1,38 @@
 <div>
+    {{-- Page Header --}}
     @if($this->challenge)
-        {{-- Progress Card --}}
-        <div class="mb-6 rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20 p-6 transition-all duration-200 ease-in-out hover:shadow-md">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
-                        <flux:icon name="sparkles" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-amber-900 dark:text-amber-100">
-                            {{ $this->challenge->name }}
-                        </h3>
-                        <p class="text-sm text-amber-600 dark:text-amber-400">
-                            {{ $this->challenge->start_date->format('j M Y') }} - {{ $this->challenge->end_date->format('j M Y') }}
-                        </p>
-                    </div>
-                </div>
+        <x-page-header
+            heading="1p Challenge"
+            :subheading="$this->challenge->name . ' · ' . $this->challenge->start_date->format('j M Y') . ' – ' . $this->challenge->end_date->format('j M Y')"
+        >
+            <x-pill
+                :value="'£' . number_format($this->stats['totalDeposited'], 2)"
+                label="saved"
+                color="emerald"
+                size="lg"
+                icon="sparkles"
+                :progress="$this->stats['progressPercentage']"
+            />
+            <x-pill
+                :value="$this->stats['depositedCount'] . '/' . $this->stats['totalDays']"
+                label="days"
+                color="amber"
+                size="lg"
+                icon="calendar-days"
+            />
+            <x-pill
+                :value="'£' . number_format($this->stats['totalRemaining'], 2)"
+                label="remaining"
+                size="lg"
+                icon="banknotes"
+            />
+            <flux:button variant="ghost" size="sm" icon="trash" wire:click="openDeleteModal" class="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" />
+        </x-page-header>
+    @else
+        <x-page-header heading="1p Challenge" subheading="Save 1p on day 1, 2p on day 2, and so on. By year's end you'll have saved £667.95!" />
+    @endif
 
-                <div class="flex items-center gap-6">
-                    {{-- Deposited --}}
-                    <div class="text-center">
-                        <p class="text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wide">Saved</p>
-                        <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                            £{{ number_format($this->stats['totalDeposited'], 2) }}
-                        </p>
-                    </div>
-
-                    {{-- Days Done --}}
-                    <div class="text-center">
-                        <p class="text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wide">Days</p>
-                        <p class="text-2xl font-bold text-amber-900 dark:text-amber-100">
-                            {{ $this->stats['depositedCount'] }}/{{ $this->stats['totalDays'] }}
-                        </p>
-                    </div>
-
-                    {{-- Remaining --}}
-                    <div class="text-center">
-                        <p class="text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wide">Remaining</p>
-                        <p class="text-2xl font-bold text-amber-900 dark:text-amber-100">
-                            £{{ number_format($this->stats['totalRemaining'], 2) }}
-                        </p>
-                    </div>
-
-                    {{-- Delete Button --}}
-                    <div class="pl-4 border-l border-amber-200 dark:border-amber-700">
-                        <flux:button variant="ghost" size="sm" icon="trash" wire:click="openDeleteModal" class="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" />
-                    </div>
-                </div>
-            </div>
-
-            {{-- Progress Bar --}}
-            <div class="mt-4 space-y-2">
-                <div class="w-full bg-amber-200 dark:bg-amber-800 rounded-full h-2.5 overflow-hidden">
-                    <div
-                        class="h-2.5 rounded-full transition-all duration-300 bg-emerald-500"
-                        style="width: {{ min($this->stats['progressPercentage'], 100) }}%"
-                    ></div>
-                </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-amber-600 dark:text-amber-400">
-                        @if($this->stats['progressPercentage'] >= 100)
-                            Challenge complete!
-                        @else
-                            Keep going - you've got this!
-                        @endif
-                    </span>
-                    <span class="font-medium text-amber-900 dark:text-amber-100">
-                        {{ number_format($this->stats['progressPercentage'], 1) }}%
-                    </span>
-                </div>
-            </div>
-        </div>
+    @if($this->challenge)
 
         {{-- Selection Bar (when days selected) --}}
         @if(count($selectedDays) > 0)

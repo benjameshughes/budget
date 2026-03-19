@@ -1,14 +1,19 @@
 <div>
     {{-- Header with Inline Stats --}}
     <x-page-header heading="Bills" subheading="Manage your recurring bills and payments">
-        <x-stat-item :value="'£' . number_format($this->stats->totalMonthly, 2)" label="monthly" color="red" size="lg" />
+        <x-pill :value="'£' . number_format($this->stats->totalMonthly, 2)" label="monthly" color="red" size="lg" icon="receipt-percent" />
+        @if($this->floatStatus['is_configured'])
+            <x-pill
+                :value="'£' . number_format($this->floatStatus['weekly_contribution'], 2)"
+                label="weekly set-aside"
+                color="violet"
+                size="lg"
+                icon="calendar-days"
+                :progress="$this->floatStatus['progress_percentage']"
+            />
+        @endif
         <x-upcoming-popover :items="$this->stats->billsDueThisPeriod" label="due this period" emptyText="No bills due this period" />
     </x-page-header>
-
-    {{-- Bills Pot Summary --}}
-    <div class="mb-8">
-        <livewire:components.bills-pot-summary />
-    </div>
 
     {{-- Filters and Actions --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -33,7 +38,7 @@
                 on-swipe="$wire.pay({{ $bill->id }})"
                 :disabled="!$bill->active || !$bill->next_due_date"
             >
-                <div class="flex items-center justify-between p-4 bg-white dark:bg-zinc-900 rounded-xl ring-1 ring-zinc-950/5 dark:ring-white/10">
+                <div class="flex items-center justify-between p-4 bg-white dark:bg-zinc-900 rounded-xl shadow-sm ring-1 ring-zinc-950/5 dark:ring-white/10">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="font-semibold text-zinc-900 dark:text-white truncate">{{ $bill->name }}</span>
