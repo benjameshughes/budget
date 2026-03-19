@@ -42,6 +42,10 @@
                             </div>
 
                             <div class="flex items-center gap-2">
+                                @if($account->webhook_secret)
+                                    <flux:badge variant="pill" color="violet" size="sm" icon="signal">{{ __('Webhook') }}</flux:badge>
+                                @endif
+
                                 @if($account->is_active)
                                     <flux:badge variant="solid" color="green" size="sm">{{ __('Active') }}</flux:badge>
                                 @else
@@ -67,6 +71,49 @@
                                 </flux:button>
                             </div>
                         </div>
+
+                        {{-- Webhook setup --}}
+                        @if(! $account->webhook_secret)
+                            <div class="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-700">
+                                @if($account->provider === \App\Enums\BankProvider::Monzo)
+                                    <div class="flex items-center justify-between">
+                                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                            {{ __('Register a webhook for real-time transaction imports.') }}
+                                        </flux:text>
+                                        <flux:button
+                                            variant="ghost"
+                                            size="sm"
+                                            wire:click="registerMonzoWebhook({{ $account->id }})"
+                                            loading
+                                        >
+                                            {{ __('Register Webhook') }}
+                                        </flux:button>
+                                    </div>
+                                @elseif($account->provider === \App\Enums\BankProvider::Starling)
+                                    <form wire:submit="saveStarlingWebhookSecret({{ $account->id }})" class="flex items-end gap-2">
+                                        <div class="flex-1">
+                                            <flux:input
+                                                wire:model="starlingWebhookSecret"
+                                                :label="__('Webhook Signing Secret')"
+                                                :placeholder="__('Paste from Starling Developer Portal...')"
+                                                size="sm"
+                                                type="password"
+                                            />
+                                            @error('starlingWebhookSecret')
+                                                <flux:text class="text-xs text-red-500 mt-1">{{ $message }}</flux:text>
+                                            @enderror
+                                        </div>
+                                        <flux:button variant="ghost" size="sm" type="submit" loading>
+                                            {{ __('Save') }}
+                                        </flux:button>
+                                    </form>
+                                    <flux:text class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                                        {{ __('Webhook URL:') }}
+                                        <code class="text-xs">{{ route('webhooks.starling', ['account' => $account->id]) }}</code>
+                                    </flux:text>
+                                @endif
+                            </div>
+                        @endif
                     </flux:card>
                 @endforeach
             </div>

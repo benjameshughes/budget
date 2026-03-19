@@ -303,3 +303,71 @@ test('user cannot sync another users account', function () {
         ->call('syncAll', $account->id)
     )->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 });
+
+test('registerMonzoWebhook registers webhook via API', function () {
+    $user = User::factory()->create();
+    $account = ConnectedAccount::factory()->monzo()->create([
+        'user_id' => $user->id,
+        'webhook_secret' => null,
+    ]);
+
+    Http::fake([
+        'api.monzo.com/webhooks' => Http::response(['webhook' => ['id' => 'wh_123']]),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BankConnections::class)
+        ->call('registerMonzoWebhook', $account->id);
+
+    expect($account->fresh()->webhook_secret)->not->toBeNull();
+});
+
+test('saveStarlingWebhookSecret stores the signing secret', function () {
+    $user = User::factory()->create();
+    $account = ConnectedAccount::factory()->starling()->create([
+        'user_id' => $user->id,
+        'webhook_secret' => null,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BankConnections::class)
+        ->set('starlingWebhookSecret', 'a-very-secret-signing-key-from-starling')
+        ->call('saveStarlingWebhookSecret', $account->id);
+
+    expect($account->fresh()->webhook_secret)->toBe('a-very-secret-signing-key-from-starling');
+});
+
+test('webhook badge shows when webhook is configured', function () {
+    $user = User::factory()->create();
+    ConnectedAccount::factory()->monzo()->create([
+        'user_id' => $user->id,
+        'webhook_secret' => 'some-secret',
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BankConnections::class)
+        ->assertSee('Webhook');
+});
+
+test('webhook setup section shows when no webhook configured', function () {
+    $user = User::factory()->create();
+    ConnectedAccount::factory()->monzo()->create([
+        'user_id' => $user->id,
+        'webhook_secret' => null,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BankConnections::class)
+        ->assertSee('Register Webhook');
+});
+
+test('user cannot register webhook on another users account', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $account = ConnectedAccount::factory()->monzo()->create(['user_id' => $otherUser->id]);
+
+    expect(fn () => Livewire::actingAs($user)
+        ->test(BankConnections::class)
+        ->call('registerMonzoWebhook', $account->id)
+    )->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+});

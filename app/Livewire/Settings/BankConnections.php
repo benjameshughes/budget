@@ -24,6 +24,8 @@ class BankConnections extends Component
 
     public string $starlingToken = '';
 
+    public string $starlingWebhookSecret = '';
+
     public function connectMonzo(): void
     {
         $this->validate([
@@ -139,6 +141,43 @@ class BankConnections extends Component
 
             $this->addError('starlingToken', 'Invalid token. Check it\'s correct and try again.');
         }
+    }
+
+    public function registerMonzoWebhook(int $accountId): void
+    {
+        $account = ConnectedAccount::forUser()
+            ->where('provider', BankProvider::Monzo)
+            ->findOrFail($accountId);
+
+        try {
+            app(MonzoService::class)->registerWebhook($account);
+
+            Flux::toast(text: 'Monzo webhook registered. Transactions will now arrive in real-time.', variant: 'success');
+        } catch (\Exception $e) {
+            Log::error('Failed to register Monzo webhook', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            Flux::toast(text: 'Failed to register webhook. Check your Monzo token is still valid.', variant: 'danger');
+        }
+    }
+
+    public function saveStarlingWebhookSecret(int $accountId): void
+    {
+        $this->validate([
+            'starlingWebhookSecret' => ['required', 'string', 'min:10'],
+        ]);
+
+        $account = ConnectedAccount::forUser()
+            ->where('provider', BankProvider::Starling)
+            ->findOrFail($accountId);
+
+        $account->update(['webhook_secret' => $this->starlingWebhookSecret]);
+
+        $this->starlingWebhookSecret = '';
+
+        Flux::toast(text: 'Starling webhook secret saved. Real-time transactions are now active.', variant: 'success');
     }
 
     public function disconnectAccount(int $accountId): void
