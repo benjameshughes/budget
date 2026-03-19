@@ -7,7 +7,7 @@
         <flux:sidebar sticky collapsible class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
                 <flux:sidebar.brand href="{{route('home')}}" name="Money">
-                    <x-slot name="logo" class="size-6 rounded bg-emerald-500 text-white">
+                    <x-slot name="logo" class="size-6 rounded bg-violet-600 text-white">
                         <flux:icon name="hand-coins" variant="micro" />
                     </x-slot>
                 </flux:sidebar.brand>

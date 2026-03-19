@@ -7,7 +7,6 @@
         @if($this->stats->overdueInstallments > 0)
             <x-stat-item :value="$this->stats->overdueInstallments" label="overdue" color="red" separator />
         @endif
-        <span class="text-zinc-300 dark:text-zinc-600">·</span>
         <x-upcoming-popover :items="$this->stats->dueThisPeriod" label="due soon" emptyText="No payments due soon" />
     </x-page-header>
 
