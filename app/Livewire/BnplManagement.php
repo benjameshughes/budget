@@ -38,6 +38,19 @@ class BnplManagement extends Component
         unset($this->dueThisPeriod);
     }
 
+    public function deletePurchase(int $purchaseId): void
+    {
+        $purchase = BnplPurchase::where('user_id', auth()->id())
+            ->findOrFail($purchaseId);
+
+        if ($purchase->paidInstallmentsCount() > 0) {
+            return;
+        }
+
+        $purchase->delete();
+        $this->refresh();
+    }
+
     public function payNextInstallment(int $purchaseId, MarkInstallmentPaidAction $action): void
     {
         $purchase = BnplPurchase::where('user_id', auth()->id())

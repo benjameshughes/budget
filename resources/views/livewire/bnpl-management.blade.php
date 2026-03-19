@@ -51,6 +51,17 @@
                             <div class="flex items-center gap-2">
                                 <span class="font-semibold text-zinc-900 dark:text-white truncate">{{ $purchase->merchant }}</span>
                                 <flux:badge size="sm" color="zinc">{{ $purchase->provider->label() }}</flux:badge>
+                                @if($paidCount === 0)
+                                    <flux:button
+                                        variant="ghost"
+                                        size="sm"
+                                        icon="trash"
+                                        aria-label="Delete purchase"
+                                        wire:click="deletePurchase({{ $purchase->id }})"
+                                        wire:confirm="Are you sure you want to delete this purchase? This cannot be undone."
+                                        class="text-red-500 hover:text-red-600 !p-0.5 ml-auto"
+                                    />
+                                @endif
                             </div>
                             @if($nextInstallment)
                                 <p @class([
@@ -211,6 +222,17 @@
                                 aria-label="View purchase details"
                                 wire:click="$dispatch('show-bnpl-purchase-detail', { purchaseId: {{ $purchase->id }} })"
                             />
+                            @if($paidCount === 0)
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="trash"
+                                    aria-label="Delete purchase"
+                                    wire:click="deletePurchase({{ $purchase->id }})"
+                                    wire:confirm="Are you sure you want to delete this purchase? This cannot be undone."
+                                    class="text-red-500 hover:text-red-600"
+                                />
+                            @endif
                         </div>
                     </flux:table.cell>
                 </flux:table.row>
