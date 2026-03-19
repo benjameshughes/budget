@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Repositories\BillRepository;
+use App\Repositories\BnplRepository;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class WeeklyBudget extends Component
@@ -58,6 +61,15 @@ class WeeklyBudget extends Component
         $user->save();
 
         $this->dispatch('weekly-budget-updated');
+    }
+
+    #[Computed]
+    public function monthlyTotal(): float
+    {
+        $user = Auth::user();
+
+        return app(BillRepository::class)->monthlyTotal($user)
+            + app(BnplRepository::class)->getRemainingBalance($user);
     }
 
     public function render()

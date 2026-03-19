@@ -1,14 +1,19 @@
 <div>
     {{-- Header with Inline Stats --}}
     <x-page-header heading="Bills" subheading="Manage your recurring bills and payments">
-        <x-stat-item :value="'£' . number_format($this->stats->totalMonthly, 2)" label="monthly" color="red" size="lg" />
+        <x-pill :value="'£' . number_format($this->stats->totalMonthly, 2)" label="monthly" color="red" size="lg" icon="receipt-percent" />
+        @if($this->floatStatus['is_configured'])
+            <x-pill
+                :value="'£' . number_format($this->floatStatus['weekly_contribution'], 2)"
+                label="weekly set-aside"
+                color="violet"
+                size="lg"
+                icon="calendar-days"
+                :progress="$this->floatStatus['progress_percentage']"
+            />
+        @endif
         <x-upcoming-popover :items="$this->stats->billsDueThisPeriod" label="due this period" emptyText="No bills due this period" />
     </x-page-header>
-
-    {{-- Bills Pot Summary --}}
-    <div class="mb-8">
-        <livewire:components.bills-pot-summary />
-    </div>
 
     {{-- Filters and Actions --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

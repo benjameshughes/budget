@@ -1,12 +1,12 @@
 <div>
     {{-- Header with Inline Stats --}}
     <x-page-header heading="Credit Cards" subheading="Track your credit card balances and utilization">
-        <x-stat-item :value="'£' . number_format($this->stats->totalDebt, 2)" label="debt" color="rose" size="lg" />
+        <x-pill :value="'£' . number_format($this->stats->totalDebt, 2)" label="debt" color="rose" size="lg" icon="credit-card" />
         @if($this->stats->hasLimits)
-            <x-stat-item :value="'£' . number_format($this->stats->totalLimit, 2)" label="limit" separator />
-            <x-stat-item :value="number_format($this->stats->utilizationPercent, 1) . '%'" label="used" :color="$this->stats->utilizationColor" separator />
+            <x-pill :value="'£' . number_format($this->stats->totalLimit, 2)" label="limit" separator icon="shield-check" />
+            <x-pill :value="number_format($this->stats->utilizationPercent, 1) . '%'" label="used" :color="$this->stats->utilizationColor" separator icon="chart-bar" />
         @endif
-        <x-stat-item :value="$this->stats->cardsCount" label="cards" separator />
+        <x-pill :value="$this->stats->cardsCount" label="cards" separator icon="squares-2x2" />
     </x-page-header>
 
     {{-- Actions --}}
