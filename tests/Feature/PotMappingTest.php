@@ -52,7 +52,7 @@ test('user cannot update another users pot purpose', function () {
 
     expect(fn () => Livewire::actingAs($user)
         ->test(BankConnections::class)
-        ->call('updatePotPurpose', $pot->id, PotPurpose::Kids->value)
+        ->call('updatePotPurpose', $pot->id, PotPurpose::Savings->value)
     )->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 });
 
@@ -62,11 +62,11 @@ test('pot purpose enum casts correctly', function () {
     $pot = BankPot::factory()->create([
         'user_id' => $user->id,
         'connected_account_id' => $account->id,
-        'purpose' => PotPurpose::Kids,
+        'purpose' => PotPurpose::Savings,
     ]);
 
-    expect($pot->fresh()->purpose)->toBe(PotPurpose::Kids);
-    expect($pot->fresh()->purpose->label())->toBe('Kids');
+    expect($pot->fresh()->purpose)->toBe(PotPurpose::Savings);
+    expect($pot->fresh()->purpose->label())->toBe('Savings');
 });
 
 test('bank connections page shows pot mapping section when pots exist', function () {

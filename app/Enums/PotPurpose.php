@@ -7,7 +7,6 @@ namespace App\Enums;
 enum PotPurpose: string
 {
     case BillsFloat = 'bills_float';
-    case Kids = 'kids';
     case Spending = 'spending';
     case Savings = 'savings';
     case Emergency = 'emergency';
@@ -16,7 +15,6 @@ enum PotPurpose: string
     {
         return match ($this) {
             self::BillsFloat => 'Bills Float',
-            self::Kids => 'Kids',
             self::Spending => 'Spending',
             self::Savings => 'Savings',
             self::Emergency => 'Emergency Fund',

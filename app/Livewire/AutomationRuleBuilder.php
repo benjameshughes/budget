@@ -226,6 +226,61 @@ class AutomationRuleBuilder extends Component
     }
 
     #[Computed]
+    public function availableVariables(): array
+    {
+        return [
+            'Trigger' => [
+                ['key' => '{{trigger.amount}}', 'label' => 'Amount (pence)'],
+                ['key' => '{{trigger.amount_pounds}}', 'label' => 'Amount (pounds)'],
+                ['key' => '{{trigger.merchant}}', 'label' => 'Merchant name'],
+                ['key' => '{{trigger.description}}', 'label' => 'Description'],
+                ['key' => '{{trigger.is_credit}}', 'label' => 'Is credit'],
+            ],
+            'Pay' => [
+                ['key' => '{{pay.days_remaining}}', 'label' => 'Days until payday'],
+                ['key' => '{{pay.next_pay_date}}', 'label' => 'Next pay date'],
+                ['key' => '{{pay.pay_day_name}}', 'label' => 'Pay day name'],
+            ],
+            'Budget' => [
+                ['key' => '{{budget.weekly_budget}}', 'label' => 'Weekly budget (£)'],
+                ['key' => '{{budget.weekly_budget_pence}}', 'label' => 'Weekly budget (pence)'],
+                ['key' => '{{budget.spent}}', 'label' => 'Spent this period (£)'],
+                ['key' => '{{budget.remaining}}', 'label' => 'Remaining (£)'],
+                ['key' => '{{budget.remaining_pence}}', 'label' => 'Remaining (pence)'],
+                ['key' => '{{budget.percentage_spent}}', 'label' => 'Percentage spent'],
+            ],
+            'Bills' => [
+                ['key' => '{{bills.weekly_contribution}}', 'label' => 'Weekly set-aside (£)'],
+                ['key' => '{{bills.weekly_contribution_pence}}', 'label' => 'Weekly set-aside (pence)'],
+                ['key' => '{{bills.monthly_total}}', 'label' => 'Monthly bills (£)'],
+                ['key' => '{{bills.float_target}}', 'label' => 'Float target (£)'],
+                ['key' => '{{bills.float_current}}', 'label' => 'Float current (£)'],
+                ['key' => '{{bills.float_progress}}', 'label' => 'Float progress (%)'],
+                ['key' => '{{bills.upcoming_7_days}}', 'label' => 'Bills due next 7 days (£)'],
+            ],
+            'Spending' => [
+                ['key' => '{{spending.weekly_expenses}}', 'label' => 'Weekly expenses (£)'],
+                ['key' => '{{spending.monthly_income}}', 'label' => 'Monthly income (£)'],
+                ['key' => '{{spending.monthly_expenses}}', 'label' => 'Monthly expenses (£)'],
+                ['key' => '{{spending.average_daily}}', 'label' => 'Average daily spend (£)'],
+            ],
+            'BNPL' => [
+                ['key' => '{{bnpl.remaining_balance}}', 'label' => 'BNPL remaining (£)'],
+                ['key' => '{{bnpl.remaining_balance_pence}}', 'label' => 'BNPL remaining (pence)'],
+            ],
+            'Savings' => [
+                ['key' => '{{savings.weekly_goal}}', 'label' => 'Weekly goal (£)'],
+                ['key' => '{{savings.weekly_goal_pence}}', 'label' => 'Weekly goal (pence)'],
+            ],
+            'Credit' => [
+                ['key' => '{{credit.total_balance}}', 'label' => 'Total credit balance (£)'],
+                ['key' => '{{credit.total_limit}}', 'label' => 'Total credit limit (£)'],
+                ['key' => '{{credit.utilisation}}', 'label' => 'Credit utilisation (%)'],
+            ],
+        ];
+    }
+
+    #[Computed]
     public function todayRunCount(): int
     {
         return AutomationRuleLog::forUser()
