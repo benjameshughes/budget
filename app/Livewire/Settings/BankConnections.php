@@ -8,8 +8,10 @@ use App\Enums\BankProvider;
 use App\Enums\PotPurpose;
 use App\Models\BankPot;
 use App\Models\ConnectedAccount;
+use App\Services\Bank\BankTransactionImportService;
 use App\Services\Bank\MonzoService;
 use App\Services\Bank\StarlingService;
+use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -168,6 +170,101 @@ class BankConnections extends Component
             ]);
 
             Flux::toast(text: 'Failed to sync. Check your bank connection is still active.', variant: 'danger');
+        }
+    }
+
+    public function syncBalance(int $accountId): void
+    {
+        $account = ConnectedAccount::forUser()->findOrFail($accountId);
+
+        try {
+            $balancePence = match ($account->provider) {
+                BankProvider::Monzo => app(MonzoService::class)->getBalance($account)['balance'],
+                BankProvider::Starling => app(StarlingService::class)->getBalance($account)['effectiveBalance'],
+            };
+
+            $account->update(['balance_pence' => $balancePence]);
+
+            Flux::toast(text: 'Balance updated.', variant: 'success');
+        } catch (\Exception $e) {
+            Log::error('Failed to sync balance', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            Flux::toast(text: 'Failed to fetch balance.', variant: 'danger');
+        }
+    }
+
+    public function syncTransactions(int $accountId, int $days = 30): void
+    {
+        $account = ConnectedAccount::forUser()->findOrFail($accountId);
+
+        try {
+            $from = Carbon::now()->subDays($days)->startOfDay();
+            $to = Carbon::now();
+
+            $rawTransactions = match ($account->provider) {
+                BankProvider::Monzo => app(MonzoService::class)->getTransactions($account, $from, $to),
+                BankProvider::Starling => app(StarlingService::class)->getTransactions($account, $from, $to),
+            };
+
+            $imported = app(BankTransactionImportService::class)->import($account, $rawTransactions);
+
+            Flux::toast(text: $imported.' new transactions imported.', variant: 'success');
+        } catch (\Exception $e) {
+            Log::error('Failed to sync transactions', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            Flux::toast(text: 'Failed to import transactions. Check your bank connection.', variant: 'danger');
+        }
+    }
+
+    public function syncAll(int $accountId): void
+    {
+        $account = ConnectedAccount::forUser()->findOrFail($accountId);
+
+        try {
+            // 1. Sync balance
+            $balancePence = match ($account->provider) {
+                BankProvider::Monzo => app(MonzoService::class)->getBalance($account)['balance'],
+                BankProvider::Starling => app(StarlingService::class)->getBalance($account)['effectiveBalance'],
+            };
+            $account->update(['balance_pence' => $balancePence]);
+
+            // 2. Sync pots/spaces
+            $potCount = match ($account->provider) {
+                BankProvider::Monzo => $this->syncMonzoPots($account),
+                BankProvider::Starling => $this->syncStarlingSpaces($account),
+            };
+
+            // 3. Sync transactions (last 30 days)
+            $from = Carbon::now()->subDays(30)->startOfDay();
+            $to = Carbon::now();
+
+            $rawTransactions = match ($account->provider) {
+                BankProvider::Monzo => app(MonzoService::class)->getTransactions($account, $from, $to),
+                BankProvider::Starling => app(StarlingService::class)->getTransactions($account, $from, $to),
+            };
+
+            $imported = app(BankTransactionImportService::class)->import($account, $rawTransactions);
+
+            $account->update(['last_synced_at' => now()]);
+
+            $label = $account->provider === BankProvider::Monzo ? 'pots' : 'spaces';
+            Flux::toast(
+                text: "Synced: balance updated, {$potCount} {$label}, {$imported} new transactions.",
+                variant: 'success',
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to sync all', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            Flux::toast(text: 'Sync failed. Check your bank connection is still active.', variant: 'danger');
         }
     }
 

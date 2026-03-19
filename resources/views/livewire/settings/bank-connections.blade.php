@@ -17,13 +17,23 @@
                                     {{ strtoupper(substr($account->provider->label(), 0, 1)) }}
                                 </div>
                                 <div>
-                                    <flux:heading size="base">{{ $account->display_name }}</flux:heading>
+                                    <div class="flex items-center gap-2">
+                                        <flux:heading size="base">{{ $account->display_name }}</flux:heading>
+                                        @if($account->balance_pence !== null && $account->balance_pence > 0)
+                                            <flux:badge variant="pill" color="green" size="sm">
+                                                £{{ number_format($account->balanceInPounds(), 2) }}
+                                            </flux:badge>
+                                        @endif
+                                    </div>
                                     <flux:text class="text-sm text-gray-500 dark:text-gray-400">
                                         {{ $account->provider->label() }}
                                         &bull;
-                                        {{ $account->bank_transactions_count }} {{ __('transactions imported') }}
+                                        {{ $account->bank_transactions_count }} {{ __('transactions') }}
+                                        @if($account->bank_pots_count > 0)
+                                            &bull; {{ $account->bank_pots_count }} {{ $account->provider->value === 'monzo' ? __('pots') : __('spaces') }}
+                                        @endif
                                         @if($account->last_synced_at)
-                                            &bull; {{ __('Last synced') }} {{ $account->last_synced_at->diffForHumans() }}
+                                            &bull; {{ __('Synced') }} {{ $account->last_synced_at->diffForHumans() }}
                                         @else
                                             &bull; {{ __('Never synced') }}
                                         @endif
@@ -39,15 +49,12 @@
                                 @endif
 
                                 <flux:button
-                                    variant="ghost"
+                                    variant="primary"
                                     size="sm"
-                                    wire:click="syncPots({{ $account->id }})"
+                                    wire:click="syncAll({{ $account->id }})"
                                     loading
                                 >
-                                    {{ $account->provider->value === 'monzo' ? __('Sync Pots') : __('Sync Spaces') }}
-                                    @if($account->bank_pots_count > 0)
-                                        <flux:badge size="sm" class="ml-1">{{ $account->bank_pots_count }}</flux:badge>
-                                    @endif
+                                    {{ __('Sync All') }}
                                 </flux:button>
 
                                 <flux:button

@@ -199,6 +199,27 @@ final readonly class MonzoService
     }
 
     /**
+     * Get the account balance.
+     *
+     * @return array{balance: int, totalBalance: int, spendToday: int}
+     */
+    public function getBalance(ConnectedAccount $account): array
+    {
+        $response = $this->client($account)
+            ->get('/balance', [
+                'account_id' => $account->external_account_id,
+            ]);
+
+        $response->throw();
+
+        return [
+            'balance' => $response->json('balance', 0),
+            'totalBalance' => $response->json('total_balance', 0),
+            'spendToday' => $response->json('spend_today', 0),
+        ];
+    }
+
+    /**
      * Build an authenticated HTTP client for the Monzo API.
      */
     private function client(ConnectedAccount $account): PendingRequest
