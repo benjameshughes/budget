@@ -162,4 +162,20 @@ class User extends Authenticatable
     }
 
     // Salary model removed in favor of unified transactions
+
+    /**
+     * Get the user's connected bank accounts.
+     */
+    public function connectedAccounts(): HasMany
+    {
+        return $this->hasMany(ConnectedAccount::class);
+    }
+
+    /**
+     * Get the user's automation rules.
+     */
+    public function automationRules(): HasMany
+    {
+        return $this->hasMany(AutomationRule::class);
+    }
 }

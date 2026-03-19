@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AdvisorController;
+use App\Http\Controllers\MonzoAuthController;
 use App\Livewire\Settings\ApiTokens;
 use App\Livewire\Settings\Appearance;
+use App\Livewire\Settings\BankConnections;
 use App\Livewire\Settings\BillsFloat;
 use App\Livewire\Settings\Categories;
 use App\Livewire\Settings\Password;
@@ -26,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('savings', 'savings')->name('savings');
     Route::view('penny-challenge', 'penny-challenge')->name('penny-challenge');
     Route::view('calendar', 'calendar')->name('calendar');
+    Route::view('automations', 'automations')->name('automations');
 
     Route::get('advisor/stream/{transaction}', [AdvisorController::class, 'stream'])
         ->name('advisor.stream');
@@ -39,6 +42,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/categories', Categories::class)->name('categories.edit');
     Route::get('settings/appearance', Appearance::class)->name('appearance.edit');
     Route::get('settings/api', ApiTokens::class)->name('api.tokens');
+    Route::get('settings/connections', BankConnections::class)->name('settings.connections');
+
+    // Bank OAuth routes
+    Route::get('auth/monzo/redirect', [MonzoAuthController::class, 'redirect'])->name('monzo.redirect');
+    Route::get('auth/monzo/callback', [MonzoAuthController::class, 'callback'])->name('monzo.callback');
 
     Route::get('settings/two-factor', TwoFactor::class)
         ->middleware(
