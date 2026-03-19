@@ -101,9 +101,9 @@ test('calculates weekly contribution correctly', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // 433 / 4.33 = 100
-    expect($status['weekly_contribution'])->toBeGreaterThan(99.9)
-        ->and($status['weekly_contribution'])->toBeLessThan(100.1);
+    // 433 * (1 + 1.0) / 4.33 = 866 / 4.33 = 200
+    expect($status['weekly_contribution'])->toBeGreaterThan(199.9)
+        ->and($status['weekly_contribution'])->toBeLessThan(200.1);
 });
 
 test('uses calculated monthly total as target when bills_float_target is null', function () {
@@ -124,7 +124,8 @@ test('uses calculated monthly total as target when bills_float_target is null', 
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    expect($status['target'])->toBe(500.0)
+    // 500 * (1 + 1.0) = 1000
+    expect($status['target'])->toBe(1000.0)
         ->and($status['monthly_bills_total'])->toBe(500.0);
 });
 
@@ -196,7 +197,8 @@ test('calculates progress percentage correctly', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    expect($status['progress_percentage'])->toBe(50.0)
+    // target = 1000 * (1 + 1.0) = 2000, current = 500, progress = 25%
+    expect($status['progress_percentage'])->toBe(25.0)
         ->and($status['is_healthy'])->toBeFalse();
 });
 
@@ -216,11 +218,11 @@ test('marks as healthy when current balance meets or exceeds target', function (
         'is_bills_float' => true,
     ]);
 
-    // Create a deposit to set balance to 1200 (120% of target)
+    // Create a deposit to set balance to 2400 (120% of target = 2000)
     SavingsTransfer::factory()->create([
         'user_id' => $user->id,
         'savings_account_id' => $billsFloatAccount->id,
-        'amount' => 1200,
+        'amount' => 2400,
         'direction' => TransferDirection::Deposit,
     ]);
 
@@ -253,8 +255,8 @@ test('uses multiplier to calculate target when set', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // Monthly bills = 1000, multiplier = 1.5, target should be 1500
-    expect($status['target'])->toBe(1500.0)
+    // Monthly bills = 1000, multiplier = 1.5, target = 1000 * (1 + 1.5) = 2500
+    expect($status['target'])->toBe(2500.0)
         ->and($status['monthly_bills_total'])->toBe(1000.0)
         ->and($status['multiplier'])->toBe(1.5);
 });
@@ -281,8 +283,8 @@ test('defaults to multiplier of 1.0 when not set', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // Monthly bills = 500, no multiplier set, should default to 1.0
-    expect($status['target'])->toBe(500.0)
+    // Monthly bills = 500, no multiplier set, defaults to 1.0, target = 500 * (1 + 1.0) = 1000
+    expect($status['target'])->toBe(1000.0)
         ->and($status['multiplier'])->toBe(1.0);
 });
 
@@ -314,7 +316,7 @@ test('bills_float_target overrides multiplier calculation', function () {
         ->and($status['multiplier'])->toBe(1.5);
 });
 
-test('multiplier of 2.0 doubles the monthly target', function () {
+test('multiplier of 2.0 adds two months buffer to the monthly target', function () {
     $user = User::factory()->create([
         'bills_float_target' => null,
         'bills_float_multiplier' => 2.0,
@@ -336,8 +338,8 @@ test('multiplier of 2.0 doubles the monthly target', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // Monthly bills = 800, multiplier = 2.0, target should be 1600
-    expect($status['target'])->toBe(1600.0)
+    // Monthly bills = 800, multiplier = 2.0, target = 800 * (1 + 2.0) = 2400
+    expect($status['target'])->toBe(2400.0)
         ->and($status['monthly_bills_total'])->toBe(800.0)
         ->and($status['multiplier'])->toBe(2.0);
 });
@@ -377,12 +379,12 @@ test('includes unpaid BNPL installments in monthly total', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // Monthly bills = 500, BNPL = 200, total = 700
+    // Monthly bills = 500, BNPL = 200, total = 700, weekly = 700 * (1 + 1.0) / 4.33 = 323.32...
     expect($status['monthly_bills_total'])->toBe(500.0)
         ->and($status['monthly_bnpl_total'])->toBe(200.0)
         ->and($status['monthly_total'])->toBe(700.0)
-        ->and($status['weekly_contribution'])->toBeGreaterThan(161.6)
-        ->and($status['weekly_contribution'])->toBeLessThan(161.8);
+        ->and($status['weekly_contribution'])->toBeGreaterThan(323.3)
+        ->and($status['weekly_contribution'])->toBeLessThan(323.5);
 });
 
 test('excludes paid BNPL installments from calculation', function () {
@@ -461,11 +463,11 @@ test('calculates target with BNPL and multiplier', function () {
     $status = $service->status($user);
 
     // Monthly bills = 600, BNPL = 100, total = 700
-    // Target = 700 * 1.5 = 1050
+    // Target = 700 * (1 + 1.5) = 1750
     expect($status['monthly_bills_total'])->toBe(600.0)
         ->and($status['monthly_bnpl_total'])->toBe(100.0)
         ->and($status['monthly_total'])->toBe(700.0)
-        ->and($status['target'])->toBe(1050.0)
+        ->and($status['target'])->toBe(1750.0)
         ->and($status['multiplier'])->toBe(1.5);
 });
 
@@ -505,12 +507,12 @@ test('works with only BNPL and no bills', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // No bills, but BNPL = 150
+    // No bills, but BNPL = 150, target = 150 * (1 + 1.0) = 300, weekly = 300 / 4.33 = 69.28...
     expect($status['is_configured'])->toBeTrue()
         ->and($status['monthly_bills_total'])->toBe(0.0)
         ->and($status['monthly_bnpl_total'])->toBe(150.0)
         ->and($status['monthly_total'])->toBe(150.0)
-        ->and($status['target'])->toBe(150.0)
-        ->and($status['weekly_contribution'])->toBeGreaterThan(34.6)
-        ->and($status['weekly_contribution'])->toBeLessThan(34.7);
+        ->and($status['target'])->toBe(300.0)
+        ->and($status['weekly_contribution'])->toBeGreaterThan(69.2)
+        ->and($status['weekly_contribution'])->toBeLessThan(69.4);
 });

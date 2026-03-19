@@ -73,14 +73,14 @@ final readonly class BillsFloatService
 
         if (! $billsFloatAccount) {
             $multiplier = (float) ($user->bills_float_multiplier ?? 1.0);
-            $target = $monthlyTotal * $multiplier;
+            $target = $monthlyTotal * (1 + $multiplier);
 
             return [
                 'is_configured' => true,
                 'monthly_bills_total' => $monthlyBillsTotal,
                 'monthly_bnpl_total' => $monthlyBnplTotal,
                 'monthly_total' => $monthlyTotal,
-                'weekly_contribution' => ($monthlyTotal * $multiplier) / 4.33,
+                'weekly_contribution' => ($monthlyTotal * (1 + $multiplier)) / 4.33,
                 'target' => $target,
                 'current' => 0.0,
                 'progress_percentage' => 0.0,
@@ -96,7 +96,7 @@ final readonly class BillsFloatService
         $multiplier = (float) ($user->bills_float_multiplier ?? 1.0);
         $target = $user->bills_float_target !== null
             ? (float) $user->bills_float_target
-            : $monthlyTotal * $multiplier;
+            : $monthlyTotal * (1 + $multiplier);
         $current = $billsFloatAccount->currentBalance();
         $progressPercentage = $target > 0 ? min(100, ($current / $target) * 100) : 0;
         $isHealthy = $current >= $target;
@@ -108,7 +108,7 @@ final readonly class BillsFloatService
             'monthly_bills_total' => $monthlyBillsTotal,
             'monthly_bnpl_total' => $monthlyBnplTotal,
             'monthly_total' => $monthlyTotal,
-            'weekly_contribution' => ($monthlyTotal * $multiplier) / 4.33,
+            'weekly_contribution' => ($monthlyTotal * (1 + $multiplier)) / 4.33,
             'target' => $target,
             'current' => $current,
             'progress_percentage' => round($progressPercentage, 1),
