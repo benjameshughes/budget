@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Models\Transaction;
+use App\Repositories\BillRepository;
+use App\Repositories\BnplRepository;
 use App\Services\BillsFloatService;
 use App\Services\HonestBudgetService;
 use Livewire\Attributes\Computed;
@@ -23,8 +25,8 @@ class SimpleDashboard extends Component
         unset($this->budgetBreakdown);
         unset($this->recentTransactions);
         unset($this->billsFloatStatus);
+        unset($this->upcomingBills);
 
-        // Set last transaction ID to trigger AI advisor streaming
         if ($transactionId) {
             $this->lastTransactionId = $transactionId;
         }
@@ -34,6 +36,19 @@ class SimpleDashboard extends Component
     public function onSavingsTransferCreated(): void
     {
         unset($this->billsFloatStatus);
+    }
+
+    #[On('bill-paid')]
+    public function onBillPaid(): void
+    {
+        unset($this->upcomingBills);
+        unset($this->budgetBreakdown);
+    }
+
+    #[On('bnpl-installment-paid')]
+    public function onBnplInstallmentPaid(): void
+    {
+        unset($this->upcomingBnpl);
     }
 
     #[Computed]
@@ -57,6 +72,18 @@ class SimpleDashboard extends Component
     public function billsFloatStatus(): array
     {
         return app(BillsFloatService::class)->status(auth()->user());
+    }
+
+    #[Computed]
+    public function upcomingBills(): \Illuminate\Support\Collection
+    {
+        return app(BillRepository::class)->nextN(auth()->user(), 5);
+    }
+
+    #[Computed]
+    public function upcomingBnpl(): \Illuminate\Support\Collection
+    {
+        return app(BnplRepository::class)->getUpcomingInstallments(auth()->user())->take(5);
     }
 
     #[Computed]

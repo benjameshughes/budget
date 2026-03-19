@@ -25,10 +25,11 @@ test('dashboard shows budget breakdown', function () {
     $response = $this->get('/dashboard');
 
     $response->assertStatus(200);
-    // Should see the budget breakdown section
+    // Should see the budget breakdown pills and upcoming sections
     expect($response->getContent())
-        ->toContain('Spent this week')
-        ->toContain('Bills Pot');
+        ->toContain('spent')
+        ->toContain('Bills Coming Up')
+        ->toContain('BNPL Coming Up');
 });
 
 test('dashboard loads with transactions', function () {

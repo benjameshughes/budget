@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-slate-100 antialiased dark:bg-slate-950">
-        <flux:sidebar sticky collapsible class="m-4 rounded-2xl shadow-2xl bg-zinc-950 p-2">
+        <flux:sidebar sticky collapsible class="lg:m-4 lg:rounded-2xl shadow-2xl bg-zinc-950 p-2">
             <flux:sidebar.header>
                 <flux:sidebar.brand href="{{route('home')}}" name="Money" class="text-white">
                     <x-slot name="logo" class="size-6 rounded bg-violet-600 text-white">

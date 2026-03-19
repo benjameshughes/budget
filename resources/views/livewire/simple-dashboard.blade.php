@@ -1,51 +1,41 @@
 <div class="w-full max-w-7xl mx-auto">
-    {{-- 1. Status Message (Hero) --}}
-    <div class="mb-8 rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900 ring-1 ring-zinc-950/5 dark:ring-white/5">
-        <div class="flex items-baseline gap-3">
-            <div class="text-4xl font-semibold tracking-tight {{ $this->statusMessage['color'] }}">
-                {{ $this->statusMessage['text'] }}
-            </div>
-        </div>
-        <div class="mt-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            {{ $this->budgetBreakdown['period_start']->format('D j M') }} → {{ $this->budgetBreakdown['period_end']->format('D j M') }}
-            <span class="text-zinc-500">({{ $this->budgetBreakdown['days_remaining'] }} {{ Str::plural('day', $this->budgetBreakdown['days_remaining']) }} left)</span>
-        </div>
-    </div>
+    {{-- 1. Page Header with Pills --}}
+    @php
+        $spentColor = $this->budgetBreakdown['percentage_spent'] >= 100 ? 'red' : ($this->budgetBreakdown['percentage_spent'] >= 80 ? 'amber' : 'emerald');
+        $remainingColor = $this->budgetBreakdown['remaining'] >= 0 ? 'emerald' : 'red';
+        $subheading = $this->budgetBreakdown['period_start']->format('D j M') . ' → ' . $this->budgetBreakdown['period_end']->format('D j M') . ' · ' . $this->budgetBreakdown['days_remaining'] . ' ' . Str::plural('day', $this->budgetBreakdown['days_remaining']) . ' left';
+    @endphp
 
-    {{-- Budget Overview --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        {{-- Spent This Week Card --}}
-        <div class="rounded-xl bg-white p-5 shadow-md ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            <div class="flex items-center justify-between">
-                <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Spent this week</div>
-                <span class="text-xs text-zinc-500 dark:text-zinc-400">
-                    of £{{ number_format($this->budgetBreakdown['weekly_budget'], 2) }}
-                </span>
-            </div>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-                £{{ number_format($this->budgetBreakdown['spent'], 2) }}
-            </p>
-            @if($this->budgetBreakdown['is_configured'])
-                <div class="mt-3 w-full bg-zinc-100 rounded-full h-1.5 dark:bg-zinc-700">
-                    <div
-                        class="h-1.5 rounded-full transition-all duration-300 {{ $this->budgetBreakdown['percentage_spent'] >= 100 ? 'bg-red-500' : ($this->budgetBreakdown['percentage_spent'] >= 80 ? 'bg-amber-500' : 'bg-emerald-500') }}"
-                        style="width: {{ min(100, $this->budgetBreakdown['percentage_spent']) }}%"
-                    ></div>
-                </div>
-                <div class="mt-1 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                    <span>{{ round($this->budgetBreakdown['percentage_spent']) }}%</span>
-                    <span class="font-medium {{ $this->budgetBreakdown['remaining'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
-                        £{{ number_format($this->budgetBreakdown['remaining'], 2) }} left
-                    </span>
-                </div>
-            @endif
-        </div>
+    <x-page-header
+        :heading="$this->statusMessage['text']"
+        :subheading="$subheading"
+    >
+        <x-pill
+            :value="'£' . number_format($this->budgetBreakdown['spent'], 2)"
+            label="spent"
+            :color="$spentColor"
+            icon="banknotes"
+        />
 
-        {{-- Bills Pot Summary --}}
-        <livewire:components.bills-pot-summary />
-    </div>
+        <x-pill
+            :value="'£' . number_format(abs($this->budgetBreakdown['remaining']), 2)"
+            :label="$this->budgetBreakdown['remaining'] >= 0 ? 'remaining' : 'over budget'"
+            :color="$remainingColor"
+            icon="wallet"
+        />
 
-    {{-- 2. Quick Input (The Hero Action) --}}
+        @if($this->billsFloatStatus['is_configured'])
+            <x-pill
+                :value="'£' . number_format($this->billsFloatStatus['weekly_contribution'], 2) . '/wk'"
+                label="bills pot"
+                color="violet"
+                icon="calendar-days"
+                :progress="$this->billsFloatStatus['progress_percentage']"
+            />
+        @endif
+    </x-page-header>
+
+    {{-- 2. Quick Input --}}
     <div class="mx-auto w-full py-6">
         <flux:modal.trigger name="quick-input">
             <flux:input
@@ -84,55 +74,67 @@
         </div>
     </div>
 
-    {{-- Traditional Add Transaction Form (Only shown when toggle is on) --}}
+    {{-- Traditional Add Transaction Form --}}
     @if($showForm)
         <div class="mx-auto w-full py-6">
             <livewire:components.add-transaction />
         </div>
     @endif
 
-    {{-- 3. Recent Transactions --}}
-{{--    <div class="mx-auto w-full py-6">--}}
-{{--        <flux:heading size="lg" class="mb-4">Recent Transactions</flux:heading>--}}
+    {{-- 3. Upcoming Bills & BNPL --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+        {{-- Bills Coming Up --}}
+        <div class="rounded-xl bg-white dark:bg-zinc-900 ring-1 ring-zinc-950/5 dark:ring-white/5 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                <span class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Bills Coming Up</span>
+                <a href="{{ route('bills') }}" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">View all →</a>
+            </div>
+            @if($this->upcomingBills->isEmpty())
+                <div class="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">No upcoming bills</div>
+            @else
+                <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    @foreach($this->upcomingBills as $bill)
+                        @php $overdue = $bill->next_due_date?->lt(today()); @endphp
+                        <div class="flex items-center justify-between px-4 py-3">
+                            <span class="text-sm text-zinc-700 dark:text-zinc-300 truncate">{{ $bill->name }}</span>
+                            <div class="flex items-center gap-3 shrink-0 ml-3">
+                                <span class="text-sm font-medium text-zinc-900 dark:text-white">£{{ number_format($bill->amount, 2) }}</span>
+                                <span class="text-xs {{ $overdue ? 'text-red-500 dark:text-red-400' : 'text-zinc-500 dark:text-zinc-400' }}">
+                                    {{ $bill->next_due_date?->format('D j M') ?? '—' }}
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
 
-{{--        @if($this->recentTransactions->isEmpty())--}}
-{{--            <flux:card class="animate-fade-in">--}}
-{{--                <div class="py-8 text-center text-neutral-500 dark:text-neutral-400">--}}
-{{--                    <div class="text-4xl mb-3 opacity-50">💳</div>--}}
-{{--                    <p>No transactions yet. Add your first one above!</p>--}}
-{{--                </div>--}}
-{{--            </flux:card>--}}
-{{--        @else--}}
-{{--            <div class="space-y-2">--}}
-{{--                @foreach($this->recentTransactions as $transaction)--}}
-{{--                    <flux:card size="sm" class="transition-all duration-200 ease-in-out hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:shadow-md hover:scale-[1.01] cursor-pointer">--}}
-{{--                        <div class="flex items-center justify-between">--}}
-{{--                            <div class="flex flex-col gap-1">--}}
-{{--                                <div class="flex items-center gap-2">--}}
-{{--                                    <span class="font-medium">--}}
-{{--                                        {{ $transaction->name ?? 'Transaction' }}--}}
-{{--                                    </span>--}}
-{{--                                    @if($transaction->category)--}}
-{{--                                        <flux:badge size="sm" inset="top bottom">--}}
-{{--                                            {{ $transaction->category->name }}--}}
-{{--                                        </flux:badge>--}}
-{{--                                    @endif--}}
-{{--                                </div>--}}
-{{--                                <span class="text-sm text-neutral-500 dark:text-neutral-400">--}}
-{{--                                    {{ $transaction->payment_date->format('M j, Y') }}--}}
-{{--                                </span>--}}
-{{--                            </div>--}}
-{{--                            <div class="text-right">--}}
-{{--                                <span class="text-lg font-semibold {{ $transaction->type->value === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">--}}
-{{--                                    {{ $transaction->type->value === 'income' ? '+' : '-' }}£{{ number_format($transaction->amount, 2) }}--}}
-{{--                                </span>--}}
-{{--                            </div>--}}
-{{--                        </div>--}}
-{{--                    </flux:card>--}}
-{{--                @endforeach--}}
-{{--            </div>--}}
-{{--        @endif--}}
-{{--    </div>--}}
+        {{-- BNPL Coming Up --}}
+        <div class="rounded-xl bg-white dark:bg-zinc-900 ring-1 ring-zinc-950/5 dark:ring-white/5 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                <span class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">BNPL Coming Up</span>
+                <a href="{{ route('bnpl') }}" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">View all →</a>
+            </div>
+            @if($this->upcomingBnpl->isEmpty())
+                <div class="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">All clear</div>
+            @else
+                <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    @foreach($this->upcomingBnpl as $installment)
+                        @php $overdue = $installment->due_date->lt(today()); @endphp
+                        <div class="flex items-center justify-between px-4 py-3">
+                            <span class="text-sm text-zinc-700 dark:text-zinc-300 truncate">{{ $installment->purchase->merchant }}</span>
+                            <div class="flex items-center gap-3 shrink-0 ml-3">
+                                <span class="text-sm font-medium text-zinc-900 dark:text-white">£{{ number_format($installment->amount, 2) }}</span>
+                                <span class="text-xs {{ $overdue ? 'text-red-500 dark:text-red-400' : 'text-zinc-500 dark:text-zinc-400' }}">
+                                    {{ $installment->due_date->format('D j M') }}
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
 
     <script>
         function advisorTerminal() {
