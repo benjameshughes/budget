@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Enums\BankProvider;
 use App\Livewire\Settings\BankConnections;
-use App\Models\BankTransaction;
 use App\Models\ConnectedAccount;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -182,7 +182,7 @@ test('syncTransactions imports monzo transactions', function () {
         ->test(BankConnections::class)
         ->call('syncTransactions', $account->id);
 
-    expect(BankTransaction::where('connected_account_id', $account->id)->count())->toBe(2);
+    expect(Transaction::where('connected_account_id', $account->id)->count())->toBe(2);
 });
 
 test('syncTransactions imports starling transactions', function () {
@@ -192,9 +192,14 @@ test('syncTransactions imports starling transactions', function () {
     $account = ConnectedAccount::factory()->starling()->create(['user_id' => $user->id]);
 
     Http::fake([
-        'api.starlingbank.com/api/v2/accounts/*' => Http::response([
-            'accountUid' => $account->external_account_id,
-            'defaultCategory' => 'cat-uid-123',
+        'api.starlingbank.com/api/v2/accounts' => Http::response([
+            'accounts' => [
+                [
+                    'accountUid' => $account->external_account_id,
+                    'defaultCategory' => 'cat-uid-123',
+                    'currency' => 'GBP',
+                ],
+            ],
         ]),
         'api.starlingbank.com/api/v2/feed/*' => Http::response([
             'feedItems' => [
@@ -215,7 +220,7 @@ test('syncTransactions imports starling transactions', function () {
         ->test(BankConnections::class)
         ->call('syncTransactions', $account->id);
 
-    expect(BankTransaction::where('connected_account_id', $account->id)->count())->toBe(1);
+    expect(Transaction::where('connected_account_id', $account->id)->count())->toBe(1);
 });
 
 test('syncAll syncs balance pots and transactions together', function () {
@@ -278,14 +283,14 @@ test('deduplication prevents duplicate transactions on repeated sync', function 
         ->test(BankConnections::class)
         ->call('syncTransactions', $account->id);
 
-    expect(BankTransaction::where('external_id', 'tx_dedup_1')->count())->toBe(1);
+    expect(Transaction::where('external_id', 'tx_dedup_1')->count())->toBe(1);
 
     // Second sync — same transaction, should not duplicate
     Livewire::actingAs($user)
         ->test(BankConnections::class)
         ->call('syncTransactions', $account->id);
 
-    expect(BankTransaction::where('external_id', 'tx_dedup_1')->count())->toBe(1);
+    expect(Transaction::where('external_id', 'tx_dedup_1')->count())->toBe(1);
 });
 
 test('user cannot sync another users account', function () {

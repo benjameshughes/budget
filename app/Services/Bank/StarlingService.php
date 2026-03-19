@@ -51,11 +51,19 @@ final readonly class StarlingService
     public function getDefaultCategory(ConnectedAccount $account): string
     {
         $response = $this->client($account)
-            ->get("/accounts/{$account->external_account_id}");
+            ->get('/accounts');
 
         $response->throw();
 
-        return $response->json('defaultCategory', '');
+        $accounts = $response->json('accounts', []);
+
+        foreach ($accounts as $acc) {
+            if ($acc['accountUid'] === $account->external_account_id) {
+                return $acc['defaultCategory'] ?? '';
+            }
+        }
+
+        return $accounts[0]['defaultCategory'] ?? '';
     }
 
     /**

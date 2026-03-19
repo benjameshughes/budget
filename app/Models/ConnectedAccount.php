@@ -39,7 +39,7 @@ class ConnectedAccount extends Model
 
     public function bankTransactions(): HasMany
     {
-        return $this->hasMany(BankTransaction::class);
+        return $this->hasMany(Transaction::class);
     }
 
     public function bankPots(): HasMany

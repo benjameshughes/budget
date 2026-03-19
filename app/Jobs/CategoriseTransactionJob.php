@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\BankTransaction;
+use App\Models\Transaction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
-use Prism\Prism\Facades\Prism;
 
 class CategoriseTransactionJob implements ShouldQueue
 {
@@ -19,36 +17,19 @@ class CategoriseTransactionJob implements ShouldQueue
     public int $backoff = 30;
 
     public function __construct(
-        public BankTransaction $transaction,
+        public Transaction $transaction,
     ) {}
 
     public function handle(): void
     {
-        // Skip if already categorised by the bank
-        if ($this->transaction->category && $this->transaction->category !== 'general') {
+        // Skip if already categorised
+        if ($this->transaction->category_id !== null) {
             return;
         }
 
-        try {
-            $response = Prism::text()
-                ->using('anthropic', 'claude-3-5-haiku-latest')
-                ->withSystemPrompt($this->systemPrompt())
-                ->withPrompt($this->buildPrompt())
-                ->withMaxTokens(50)
-                ->generate();
+        // TODO: Rework to map AI category strings to Category models
+        // For now, skip — imported transactions land uncategorised
 
-            $category = strtolower(trim($response->text));
-
-            // Validate against known categories
-            if (in_array($category, $this->validCategories())) {
-                $this->transaction->update(['category' => $category]);
-            }
-        } catch (\Exception $e) {
-            Log::warning('Failed to categorise bank transaction', [
-                'transaction_id' => $this->transaction->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
     }
 
     private function systemPrompt(): string

@@ -319,7 +319,7 @@ test('normalise starling handles outbound transactions', function () {
 
     expect($normalised['amount'])->toBe(-45.99);
     expect($normalised['external_id'])->toBe('fi_out_001');
-    expect($normalised['merchant_name'])->toBe('Amazon');
+    expect($normalised['name'])->toBe('Amazon');
     expect($normalised['provider'])->toBe('starling');
 });
 
@@ -339,6 +339,6 @@ test('normalise starling handles inbound transactions', function () {
     ]);
 
     expect($normalised['amount'])->toEqual(1500.0);
-    expect($normalised['merchant_name'])->toBe('Employer Ltd');
+    expect($normalised['name'])->toBe('Employer Ltd');
     expect($normalised['description'])->toBe('Salary March');
 });

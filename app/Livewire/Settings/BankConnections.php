@@ -258,6 +258,18 @@ class BankConnections extends Component
                 text: "Synced: balance updated, {$potCount} {$label}, {$imported} new transactions.",
                 variant: 'success',
             );
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            Log::error('Failed to sync all — API error', [
+                'account_id' => $account->id,
+                'provider' => $account->provider->value,
+                'external_account_id' => $account->external_account_id,
+                'status' => $e->response?->status(),
+                'body' => $e->response?->body(),
+                'url' => (string) $e->response?->transferStats?->getEffectiveUri(),
+                'error' => $e->getMessage(),
+            ]);
+
+            Flux::toast(text: "Sync failed ({$e->response?->status()}). Check logs for details.", variant: 'danger');
         } catch (\Exception $e) {
             Log::error('Failed to sync all', [
                 'account_id' => $account->id,

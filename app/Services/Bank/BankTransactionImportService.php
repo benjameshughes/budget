@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Services\Bank;
 
 use App\Enums\BankProvider;
-use App\Jobs\CategoriseTransactionJob;
-use App\Models\BankTransaction;
+use App\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\ConnectedAccount;
+use App\Models\Transaction;
 
 final readonly class BankTransactionImportService
 {
     /**
-     * Import raw transactions from a bank API into the database.
+     * Import raw transactions from a bank API into the transactions table.
      *
      * Deduplicates via UNIQUE(provider, external_id) constraint.
-     * Dispatches AI categorisation for newly imported transactions.
      *
      * @param  array<int, array<string, mixed>>  $rawTransactions
      * @return int Number of newly imported transactions
@@ -26,8 +26,9 @@ final readonly class BankTransactionImportService
 
         foreach ($rawTransactions as $raw) {
             $normalised = $this->normalise($account->provider, $raw);
+            $bankCategory = $raw['category'] ?? $raw['spendingCategory'] ?? null;
 
-            $transaction = BankTransaction::query()
+            $transaction = Transaction::query()
                 ->firstOrCreate(
                     [
                         'provider' => $normalised['provider'],
@@ -36,22 +37,17 @@ final readonly class BankTransactionImportService
                     [
                         'user_id' => $account->user_id,
                         'connected_account_id' => $account->id,
-                        'amount' => $normalised['amount'],
-                        'currency' => $normalised['currency'],
+                        'name' => $normalised['name'],
                         'description' => $normalised['description'],
-                        'merchant_name' => $normalised['merchant_name'],
-                        'category' => $normalised['category'],
-                        'notes' => $normalised['notes'],
-                        'transacted_at' => $normalised['transacted_at'],
-                        'imported_at' => now(),
-                        'metadata' => $normalised['metadata'],
+                        'amount' => abs($normalised['amount']),
+                        'type' => $normalised['amount'] >= 0 ? TransactionType::Income : TransactionType::Expense,
+                        'payment_date' => $normalised['transacted_at'],
+                        'category_id' => $this->resolveCategory($account->user_id, $bankCategory),
                     ],
                 );
 
             if ($transaction->wasRecentlyCreated) {
                 $imported++;
-
-                CategoriseTransactionJob::dispatch($transaction);
             }
         }
 
@@ -78,17 +74,9 @@ final readonly class BankTransactionImportService
             'provider' => BankProvider::Monzo->value,
             'external_id' => $raw['id'],
             'amount' => $amountInPounds,
-            'currency' => $raw['currency'] ?? 'GBP',
-            'description' => $raw['description'] ?? '',
-            'merchant_name' => $merchantName,
-            'category' => $raw['category'] ?? null,
-            'notes' => $raw['notes'] ?? null,
+            'name' => $merchantName ?? $raw['description'] ?? '',
+            'description' => $raw['notes'] ?? null,
             'transacted_at' => $raw['created'],
-            'metadata' => [
-                'monzo_category' => $raw['category'] ?? null,
-                'decline_reason' => $raw['decline_reason'] ?? null,
-                'is_load' => $raw['is_load'] ?? false,
-            ],
         ];
     }
 
@@ -112,6 +100,80 @@ final readonly class BankTransactionImportService
      * @param  array<string, mixed>  $raw
      * @return array<string, mixed>
      */
+    /**
+     * Map a bank category string to a Category model ID.
+     */
+    private function resolveCategory(int $userId, ?string $bankCategory): ?int
+    {
+        if ($bankCategory === null) {
+            return null;
+        }
+
+        $mapped = $this->mapBankCategory($bankCategory);
+
+        if ($mapped === null) {
+            return null;
+        }
+
+        return Category::query()
+            ->firstOrCreate(
+                ['user_id' => $userId, 'name' => $mapped],
+                ['description' => "Auto-created from bank category: {$bankCategory}"],
+            )
+            ->id;
+    }
+
+    /**
+     * Map bank provider category strings to app category names.
+     */
+    private function mapBankCategory(string $bankCategory): ?string
+    {
+        $map = [
+            // Monzo categories
+            'groceries' => 'Groceries',
+            'eating_out' => 'Restaurants',
+            'transport' => 'Transportation',
+            'shopping' => 'Shopping',
+            'entertainment' => 'Entertainment',
+            'bills' => 'Utilities',
+            'personal_care' => 'Personal Care',
+            'health' => 'Health & Fitness',
+            'education' => 'Education',
+            'income' => 'Income',
+            'transfers' => 'Savings',
+            'cash' => 'Fees & Charges',
+            'holidays' => 'Travel',
+            'charity' => 'Gifts & Donations',
+            'family' => 'Family',
+            'general' => null,
+            'expenses' => null,
+
+            // Starling categories (UPPER_CASE)
+            'GROCERIES' => 'Groceries',
+            'EATING_OUT' => 'Restaurants',
+            'TRANSPORT' => 'Transportation',
+            'SHOPPING' => 'Shopping',
+            'ENTERTAINMENT' => 'Entertainment',
+            'BILLS_AND_SERVICES' => 'Utilities',
+            'PERSONAL_CARE' => 'Personal Care',
+            'HEALTH' => 'Health & Fitness',
+            'EDUCATION' => 'Education',
+            'INCOME' => 'Income',
+            'SAVING' => 'Savings',
+            'PAYMENTS' => 'Fees & Charges',
+            'HOLIDAYS' => 'Travel',
+            'CHARITY' => 'Gifts & Donations',
+            'FAMILY' => 'Family',
+            'HOME' => 'Housing',
+            'LIFESTYLE' => 'Entertainment',
+            'GENERAL' => null,
+            'NONE' => null,
+            'REVENUE' => 'Income',
+        ];
+
+        return $map[$bankCategory] ?? null;
+    }
+
     private function normaliseStarling(array $raw): array
     {
         $amountInPounds = ($raw['amount']['minorUnits'] ?? 0) / 100;
@@ -120,16 +182,9 @@ final readonly class BankTransactionImportService
             'provider' => BankProvider::Starling->value,
             'external_id' => $raw['feedItemUid'] ?? $raw['id'] ?? '',
             'amount' => $raw['direction'] === 'OUT' ? -abs($amountInPounds) : abs($amountInPounds),
-            'currency' => $raw['amount']['currency'] ?? 'GBP',
-            'description' => $raw['reference'] ?? '',
-            'merchant_name' => $raw['counterPartyName'] ?? null,
-            'category' => $raw['spendingCategory'] ?? null,
-            'notes' => $raw['userNote'] ?? null,
+            'name' => $raw['counterPartyName'] ?? $raw['reference'] ?? '',
+            'description' => $raw['reference'] ?? $raw['userNote'] ?? null,
             'transacted_at' => $raw['transactionTime'] ?? $raw['updatedAt'] ?? now(),
-            'metadata' => [
-                'starling_category' => $raw['spendingCategory'] ?? null,
-                'source' => $raw['source'] ?? null,
-            ],
         ];
     }
 }
