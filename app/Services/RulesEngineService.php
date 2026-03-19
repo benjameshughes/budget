@@ -370,16 +370,62 @@ final readonly class RulesEngineService
     }
 
     /**
+     * Transfer between pots/spaces — withdraw from source, deposit to destination.
+     *
+     * Works same-bank or cross-bank. Cross-bank requires the user to ensure
+     * both main accounts have sufficient funds (the actual bank transfer is manual).
+     *
      * @param  array<string, mixed>  $action
      */
     private function executeTransferToAccount(array $action, int $userId): void
     {
-        // Transfer between accounts is a withdraw + deposit flow
-        // For now, log it — actual inter-bank transfers need Open Banking
-        Log::info('Transfer to account action triggered', [
-            'user_id' => $userId,
-            'action' => $action,
+        $sourcePot = $this->resolvePot([
+            'pot_id' => $action['source_pot_id'] ?? null,
+            'pot_purpose' => $action['source_pot_purpose'] ?? null,
+        ], $userId);
+
+        $destinationPot = $this->resolvePot([
+            'pot_id' => $action['destination_pot_id'] ?? null,
+            'pot_purpose' => $action['destination_pot_purpose'] ?? null,
+        ], $userId);
+
+        $amount = $action['amount_resolved'] ?? (int) ($action['amount'] ?? 0);
+
+        if ($amount <= 0) {
+            throw new \RuntimeException('Transfer amount must be positive');
+        }
+
+        $sourceAccount = $sourcePot->connectedAccount;
+        $destAccount = $destinationPot->connectedAccount;
+
+        // 1. Withdraw from source pot
+        match ($sourceAccount->provider) {
+            BankProvider::Monzo => $this->monzoService->withdrawFromPot($sourceAccount, $sourcePot->external_id, $amount),
+            BankProvider::Starling => $this->starlingService->withdrawFromSpace($sourceAccount, $sourcePot->external_id, $amount),
+        };
+
+        // 2. Deposit to destination pot
+        match ($destAccount->provider) {
+            BankProvider::Monzo => $this->monzoService->depositToPot($destAccount, $destinationPot->external_id, $amount),
+            BankProvider::Starling => $this->starlingService->addToSpace($destAccount, $destinationPot->external_id, $amount),
+        };
+
+        $isCrossBank = $sourceAccount->provider !== $destAccount->provider;
+
+        Log::info('Transfer between pots executed', [
+            'source' => $sourcePot->name.' ('.$sourceAccount->provider->label().')',
+            'destination' => $destinationPot->name.' ('.$destAccount->provider->label().')',
+            'amount_pence' => $amount,
+            'cross_bank' => $isCrossBank,
         ]);
+
+        if ($isCrossBank) {
+            Log::warning('Cross-bank transfer — ensure manual bank transfer covers the amount', [
+                'from' => $sourceAccount->provider->label(),
+                'to' => $destAccount->provider->label(),
+                'amount_pence' => $amount,
+            ]);
+        }
     }
 
     /**

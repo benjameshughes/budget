@@ -183,6 +183,85 @@
                                         </div>
                                     @endif
 
+                                    @if(($action['type'] ?? '') === 'transfer_to_account')
+                                        {{-- Source pot --}}
+                                        <div>
+                                            <flux:heading size="sm" class="mb-2 text-amber-600 dark:text-amber-400">{{ __('Withdraw from...') }}</flux:heading>
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                <flux:select wire:model.live="actions.{{ $index }}.source_pot_purpose" :label="__('By Purpose')">
+                                                    <option value="">{{ __('— or pick a specific pot below —') }}</option>
+                                                    @foreach($this->potPurposeOptions as $option)
+                                                        <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                                                    @endforeach
+                                                </flux:select>
+
+                                                <flux:select wire:model.live="actions.{{ $index }}.source_pot_id" :label="__('Or Specific Pot')">
+                                                    <option value="">{{ __('— or pick a purpose above —') }}</option>
+                                                    @foreach($this->availablePots as $pot)
+                                                        <option value="{{ $pot->id }}">
+                                                            {{ $pot->name }} ({{ $pot->connectedAccount->provider->label() }} &bull; £{{ number_format($pot->balanceInPounds(), 2) }})
+                                                        </option>
+                                                    @endforeach
+                                                </flux:select>
+                                            </div>
+                                        </div>
+
+                                        {{-- Destination pot --}}
+                                        <div>
+                                            <flux:heading size="sm" class="mb-2 text-green-600 dark:text-green-400">{{ __('Deposit to...') }}</flux:heading>
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                <flux:select wire:model.live="actions.{{ $index }}.destination_pot_purpose" :label="__('By Purpose')">
+                                                    <option value="">{{ __('— or pick a specific pot below —') }}</option>
+                                                    @foreach($this->potPurposeOptions as $option)
+                                                        <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                                                    @endforeach
+                                                </flux:select>
+
+                                                <flux:select wire:model.live="actions.{{ $index }}.destination_pot_id" :label="__('Or Specific Pot')">
+                                                    <option value="">{{ __('— or pick a purpose above —') }}</option>
+                                                    @foreach($this->availablePots as $pot)
+                                                        <option value="{{ $pot->id }}">
+                                                            {{ $pot->name }} ({{ $pot->connectedAccount->provider->label() }} &bull; £{{ number_format($pot->balanceInPounds(), 2) }})
+                                                        </option>
+                                                    @endforeach
+                                                </flux:select>
+                                            </div>
+                                        </div>
+
+                                        {{-- Amount --}}
+                                        <div>
+                                            <div class="flex items-end gap-2">
+                                                <div class="flex-1">
+                                                    <flux:input
+                                                        wire:model="actions.{{ $index }}.amount"
+                                                        :label="__('Amount (pence)')"
+                                                        placeholder="e.g. 50000 or use a variable"
+                                                    />
+                                                </div>
+                                                <flux:dropdown>
+                                                    <flux:button size="sm" variant="ghost" icon="variable" title="{{ __('Insert Variable') }}" />
+                                                    <flux:menu>
+                                                        @foreach($this->availableVariables as $group => $vars)
+                                                            <flux:menu.heading>{{ $group }}</flux:menu.heading>
+                                                            @foreach($vars as $var)
+                                                                <flux:menu.item
+                                                                    x-on:click="$wire.set('actions.{{ $index }}.amount', '{{ $var['key'] }}')"
+                                                                >
+                                                                    <span class="font-mono text-xs text-violet-500">{{ $var['key'] }}</span>
+                                                                    <span class="text-xs text-gray-400 ml-2">{{ $var['label'] }}</span>
+                                                                </flux:menu.item>
+                                                            @endforeach
+                                                        @endforeach
+                                                    </flux:menu>
+                                                </flux:dropdown>
+                                            </div>
+                                        </div>
+
+                                        <flux:callout variant="warning" icon="exclamation-triangle">
+                                            <flux:callout.text>{{ __('Cross-bank transfers move money within each bank\'s pots/spaces. Ensure both main accounts have sufficient funds.') }}</flux:callout.text>
+                                        </flux:callout>
+                                    @endif
+
                                     @if(($action['type'] ?? '') === 'send_notification')
                                         <div>
                                             <div class="flex items-end gap-2">

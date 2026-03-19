@@ -16,7 +16,7 @@ enum RuleActionType: string
         return match ($this) {
             self::DepositToPot => 'Deposit to Pot/Space',
             self::WithdrawFromPot => 'Withdraw from Pot/Space',
-            self::TransferToAccount => 'Transfer to Account',
+            self::TransferToAccount => 'Transfer Between Pots/Spaces',
             self::SendNotification => 'Send Notification',
         };
     }
@@ -26,7 +26,7 @@ enum RuleActionType: string
         return match ($this) {
             self::DepositToPot => 'Move money into a Monzo pot or Starling space',
             self::WithdrawFromPot => 'Move money out of a Monzo pot or Starling space',
-            self::TransferToAccount => 'Transfer funds to another connected bank account',
+            self::TransferToAccount => 'Withdraw from one pot/space and deposit to another (same or cross-bank)',
             self::SendNotification => 'Send a notification with a custom message',
         };
     }

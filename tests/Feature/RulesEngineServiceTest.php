@@ -214,6 +214,116 @@ test('execute deposit to pot by purpose', function () {
     });
 });
 
+test('execute transfer between pots on same bank', function () {
+    Http::fake([
+        'api.monzo.com/*' => Http::response(['success' => true]),
+    ]);
+
+    $user = User::factory()->create();
+    $account = ConnectedAccount::factory()->monzo()->create(['user_id' => $user->id]);
+
+    $sourcePot = BankPot::factory()->create([
+        'user_id' => $user->id,
+        'connected_account_id' => $account->id,
+        'purpose' => PotPurpose::Spending,
+        'external_id' => 'pot_spending',
+    ]);
+
+    $destPot = BankPot::factory()->create([
+        'user_id' => $user->id,
+        'connected_account_id' => $account->id,
+        'purpose' => PotPurpose::BillsFloat,
+        'external_id' => 'pot_bills',
+    ]);
+
+    $rule = AutomationRule::factory()->create([
+        'user_id' => $user->id,
+        'actions' => [
+            [
+                'type' => RuleActionType::TransferToAccount->value,
+                'source_pot_id' => $sourcePot->id,
+                'destination_pot_id' => $destPot->id,
+                'amount' => '10000',
+            ],
+        ],
+    ]);
+
+    $service = app(RulesEngineService::class);
+    $log = $service->execute($rule, ['trigger' => ['amount' => 150000]]);
+
+    expect($log->status)->toBe('success');
+
+    Http::assertSent(fn ($r) => str_contains($r->url(), 'pot_spending/withdraw'));
+    Http::assertSent(fn ($r) => str_contains($r->url(), 'pot_bills/deposit'));
+});
+
+test('execute transfer between pots cross-bank', function () {
+    Http::fake([
+        'api.monzo.com/*' => Http::response(['success' => true]),
+        'api.starlingbank.com/*' => Http::response(['transferUid' => 'tx_123']),
+    ]);
+
+    $user = User::factory()->create();
+    $monzoAccount = ConnectedAccount::factory()->monzo()->create(['user_id' => $user->id]);
+    $starlingAccount = ConnectedAccount::factory()->starling()->create(['user_id' => $user->id]);
+
+    $monzoPot = BankPot::factory()->create([
+        'user_id' => $user->id,
+        'connected_account_id' => $monzoAccount->id,
+        'external_id' => 'pot_monzo_spending',
+    ]);
+
+    $starlingSpace = BankPot::factory()->create([
+        'user_id' => $user->id,
+        'connected_account_id' => $starlingAccount->id,
+        'external_id' => 'sg_starling_bills',
+        'type' => 'space',
+    ]);
+
+    $rule = AutomationRule::factory()->create([
+        'user_id' => $user->id,
+        'actions' => [
+            [
+                'type' => RuleActionType::TransferToAccount->value,
+                'source_pot_id' => $monzoPot->id,
+                'destination_pot_id' => $starlingSpace->id,
+                'amount' => '25000',
+            ],
+        ],
+    ]);
+
+    $service = app(RulesEngineService::class);
+    $log = $service->execute($rule, ['trigger' => ['amount' => 150000]]);
+
+    expect($log->status)->toBe('success');
+
+    // Monzo withdraw
+    Http::assertSent(fn ($r) => str_contains($r->url(), 'pot_monzo_spending/withdraw'));
+    // Starling deposit
+    Http::assertSent(fn ($r) => str_contains($r->url(), 'sg_starling_bills/add-money'));
+});
+
+test('execute transfer fails with missing source pot', function () {
+    $user = User::factory()->create();
+
+    $rule = AutomationRule::factory()->create([
+        'user_id' => $user->id,
+        'actions' => [
+            [
+                'type' => RuleActionType::TransferToAccount->value,
+                'source_pot_id' => 99999,
+                'destination_pot_id' => 99998,
+                'amount' => '5000',
+            ],
+        ],
+    ]);
+
+    $service = app(RulesEngineService::class);
+    $log = $service->execute($rule, ['trigger' => ['amount' => 50000]]);
+
+    expect($log->status)->toBe('failed');
+});
+
 test('evaluateAllForUser runs matching rules', function () {
     $user = User::factory()->create();
 
