@@ -33,7 +33,7 @@
                 on-swipe="$wire.pay({{ $bill->id }})"
                 :disabled="!$bill->active || !$bill->next_due_date"
             >
-                <div class="flex items-center justify-between p-4 bg-white dark:bg-zinc-900 rounded-xl ring-1 ring-zinc-950/5 dark:ring-white/10">
+                <div class="flex items-center justify-between p-4 bg-white dark:bg-zinc-900 rounded-xl shadow-sm ring-1 ring-zinc-950/5 dark:ring-white/10">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="font-semibold text-zinc-900 dark:text-white truncate">{{ $bill->name }}</span>

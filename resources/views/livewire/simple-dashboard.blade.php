@@ -1,6 +1,6 @@
 <div class="w-full max-w-7xl mx-auto">
     {{-- 1. Status Message (Hero) --}}
-    <div class="mb-8 rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 p-6 ring-1 ring-emerald-600/10 dark:from-emerald-950/30 dark:to-green-950/30 dark:ring-emerald-500/20">
+    <div class="mb-8 rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900 ring-1 ring-zinc-950/5 dark:ring-white/5">
         <div class="flex items-baseline gap-3">
             <div class="text-4xl font-semibold tracking-tight {{ $this->statusMessage['color'] }}">
                 {{ $this->statusMessage['text'] }}
@@ -15,7 +15,7 @@
     {{-- Budget Overview --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {{-- Spent This Week Card --}}
-        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+        <div class="rounded-xl bg-white p-5 shadow-md ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
             <div class="flex items-center justify-between">
                 <div class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Spent this week</div>
                 <span class="text-xs text-zinc-500 dark:text-zinc-400">

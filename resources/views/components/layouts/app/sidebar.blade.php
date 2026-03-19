@@ -3,8 +3,8 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-zinc-50 antialiased dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    <body class="min-h-screen bg-slate-100 antialiased dark:bg-slate-950">
+        <flux:sidebar sticky collapsible class="m-3 rounded-2xl shadow-xl bg-white dark:bg-zinc-900">
             <flux:sidebar.header>
                 <flux:sidebar.brand href="{{route('home')}}" name="Money">
                     <x-slot name="logo" class="size-6 rounded bg-violet-600 text-white">
@@ -36,7 +36,7 @@
             </flux:sidebar.nav>
         </flux:sidebar>
 
-        <flux:header class="lg:hidden">
+        <flux:header class="lg:hidden mx-3 mt-3 rounded-2xl bg-white shadow-sm dark:bg-zinc-900 border-0">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
             <flux:spacer />
             <form method="POST" action="{{route('logout')}}">
