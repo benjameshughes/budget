@@ -93,6 +93,60 @@ test('interpolate replaces template variables', function () {
     expect($result)->toBe('Received 150000 from Employer Ltd');
 });
 
+test('interpolate supports subtraction between variables', function () {
+    $service = app(RulesEngineService::class);
+
+    $result = $service->interpolate(
+        '{{trigger.amount - bills.weekly_contribution_pence}}',
+        ['trigger' => ['amount' => 150000], 'bills' => ['weekly_contribution_pence' => 32500]],
+    );
+
+    expect($result)->toBe('117500');
+});
+
+test('interpolate supports subtraction with literal', function () {
+    $service = app(RulesEngineService::class);
+
+    $result = $service->interpolate(
+        '{{trigger.amount - 50000}}',
+        ['trigger' => ['amount' => 150000]],
+    );
+
+    expect($result)->toBe('100000');
+});
+
+test('interpolate supports addition', function () {
+    $service = app(RulesEngineService::class);
+
+    $result = $service->interpolate(
+        '{{trigger.amount + 5000}}',
+        ['trigger' => ['amount' => 100000]],
+    );
+
+    expect($result)->toBe('105000');
+});
+
+test('interpolate supports multiplication', function () {
+    $service = app(RulesEngineService::class);
+
+    $result = $service->interpolate(
+        '{{trigger.amount * 0.1}}',
+        ['trigger' => ['amount' => 150000]],
+    );
+
+    expect($result)->toBe('15000');
+});
+
+test('interpolate supports division and handles divide by zero', function () {
+    $service = app(RulesEngineService::class);
+
+    $result = $service->interpolate('{{trigger.amount / 2}}', ['trigger' => ['amount' => 150000]]);
+    expect($result)->toBe('75000');
+
+    $result = $service->interpolate('{{trigger.amount / 0}}', ['trigger' => ['amount' => 150000]]);
+    expect($result)->toBe('0');
+});
+
 test('interpolate handles missing variables gracefully', function () {
     $service = app(RulesEngineService::class);
 

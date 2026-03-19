@@ -223,16 +223,48 @@ final readonly class RulesEngineService
     /**
      * Interpolate template variables in a string.
      *
-     * Supports: {{trigger.amount}}, {{trigger.merchant}}, {{trigger.description}},
-     * {{bills_contribution}}, {{remaining}}, and any other context key.
+     * Supports simple variables: {{trigger.amount}}
+     * Supports arithmetic: {{trigger.amount - bills.weekly_contribution_pence}}
+     * Operators: +, -, *, /
+     * Operands can be variables or literal numbers.
      *
      * @param  array<string, mixed>  $context
      */
     public function interpolate(string $template, array $context): string
     {
-        return (string) preg_replace_callback('/\{\{(\w+(?:\.\w+)*)\}\}/', function ($matches) use ($context) {
-            return (string) $this->resolveContextValue($matches[1], $context);
+        return (string) preg_replace_callback('/\{\{(.+?)\}\}/', function ($matches) use ($context) {
+            $expr = trim($matches[1]);
+
+            // Check for arithmetic: "left op right"
+            if (preg_match('/^(.+?)\s*([+\-*\/])\s*(.+)$/', $expr, $parts)) {
+                $left = $this->resolveOperand(trim($parts[1]), $context);
+                $operator = $parts[2];
+                $right = $this->resolveOperand(trim($parts[3]), $context);
+
+                return (string) match ($operator) {
+                    '+' => $left + $right,
+                    '-' => $left - $right,
+                    '*' => $left * $right,
+                    '/' => $right != 0 ? $left / $right : 0,
+                };
+            }
+
+            return (string) $this->resolveContextValue($expr, $context);
         }, $template);
+    }
+
+    /**
+     * Resolve an operand — either a context variable or a literal number.
+     *
+     * @param  array<string, mixed>  $context
+     */
+    private function resolveOperand(string $operand, array $context): float
+    {
+        if (is_numeric($operand)) {
+            return (float) $operand;
+        }
+
+        return (float) $this->resolveContextValue($operand, $context);
     }
 
     /**
