@@ -12,6 +12,7 @@ use App\DataTransferObjects\Actions\CreateTransactionData;
 use App\DataTransferObjects\Actions\ParsedExpenseDto;
 use App\Enums\BnplProvider;
 use App\Enums\TransactionType;
+use App\Exceptions\ExpenseParseException;
 use App\Models\SavingsAccount;
 use App\Services\ExpenseParserService;
 use Carbon\Carbon;
@@ -46,9 +47,9 @@ class QuickInput extends Component
                 'credit_card_payment' => $this->handleCreditCardPayment($parsedData),
                 default => $this->handleRegularTransaction($parsedData),
             };
-        } catch (\Exception $e) {
+        } catch (ExpenseParseException $e) {
             Flux::toast(
-                text: 'Failed to parse input. Try again.',
+                text: $e->getMessage(),
                 heading: 'Parsing Error',
                 variant: 'danger',
             );

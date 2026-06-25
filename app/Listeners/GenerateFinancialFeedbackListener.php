@@ -7,6 +7,7 @@ namespace App\Listeners;
 use App\Actions\FinancialAdvisor\GenerateTransactionFeedbackAction;
 use App\Events\Transaction\TransactionCreated;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 final readonly class GenerateFinancialFeedbackListener
 {
@@ -18,8 +19,7 @@ final readonly class GenerateFinancialFeedbackListener
     {
         try {
             $this->action->handle($event->transaction);
-        } catch (\Exception $e) {
-            // Log the error but don't throw - feedback generation should never break transaction creation
+        } catch (Throwable $e) {
             Log::warning('Failed to generate financial feedback', [
                 'transaction_id' => $event->transaction->id,
                 'error' => $e->getMessage(),

@@ -6,6 +6,7 @@ namespace App\Livewire\Settings;
 
 use App\Enums\BankProvider;
 use App\Enums\PotPurpose;
+use App\Exceptions\BankConnectionException;
 use App\Models\BankPot;
 use App\Models\ConnectedAccount;
 use App\Services\Bank\BankTransactionImportService;
@@ -13,8 +14,11 @@ use App\Services\Bank\MonzoService;
 use App\Services\Bank\StarlingService;
 use Carbon\Carbon;
 use Flux\Flux;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -33,16 +37,15 @@ class BankConnections extends Component
         ]);
 
         try {
-            $monzoService = app(MonzoService::class);
-
-            // Validate token by fetching accounts
-            $response = \Illuminate\Support\Facades\Http::baseUrl('https://api.monzo.com')
+            $response = Http::baseUrl('https://api.monzo.com')
                 ->withToken($this->monzoToken)
                 ->acceptJson()
                 ->timeout(15)
                 ->get('/accounts', ['account_type' => 'uk_retail']);
 
-            $response->throw();
+            throw_unless($response->successful(), new BankConnectionException(
+                'Monzo token validation failed: '.$response->body()
+            ));
 
             $accounts = $response->json('accounts', []);
             $monzoAccount = $accounts[0] ?? null;
@@ -67,7 +70,7 @@ class BankConnections extends Component
             $this->monzoToken = '';
             $this->modal('connect-monzo')->close();
             Flux::toast(text: 'Monzo connected successfully!', variant: 'success');
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::error('Monzo token connection failed', ['error' => $e->getMessage()]);
 
             $this->addError('monzoToken', 'Invalid token. Grab a fresh one from the API Playground.');
@@ -97,7 +100,7 @@ class BankConnections extends Component
     }
 
     #[Computed]
-    public function allPots(): \Illuminate\Database\Eloquent\Collection
+    public function allPots(): Collection
     {
         return BankPot::forUser()
             ->where('is_active', true)
@@ -136,7 +139,7 @@ class BankConnections extends Component
             $this->starlingToken = '';
             $this->modal('connect-starling')->close();
             Flux::toast(text: 'Starling connected successfully!', variant: 'success');
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::error('Starling connection failed', ['error' => $e->getMessage()]);
 
             $this->addError('starlingToken', 'Invalid token. Check it\'s correct and try again.');
@@ -153,7 +156,7 @@ class BankConnections extends Component
             app(MonzoService::class)->registerWebhook($account);
 
             Flux::toast(text: 'Monzo webhook registered. Transactions will now arrive in real-time.', variant: 'success');
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::error('Failed to register Monzo webhook', [
                 'account_id' => $account->id,
                 'error' => $e->getMessage(),
@@ -201,7 +204,7 @@ class BankConnections extends Component
             $account->update(['last_synced_at' => now()]);
             $label = $account->provider === BankProvider::Monzo ? 'pots' : 'spaces';
             Flux::toast(text: $synced.' '.$label.' synced.', variant: 'success');
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::error('Failed to sync pots/spaces', [
                 'account_id' => $account->id,
                 'provider' => $account->provider->value,
@@ -225,7 +228,7 @@ class BankConnections extends Component
             $account->update(['balance_pence' => $balancePence]);
 
             Flux::toast(text: 'Balance updated.', variant: 'success');
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::error('Failed to sync balance', [
                 'account_id' => $account->id,
                 'error' => $e->getMessage(),
@@ -251,7 +254,7 @@ class BankConnections extends Component
             $imported = app(BankTransactionImportService::class)->import($account, $rawTransactions);
 
             Flux::toast(text: $imported.' new transactions imported.', variant: 'success');
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::error('Failed to sync transactions', [
                 'account_id' => $account->id,
                 'error' => $e->getMessage(),
@@ -297,21 +300,10 @@ class BankConnections extends Component
                 text: "Synced: balance updated, {$potCount} {$label}, {$imported} new transactions.",
                 variant: 'success',
             );
-        } catch (\Illuminate\Http\Client\RequestException $e) {
-            Log::error('Failed to sync all — API error', [
-                'account_id' => $account->id,
-                'provider' => $account->provider->value,
-                'external_account_id' => $account->external_account_id,
-                'status' => $e->response?->status(),
-                'body' => $e->response?->body(),
-                'url' => (string) $e->response?->transferStats?->getEffectiveUri(),
-                'error' => $e->getMessage(),
-            ]);
-
-            Flux::toast(text: "Sync failed ({$e->response?->status()}). Check logs for details.", variant: 'danger');
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::error('Failed to sync all', [
                 'account_id' => $account->id,
+                'provider' => $account->provider->value,
                 'error' => $e->getMessage(),
             ]);
 
@@ -373,7 +365,7 @@ class BankConnections extends Component
         return count($spaces);
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.settings.bank-connections', [
             'connectedAccounts' => ConnectedAccount::forUser()

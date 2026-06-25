@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Bank;
 
+use App\Exceptions\BankConnectionException;
 use App\Models\ConnectedAccount;
 use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
@@ -47,7 +48,9 @@ final readonly class MonzoService
             'code' => $code,
         ]);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Monzo token exchange failed: '.$response->body()
+        ));
 
         return $response->json();
     }
@@ -80,7 +83,9 @@ final readonly class MonzoService
                 'refresh_token' => $locked->refresh_token,
             ]);
 
-            $response->throw();
+            throw_unless($response->successful(), new BankConnectionException(
+                'Monzo token refresh failed: '.$response->body()
+            ));
 
             $data = $response->json();
 
@@ -104,7 +109,9 @@ final readonly class MonzoService
         $response = $this->client($account)
             ->get('/accounts', ['account_type' => 'uk_retail']);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to fetch Monzo accounts: '.$response->body()
+        ));
 
         return $response->json('accounts', []);
     }
@@ -126,7 +133,9 @@ final readonly class MonzoService
                 'url' => $webhookUrl,
             ]);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to register Monzo webhook: '.$response->body()
+        ));
 
         $account->update(['webhook_secret' => $webhookSecret]);
     }
@@ -143,7 +152,9 @@ final readonly class MonzoService
                 'current_account_id' => $account->external_account_id,
             ]);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to fetch Monzo pots: '.$response->body()
+        ));
 
         return $response->json('pots', []);
     }
@@ -160,7 +171,9 @@ final readonly class MonzoService
                 'dedupe_id' => Str::uuid()->toString(),
             ]);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to deposit to Monzo pot: '.$response->body()
+        ));
     }
 
     /**
@@ -175,7 +188,9 @@ final readonly class MonzoService
                 'dedupe_id' => Str::uuid()->toString(),
             ]);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to withdraw from Monzo pot: '.$response->body()
+        ));
     }
 
     /**
@@ -193,7 +208,9 @@ final readonly class MonzoService
                 'expand[]' => 'merchant',
             ]);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to fetch Monzo transactions: '.$response->body()
+        ));
 
         return $response->json('transactions', []);
     }
@@ -210,7 +227,9 @@ final readonly class MonzoService
                 'account_id' => $account->external_account_id,
             ]);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to fetch Monzo balance: '.$response->body()
+        ));
 
         return [
             'balance' => $response->json('balance', 0),

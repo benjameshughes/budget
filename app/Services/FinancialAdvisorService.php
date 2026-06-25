@@ -10,62 +10,43 @@ use App\Models\Transaction;
 use App\Models\TransactionFeedback;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 use Prism\Prism\Facades\Prism;
 
 final readonly class FinancialAdvisorService implements FinancialAdvisorInterface
 {
     public function generateFeedback(User $user, Transaction $transaction): ?TransactionFeedback
     {
-        try {
-            // Skip if no category - can't provide meaningful context
-            if (! $transaction->category_id) {
-                return null;
-            }
-
-            // Only generate feedback for expenses (not income)
-            if ($transaction->type !== TransactionType::Expense) {
-                return null;
-            }
-
-            // Get context about recent spending in this category
-            $context = $this->buildSpendingContext($user, $transaction);
-
-            // Build the AI prompt
-            $systemPrompt = $this->buildSystemPrompt();
-            $userPrompt = $this->buildUserPrompt($transaction, $context);
-
-            // Call Prism AI
-            $response = Prism::text()
-                ->using('anthropic', 'claude-3-5-haiku-latest')
-                ->withSystemPrompt($systemPrompt)
-                ->withPrompt($userPrompt)
-                ->withMaxTokens(100)
-                ->generate();
-
-            $feedback = trim($response->text);
-
-            if (! $feedback) {
-                return null;
-            }
-
-            // Create and return the feedback model
-            return new TransactionFeedback([
-                'transaction_id' => $transaction->id,
-                'user_id' => $user->id,
-                'feedback' => $feedback,
-                'tone' => $this->detectTone($feedback),
-            ]);
-        } catch (\Exception $e) {
-            Log::warning('FinancialAdvisorService failed to generate feedback', [
-                'transaction_id' => $transaction->id,
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            // Return null on failure - feedback is nice-to-have, not critical
+        if (! $transaction->category_id) {
             return null;
         }
+
+        if ($transaction->type !== TransactionType::Expense) {
+            return null;
+        }
+
+        $context = $this->buildSpendingContext($user, $transaction);
+        $systemPrompt = $this->buildSystemPrompt();
+        $userPrompt = $this->buildUserPrompt($transaction, $context);
+
+        $response = Prism::text()
+            ->using('anthropic', 'claude-3-5-haiku-latest')
+            ->withSystemPrompt($systemPrompt)
+            ->withPrompt($userPrompt)
+            ->withMaxTokens(100)
+            ->generate();
+
+        $feedback = trim($response->text);
+
+        if (! $feedback) {
+            return null;
+        }
+
+        return new TransactionFeedback([
+            'transaction_id' => $transaction->id,
+            'user_id' => $user->id,
+            'feedback' => $feedback,
+            'tone' => $this->detectTone($feedback),
+        ]);
     }
 
     public function buildSpendingContext(User $user, Transaction $transaction): array

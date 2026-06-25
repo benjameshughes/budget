@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\ExpenseParserInterface;
+use App\DataTransferObjects\Actions\ParsedExpenseDto;
 use App\Enums\BnplProvider;
+use App\Exceptions\ExpenseParseException;
 use App\Models\Bill;
 use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;
@@ -18,7 +20,7 @@ use Prism\Prism\Facades\Prism;
 
 final readonly class ExpenseParserService implements ExpenseParserInterface
 {
-    public function parse(string $input, int $userId): \App\DataTransferObjects\Actions\ParsedExpenseDto
+    public function parse(string $input, int $userId): ParsedExpenseDto
     {
         try {
             // Get user's categories for context
@@ -100,34 +102,42 @@ final readonly class ExpenseParserService implements ExpenseParserInterface
 
             $content = $response->text;
 
-            if (! $content) {
-                throw new \Exception('No response from Prism API');
-            }
+            throw_if(empty($content), ExpenseParseException::class, 'No response from AI parser.');
 
-            // Extract JSON from response (in case Claude adds explanation text)
             $jsonStart = strpos($content, '{');
             $jsonEnd = strrpos($content, '}');
 
-            if ($jsonStart === false || $jsonEnd === false) {
-                throw new \Exception('Invalid JSON response from Claude');
-            }
+            throw_if(
+                $jsonStart === false || $jsonEnd === false,
+                ExpenseParseException::class,
+                'Invalid response format from AI parser.'
+            );
 
             $jsonString = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
             $parsed = json_decode($jsonString, true);
 
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('Failed to decode JSON: '.json_last_error_msg());
-            }
+            throw_if(
+                json_last_error() !== JSON_ERROR_NONE,
+                ExpenseParseException::class,
+                'Failed to decode response: '.json_last_error_msg()
+            );
 
             // Validate and normalize the response
             return $this->normalizeResponse($parsed, $input, $userId, $categories, $creditCards, $bills, $bnplPurchases, $savingsAccounts);
+        } catch (ExpenseParseException $e) {
+            Log::error('ExpenseParserService failed', [
+                'input' => $input,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
         } catch (\Exception $e) {
             Log::error('ExpenseParserService failed', [
                 'input' => $input,
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
+            throw new ExpenseParseException(
                 'Unable to parse transaction. Please try again or enter it manually.'
             );
         }
@@ -319,7 +329,7 @@ Rules:
 PROMPT;
     }
 
-    protected function normalizeResponse(array $parsed, string $rawInput, int $userId, array $categories, array $creditCards, array $bills, array $bnplPurchases, array $savingsAccounts): \App\DataTransferObjects\Actions\ParsedExpenseDto
+    protected function normalizeResponse(array $parsed, string $rawInput, int $userId, array $categories, array $creditCards, array $bills, array $bnplPurchases, array $savingsAccounts): ParsedExpenseDto
     {
         // Find matching category ID if category name was suggested
         $categoryId = null;
@@ -415,7 +425,7 @@ PROMPT;
             $bnplFee = isset($parsed['bnpl_fee']) ? (float) $parsed['bnpl_fee'] : null;
         }
 
-        return new \App\DataTransferObjects\Actions\ParsedExpenseDto(
+        return new ParsedExpenseDto(
             amount: (float) ($parsed['amount'] ?? 0),
             name: $parsed['name'] ?? 'Unknown',
             type: in_array($parsed['type'] ?? '', ['income', 'expense'], true)
@@ -451,7 +461,7 @@ PROMPT;
 
         try {
             return Carbon::parse($date)->toDateString();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return Carbon::today()->toDateString();
         }
     }

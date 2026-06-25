@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\BankProvider;
+use App\Exceptions\BankConnectionException;
 use App\Models\ConnectedAccount;
 use App\Services\Bank\MonzoService;
 use Illuminate\Http\RedirectResponse;
@@ -79,7 +80,7 @@ final class MonzoAuthController extends Controller
             return redirect()
                 ->route('settings.connections')
                 ->with('success', 'Monzo connected successfully!');
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::error('Monzo OAuth callback failed', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id(),
@@ -106,7 +107,7 @@ final class MonzoAuthController extends Controller
                     'display_name' => $monzoAccount['description'] ?? 'Monzo Current Account',
                 ]);
             }
-        } catch (\Exception $e) {
+        } catch (BankConnectionException $e) {
             Log::warning('Could not fetch Monzo account details — SCA may be pending', [
                 'error' => $e->getMessage(),
                 'account_id' => $account->id,
