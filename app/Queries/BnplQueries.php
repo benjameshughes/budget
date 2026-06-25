@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Repositories;
+namespace App\Queries;
 
 use App\Models\BnplInstallment;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
-final readonly class BnplRepository
+final readonly class BnplQueries
 {
-    public function getUpcomingInstallments(User $user, int $limit = 0): Collection
+    public function upcomingInstallments(User $user, int $limit = 0): Collection
     {
         $query = BnplInstallment::where('user_id', $user->id)
             ->where('is_paid', false)
@@ -24,7 +24,7 @@ final readonly class BnplRepository
         return $query->get();
     }
 
-    public function getRemainingBalance(User $user): float
+    public function remainingBalance(User $user): float
     {
         return (float) BnplInstallment::where('user_id', $user->id)
             ->where('is_paid', false)

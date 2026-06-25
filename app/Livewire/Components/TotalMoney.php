@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Components;
 
-use App\Repositories\TransactionRepository;
+use App\Queries\TransactionQueries;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -25,7 +25,7 @@ final class TotalMoney extends Component
     #[Computed]
     public function income(): float
     {
-        $transactions = app(TransactionRepository::class)
+        $transactions = app(TransactionQueries::class)
             ->between(auth()->user(), $this->getStartDate(), Carbon::today());
 
         return $transactions->where('type', 'income')->sum('amount');
@@ -34,7 +34,7 @@ final class TotalMoney extends Component
     #[Computed]
     public function expenses(): float
     {
-        $transactions = app(TransactionRepository::class)
+        $transactions = app(TransactionQueries::class)
             ->between(auth()->user(), $this->getStartDate(), Carbon::today());
 
         return $transactions->where('type', 'expense')->sum('amount');

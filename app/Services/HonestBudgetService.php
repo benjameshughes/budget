@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
-use App\Repositories\TransactionRepository;
+use App\Queries\TransactionQueries;
+use Carbon\Carbon;
 
 /**
  * Provides simple weekly budget tracking.
@@ -16,15 +17,15 @@ final readonly class HonestBudgetService
 {
     public function __construct(
         private PayPeriodService $payPeriodService,
-        private TransactionRepository $transactionRepository,
+        private TransactionQueries $transactionQueries,
     ) {}
 
     /**
      * Get the budget breakdown for the current pay period.
      *
      * @return array{
-     *     period_start: \Carbon\Carbon,
-     *     period_end: \Carbon\Carbon,
+     *     period_start: Carbon,
+     *     period_end: Carbon,
      *     days_remaining: int,
      *     weekly_budget: float,
      *     spent: float,
@@ -44,7 +45,7 @@ final readonly class HonestBudgetService
         $isConfigured = $weeklyBudget > 0;
 
         // What's been spent this period (expenses only)
-        $spent = $this->transactionRepository->totalExpensesBetween(
+        $spent = $this->transactionQueries->totalExpensesBetween(
             $user,
             $period['start'],
             $period['end']

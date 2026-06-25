@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Enums\TransactionType;
-use App\Repositories\TransactionRepository;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -24,10 +24,9 @@ class BudgetSummary extends Component
     #[Computed]
     public function income(): float
     {
-        $transactions = app(TransactionRepository::class);
         [$start, $end] = $this->getPeriodRange();
 
-        return (float) \App\Models\Transaction::query()
+        return (float) Transaction::query()
             ->where('user_id', auth()->id())
             ->where('type', TransactionType::Income)
             ->whereBetween('payment_date', [$start->toDateString(), $end->toDateString()])
@@ -37,10 +36,9 @@ class BudgetSummary extends Component
     #[Computed]
     public function expenses(): float
     {
-        $transactions = app(TransactionRepository::class);
         [$start, $end] = $this->getPeriodRange();
 
-        return (float) \App\Models\Transaction::query()
+        return (float) Transaction::query()
             ->where('user_id', auth()->id())
             ->where('type', TransactionType::Expense)
             ->whereBetween('payment_date', [$start->toDateString(), $end->toDateString()])

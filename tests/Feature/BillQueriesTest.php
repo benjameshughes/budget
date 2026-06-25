@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Bill;
 use App\Models\User;
-use App\Repositories\BillRepository;
+use App\Queries\BillQueries;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -12,7 +12,7 @@ uses(RefreshDatabase::class);
 
 test('upcomingBetween returns bills due in the specified date range', function () {
     $user = User::factory()->create();
-    $repo = app(BillRepository::class);
+    $repo = app(BillQueries::class);
 
     // Create bills with different due dates
     Bill::factory()->forUser($user)->dueOn(Carbon::today()->addDays(5))->create(['name' => 'Bill 1']);
@@ -28,7 +28,7 @@ test('upcomingBetween returns bills due in the specified date range', function (
 
 test('upcomingBetween includes overdue bills', function () {
     $user = User::factory()->create();
-    $repo = app(BillRepository::class);
+    $repo = app(BillQueries::class);
 
     // Create overdue bills and upcoming bills
     Bill::factory()->forUser($user)->dueOn(Carbon::today()->subDays(5))->create(['name' => 'Overdue Bill 1']);
@@ -43,7 +43,7 @@ test('upcomingBetween includes overdue bills', function () {
 
 test('upcomingBetween orders bills by next_due_date', function () {
     $user = User::factory()->create();
-    $repo = app(BillRepository::class);
+    $repo = app(BillQueries::class);
 
     // Create bills in random order
     Bill::factory()->forUser($user)->dueOn(Carbon::today()->addDays(10))->create(['name' => 'Middle']);
@@ -59,7 +59,7 @@ test('upcomingBetween orders bills by next_due_date', function () {
 
 test('upcomingBetween only returns active bills', function () {
     $user = User::factory()->create();
-    $repo = app(BillRepository::class);
+    $repo = app(BillQueries::class);
 
     Bill::factory()->forUser($user)->dueOn(Carbon::today()->addDays(5))->create(['name' => 'Active Bill']);
     Bill::factory()->forUser($user)->inactive()->dueOn(Carbon::today()->addDays(5))->create(['name' => 'Inactive Bill']);
@@ -73,7 +73,7 @@ test('upcomingBetween only returns active bills', function () {
 test('upcomingBetween only returns bills for the specified user', function () {
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
-    $repo = app(BillRepository::class);
+    $repo = app(BillQueries::class);
 
     Bill::factory()->forUser($user1)->dueOn(Carbon::today()->addDays(5))->create(['name' => 'User 1 Bill']);
     Bill::factory()->forUser($user2)->dueOn(Carbon::today()->addDays(5))->create(['name' => 'User 2 Bill']);
@@ -86,7 +86,7 @@ test('upcomingBetween only returns bills for the specified user', function () {
 
 test('totalDueBetween calculates sum of bill amounts including overdue bills', function () {
     $user = User::factory()->create();
-    $repo = app(BillRepository::class);
+    $repo = app(BillQueries::class);
 
     Bill::factory()->forUser($user)->dueOn(Carbon::today()->subDays(5))->create(['amount' => 100.00]);
     Bill::factory()->forUser($user)->dueOn(Carbon::today()->addDays(5))->create(['amount' => 50.50]);

@@ -6,15 +6,15 @@ namespace App\Services;
 
 use App\Enums\TransactionType;
 use App\Models\User;
-use App\Repositories\BillRepository;
-use App\Repositories\TransactionRepository;
+use App\Queries\BillQueries;
+use App\Queries\TransactionQueries;
 use Carbon\Carbon;
 
 final readonly class BudgetService
 {
     public function __construct(
-        private BillRepository $bills,
-        private TransactionRepository $transactions,
+        private BillQueries $bills,
+        private TransactionQueries $transactions,
     ) {}
 
     public function weeklyBillsTotal(User $user): float

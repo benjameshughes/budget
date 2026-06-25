@@ -13,9 +13,9 @@ use App\Models\AutomationRuleLog;
 use App\Models\BankPot;
 use App\Models\CreditCard;
 use App\Models\User;
-use App\Repositories\BillRepository;
-use App\Repositories\BnplRepository;
-use App\Repositories\TransactionRepository;
+use App\Queries\BillQueries;
+use App\Queries\BnplQueries;
+use App\Queries\TransactionQueries;
 use App\Services\Bank\MonzoService;
 use App\Services\Bank\StarlingService;
 use Illuminate\Support\Facades\Log;
@@ -29,9 +29,9 @@ final readonly class RulesEngineService
         private HonestBudgetService $budgetService,
         private PayPeriodService $payPeriodService,
         private BudgetService $fullBudgetService,
-        private TransactionRepository $transactionRepository,
-        private BillRepository $billRepository,
-        private BnplRepository $bnplRepository,
+        private TransactionQueries $transactionQueries,
+        private BillQueries $billQueries,
+        private BnplQueries $bnplQueries,
     ) {}
 
     /**
@@ -85,7 +85,7 @@ final readonly class RulesEngineService
             'float_current' => $floatStatus['current'],
             'float_progress' => $floatStatus['progress_percentage'] ?? 0,
             'float_is_healthy' => $floatStatus['is_healthy'],
-            'upcoming_7_days' => $this->billRepository->totalDueBetween($user, now(), now()->addDays(7)),
+            'upcoming_7_days' => $this->billQueries->totalDueBetween($user, now(), now()->addDays(7)),
         ];
 
         // Spending insights
@@ -94,13 +94,13 @@ final readonly class RulesEngineService
             'monthly_income' => $this->fullBudgetService->monthlyIncome($user),
             'monthly_expenses' => $this->fullBudgetService->monthlyExpenses($user),
             'spending_percentage' => $this->fullBudgetService->spendingPercentage($user),
-            'average_daily' => $this->transactionRepository->averageDailyExpenseBetween($user, $payPeriod['start'], $payPeriod['end']),
+            'average_daily' => $this->transactionQueries->averageDailyExpenseBetween($user, $payPeriod['start'], $payPeriod['end']),
         ];
 
         // BNPL
         $context['bnpl'] = [
-            'remaining_balance' => $this->bnplRepository->getRemainingBalance($user),
-            'remaining_balance_pence' => (int) round($this->bnplRepository->getRemainingBalance($user) * 100),
+            'remaining_balance' => $this->bnplQueries->remainingBalance($user),
+            'remaining_balance_pence' => (int) round($this->bnplQueries->remainingBalance($user) * 100),
         ];
 
         // Savings

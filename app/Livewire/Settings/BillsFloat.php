@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
-use App\Repositories\BillRepository;
-use App\Repositories\BnplRepository;
+use App\Queries\BillQueries;
+use App\Queries\BnplQueries;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -48,8 +48,8 @@ class BillsFloat extends Component
     {
         $user = Auth::user();
 
-        return app(BillRepository::class)->monthlyTotal($user)
-            + app(BnplRepository::class)->getRemainingBalance($user);
+        return app(BillQueries::class)->monthlyTotal($user)
+            + app(BnplQueries::class)->remainingBalance($user);
     }
 
     public function render(): mixed

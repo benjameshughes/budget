@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
-use App\Repositories\BillRepository;
-use App\Repositories\BnplRepository;
+use App\Queries\BillQueries;
+use App\Queries\BnplQueries;
 
 /**
  * Manages the bills float account status and health.
@@ -17,8 +17,8 @@ use App\Repositories\BnplRepository;
 final readonly class BillsFloatService
 {
     public function __construct(
-        private BillRepository $billRepository,
-        private BnplRepository $bnplRepository,
+        private BillQueries $billQueries,
+        private BnplQueries $bnplQueries,
     ) {}
 
     /**
@@ -42,7 +42,7 @@ final readonly class BillsFloatService
     public function status(User $user): array
     {
         // Calculate monthly bills total from actual bills
-        $monthlyBillsTotal = $this->billRepository->monthlyTotal($user);
+        $monthlyBillsTotal = $this->billQueries->monthlyTotal($user);
 
         // Calculate monthly BNPL total from unpaid installments
         $monthlyBnplTotal = $this->calculateMonthlyBnplTotal($user);
@@ -124,7 +124,7 @@ final readonly class BillsFloatService
      */
     private function calculateMonthlyBnplTotal(User $user): float
     {
-        return $this->bnplRepository->getRemainingBalance($user);
+        return $this->bnplQueries->remainingBalance($user);
     }
 
     /**

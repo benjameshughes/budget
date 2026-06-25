@@ -6,7 +6,7 @@ namespace App\Livewire;
 
 use App\Actions\Bill\MarkBillPaidAction;
 use App\Models\Bill;
-use App\Repositories\BillRepository;
+use App\Queries\BillQueries;
 use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -37,7 +37,7 @@ class UpcomingPayments extends Component
 
     public function render()
     {
-        $repo = app(BillRepository::class);
+        $repo = app(BillQueries::class);
         $today = Carbon::today();
 
         return view('livewire.upcoming-payments', [

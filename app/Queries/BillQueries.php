@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Repositories;
+namespace App\Queries;
 
 use App\Models\Bill;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
-final readonly class BillRepository
+final readonly class BillQueries
 {
     public function upcomingBetween(User $user, Carbon $from, Carbon $to): Collection
     {
@@ -17,9 +17,7 @@ final readonly class BillRepository
             ->forUser($user)
             ->where('active', true)
             ->where(function ($query) use ($from, $to) {
-                // Include bills that are overdue (next_due_date < from)
                 $query->where('next_due_date', '<', $from->toDateString())
-                    // OR bills that are due between from and to
                     ->orWhereBetween('next_due_date', [$from->toDateString(), $to->toDateString()]);
             })
             ->orderBy('next_due_date')
@@ -41,9 +39,6 @@ final readonly class BillRepository
             ->get();
     }
 
-    /**
-     * Calculate the total monthly equivalent of all active bills for a user.
-     */
     public function monthlyTotal(User $user): float
     {
         return (float) Bill::query()

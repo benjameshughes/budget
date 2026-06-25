@@ -5,8 +5,11 @@ use App\Enums\BnplProvider;
 use App\Enums\TransactionType;
 use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;
+use App\Models\SavingsAccount;
+use App\Models\SavingsTransfer;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Queries\BnplQueries;
 use App\Services\BnplService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -118,12 +121,12 @@ test('markInstallmentPaid auto-deducts from bills float account when it exists',
     $this->actingAs($user);
 
     // Create a bills float account with a balance
-    $billsFloat = \App\Models\SavingsAccount::create([
+    $billsFloat = SavingsAccount::create([
         'user_id' => $user->id,
         'name' => 'Bills Pot',
         'is_bills_float' => true,
     ]);
-    \App\Models\SavingsTransfer::create([
+    SavingsTransfer::create([
         'user_id' => $user->id,
         'savings_account_id' => $billsFloat->id,
         'amount' => 100.00,
@@ -148,7 +151,7 @@ test('markInstallmentPaid auto-deducts from bills float account when it exists',
     expect($billsFloat->fresh()->currentBalance())->toBe(75.0);
 
     // Check withdrawal was recorded
-    $withdrawal = \App\Models\SavingsTransfer::where('savings_account_id', $billsFloat->id)
+    $withdrawal = SavingsTransfer::where('savings_account_id', $billsFloat->id)
         ->where('direction', 'withdraw')
         ->first();
     expect($withdrawal)->not->toBeNull()
@@ -258,8 +261,8 @@ test('getUpcomingInstallments returns all unpaid installments', function () {
         'is_paid' => true, // Already paid
     ]);
 
-    $repository = app(\App\Repositories\BnplRepository::class);
-    $upcoming = $repository->getUpcomingInstallments($user);
+    $queries = app(BnplQueries::class);
+    $upcoming = $queries->upcomingInstallments($user);
 
     // Should return all unpaid installments (including overdue), excluding paid ones
     expect($upcoming)->toHaveCount(3)
