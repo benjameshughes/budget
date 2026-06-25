@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Enums\BillCadence;
 use App\Enums\TransferDirection;
 use App\Models\Bill;
+use App\Models\BnplInstallment;
+use App\Models\BnplPurchase;
 use App\Models\SavingsAccount;
 use App\Models\SavingsTransfer;
 use App\Models\User;
@@ -101,9 +103,9 @@ test('calculates weekly contribution correctly', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // 433 * (1 + 1.0) / 4.33 = 866 / 4.33 = 200
-    expect($status['weekly_contribution'])->toBeGreaterThan(199.9)
-        ->and($status['weekly_contribution'])->toBeLessThan(200.1);
+    // 433 * (1 + 0.0) / 4.33 = 433 / 4.33 = 100
+    expect($status['weekly_contribution'])->toBeGreaterThan(99.9)
+        ->and($status['weekly_contribution'])->toBeLessThan(100.1);
 });
 
 test('uses calculated monthly total as target when bills_float_target is null', function () {
@@ -124,8 +126,8 @@ test('uses calculated monthly total as target when bills_float_target is null', 
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // 500 * (1 + 1.0) = 1000
-    expect($status['target'])->toBe(1000.0)
+    // 500 * (1 + 0.0) = 500
+    expect($status['target'])->toBe(500.0)
         ->and($status['monthly_bills_total'])->toBe(500.0);
 });
 
@@ -197,8 +199,8 @@ test('calculates progress percentage correctly', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // target = 1000 * (1 + 1.0) = 2000, current = 500, progress = 25%
-    expect($status['progress_percentage'])->toBe(25.0)
+    // target = 1000 * (1 + 0.0) = 1000, current = 500, progress = 50%
+    expect($status['progress_percentage'])->toBe(50.0)
         ->and($status['is_healthy'])->toBeFalse();
 });
 
@@ -261,7 +263,7 @@ test('uses multiplier to calculate target when set', function () {
         ->and($status['multiplier'])->toBe(1.5);
 });
 
-test('defaults to multiplier of 1.0 when not set', function () {
+test('defaults to multiplier of 0.0 when not set', function () {
     $user = User::factory()->create([
         'bills_float_target' => null,
         'bills_float_multiplier' => null,
@@ -283,9 +285,9 @@ test('defaults to multiplier of 1.0 when not set', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // Monthly bills = 500, no multiplier set, defaults to 1.0, target = 500 * (1 + 1.0) = 1000
-    expect($status['target'])->toBe(1000.0)
-        ->and($status['multiplier'])->toBe(1.0);
+    // Monthly bills = 500, no multiplier set, defaults to 0.0, target = 500 * (1 + 0.0) = 500
+    expect($status['target'])->toBe(500.0)
+        ->and($status['multiplier'])->toBe(0.0);
 });
 
 test('bills_float_target overrides multiplier calculation', function () {
@@ -357,19 +359,19 @@ test('includes unpaid BNPL installments in monthly total', function () {
     ]);
 
     // Create unpaid BNPL installments
-    $purchase = \App\Models\BnplPurchase::factory()->create([
+    $purchase = BnplPurchase::factory()->create([
         'user_id' => $user->id,
         'total_amount' => 300,
     ]);
 
-    \App\Models\BnplInstallment::factory()->create([
+    BnplInstallment::factory()->create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $purchase->id,
         'amount' => 100,
         'is_paid' => false,
     ]);
 
-    \App\Models\BnplInstallment::factory()->create([
+    BnplInstallment::factory()->create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $purchase->id,
         'amount' => 100,
@@ -379,12 +381,12 @@ test('includes unpaid BNPL installments in monthly total', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // Monthly bills = 500, BNPL = 200, total = 700, weekly = 700 * (1 + 1.0) / 4.33 = 323.32...
+    // Monthly bills = 500, BNPL = 200, total = 700, weekly = 700 * (1 + 0.0) / 4.33 = 161.66...
     expect($status['monthly_bills_total'])->toBe(500.0)
         ->and($status['monthly_bnpl_total'])->toBe(200.0)
         ->and($status['monthly_total'])->toBe(700.0)
-        ->and($status['weekly_contribution'])->toBeGreaterThan(323.3)
-        ->and($status['weekly_contribution'])->toBeLessThan(323.5);
+        ->and($status['weekly_contribution'])->toBeGreaterThan(161.6)
+        ->and($status['weekly_contribution'])->toBeLessThan(161.7);
 });
 
 test('excludes paid BNPL installments from calculation', function () {
@@ -398,13 +400,13 @@ test('excludes paid BNPL installments from calculation', function () {
         'active' => true,
     ]);
 
-    $purchase = \App\Models\BnplPurchase::factory()->create([
+    $purchase = BnplPurchase::factory()->create([
         'user_id' => $user->id,
         'total_amount' => 300,
     ]);
 
     // Unpaid installment
-    \App\Models\BnplInstallment::factory()->create([
+    BnplInstallment::factory()->create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $purchase->id,
         'amount' => 100,
@@ -412,7 +414,7 @@ test('excludes paid BNPL installments from calculation', function () {
     ]);
 
     // Paid installment (should be excluded)
-    \App\Models\BnplInstallment::factory()->create([
+    BnplInstallment::factory()->create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $purchase->id,
         'amount' => 200,
@@ -442,12 +444,12 @@ test('calculates target with BNPL and multiplier', function () {
         'active' => true,
     ]);
 
-    $purchase = \App\Models\BnplPurchase::factory()->create([
+    $purchase = BnplPurchase::factory()->create([
         'user_id' => $user->id,
         'total_amount' => 200,
     ]);
 
-    \App\Models\BnplInstallment::factory()->create([
+    BnplInstallment::factory()->create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $purchase->id,
         'amount' => 100,
@@ -487,12 +489,12 @@ test('shows not configured when no bills or BNPL exist', function () {
 test('works with only BNPL and no bills', function () {
     $user = User::factory()->create();
 
-    $purchase = \App\Models\BnplPurchase::factory()->create([
+    $purchase = BnplPurchase::factory()->create([
         'user_id' => $user->id,
         'total_amount' => 300,
     ]);
 
-    \App\Models\BnplInstallment::factory()->create([
+    BnplInstallment::factory()->create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $purchase->id,
         'amount' => 150,
@@ -507,12 +509,12 @@ test('works with only BNPL and no bills', function () {
     $service = app(BillsFloatService::class);
     $status = $service->status($user);
 
-    // No bills, but BNPL = 150, target = 150 * (1 + 1.0) = 300, weekly = 300 / 4.33 = 69.28...
+    // No bills, but BNPL = 150, target = 150 * (1 + 0.0) = 150, weekly = 150 / 4.33 = 34.64...
     expect($status['is_configured'])->toBeTrue()
         ->and($status['monthly_bills_total'])->toBe(0.0)
         ->and($status['monthly_bnpl_total'])->toBe(150.0)
         ->and($status['monthly_total'])->toBe(150.0)
-        ->and($status['target'])->toBe(300.0)
-        ->and($status['weekly_contribution'])->toBeGreaterThan(69.2)
-        ->and($status['weekly_contribution'])->toBeLessThan(69.4);
+        ->and($status['target'])->toBe(150.0)
+        ->and($status['weekly_contribution'])->toBeGreaterThan(34.6)
+        ->and($status['weekly_contribution'])->toBeLessThan(34.7);
 });

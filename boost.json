@@ -3,11 +3,10 @@
         "claude_code",
         "codex"
     ],
+    "cloud": false,
     "editors": [
         "claude_code"
     ],
-    "guidelines": [
-        "laravel/fortify"
-    ],
+    "guidelines": true,
     "herd_mcp": true
 }

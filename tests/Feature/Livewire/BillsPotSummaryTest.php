@@ -43,7 +43,7 @@ test('displays weekly set-aside amount prominently when bills exist', function (
 
 test('displays float target with multiplier when multiplier is set', function () {
     $user = User::factory()->create([
-        'bills_float_multiplier' => 1.1,
+        'bills_float_multiplier' => 0.1,
     ]);
 
     Bill::factory()
@@ -57,12 +57,13 @@ test('displays float target with multiplier when multiplier is set', function ()
     $this->actingAs($user);
 
     // Monthly total = £100
-    // Target = £100 * 1.1 = £110
+    // Buffer = 10% (0.1)
+    // Target = £100 * (1 + 0.1) = £110
     // Weekly contribution = £110 / 4.33 = £25.40
     Livewire::test(BillsPotSummary::class)
         ->assertSee('Weekly set-aside')
         ->assertSee('25.40')
-        ->assertSee('110.00'); // Target shown in header
+        ->assertSee('110.00');
 });
 
 test('refreshes on bill-saved event', function () {

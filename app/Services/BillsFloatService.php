@@ -64,7 +64,7 @@ final readonly class BillsFloatService
                 'is_healthy' => false,
                 'message' => 'Add bills to get started',
                 'color' => 'text-zinc-500 dark:text-zinc-400',
-                'multiplier' => (float) ($user->bills_float_multiplier ?? 1.0),
+                'multiplier' => (float) ($user->bills_float_multiplier ?? 0.0),
             ];
         }
 
@@ -72,7 +72,7 @@ final readonly class BillsFloatService
         $billsFloatAccount = $user->billsFloatAccount;
 
         if (! $billsFloatAccount) {
-            $multiplier = (float) ($user->bills_float_multiplier ?? 1.0);
+            $multiplier = (float) ($user->bills_float_multiplier ?? 0.0);
             $target = $monthlyTotal * (1 + $multiplier);
 
             return [
@@ -93,7 +93,7 @@ final readonly class BillsFloatService
 
         // Target is calculated using monthly total and multiplier
         // If bills_float_target is set, use it. Otherwise, use monthly total × multiplier
-        $multiplier = (float) ($user->bills_float_multiplier ?? 1.0);
+        $multiplier = (float) ($user->bills_float_multiplier ?? 0.0);
         $target = $user->bills_float_target !== null
             ? (float) $user->bills_float_target
             : $monthlyTotal * (1 + $multiplier);
