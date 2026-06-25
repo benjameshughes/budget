@@ -8,12 +8,12 @@ use App\DataTransferObjects\Analytics\OverviewDto;
 use App\Enums\TransactionType;
 use App\Factories\Analytics\OverviewFactory;
 use App\Models\User;
-use App\Repositories\TransactionRepository;
+use App\Queries\TransactionQueries;
 use Carbon\Carbon;
 
 final readonly class OverviewService
 {
-    public function __construct(private TransactionRepository $transactions) {}
+    public function __construct(private TransactionQueries $transactions) {}
 
     public function getOverview(User $user): OverviewDto
     {

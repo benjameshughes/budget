@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Models\ConnectedAccount;
-use App\Repositories\BillRepository;
-use App\Repositories\BnplRepository;
+use App\Queries\BillQueries;
+use App\Queries\BnplQueries;
 use App\Services\BillsFloatService;
 use App\Services\HonestBudgetService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -78,13 +78,13 @@ class SimpleDashboard extends Component
     #[Computed]
     public function upcomingBills(): Collection
     {
-        return app(BillRepository::class)->nextN(auth()->user(), 5);
+        return app(BillQueries::class)->nextN(auth()->user(), 5);
     }
 
     #[Computed]
     public function upcomingBnpl(): Collection
     {
-        return app(BnplRepository::class)->getUpcomingInstallments(auth()->user(), 5);
+        return app(BnplQueries::class)->upcomingInstallments(auth()->user(), 5);
     }
 
     #[Computed]

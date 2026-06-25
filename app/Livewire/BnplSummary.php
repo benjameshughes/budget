@@ -6,7 +6,7 @@ namespace App\Livewire;
 
 use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;
-use App\Repositories\BnplRepository;
+use App\Queries\BnplQueries;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -37,13 +37,12 @@ class BnplSummary extends Component
 
     public function render()
     {
-        $repository = app(BnplRepository::class);
         $purchases = BnplPurchase::with(['installments'])
             ->where('user_id', auth()->id())
             ->orderBy('purchase_date', 'desc')
             ->get();
 
-        $upcomingInstallments = $repository->getUpcomingInstallments(auth()->user());
+        $upcomingInstallments = app(BnplQueries::class)->upcomingInstallments(auth()->user());
 
         return view('livewire.bnpl-summary', [
             'purchases' => $purchases,

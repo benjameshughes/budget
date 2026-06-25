@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Repositories;
+namespace App\Queries;
 
+use App\DataTransferObjects\Analytics\CategoryExpenseDto;
+use App\DataTransferObjects\Analytics\DailyTotalsDto;
 use App\Enums\CategoryColor;
 use App\Enums\TransactionType;
-use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-final readonly class TransactionRepository
+final readonly class TransactionQueries
 {
     public function totalByType(User $user, TransactionType $type): float
     {
@@ -88,9 +89,7 @@ final readonly class TransactionRepository
     }
 
     /**
-     * Get daily spending totals for chart data.
-     *
-     * @return array<int, \App\DataTransferObjects\Analytics\DailyTotalsDto>
+     * @return array<int, DailyTotalsDto>
      */
     public function dailyTotalsBetween(User $user, Carbon $from, Carbon $to): array
     {
@@ -102,7 +101,6 @@ final readonly class TransactionRepository
             ->orderBy('payment_date')
             ->get();
 
-        // Build a complete date range with zeros for missing days
         $data = [];
         $current = $from->copy();
 
@@ -116,7 +114,6 @@ final readonly class TransactionRepository
             $current->addDay();
         }
 
-        // Fill in actual values
         foreach ($results as $row) {
             $dateStr = $row->payment_date->toDateString();
             if (isset($data[$dateStr])) {
@@ -129,7 +126,7 @@ final readonly class TransactionRepository
         }
 
         return array_map(
-            fn (array $item) => new \App\DataTransferObjects\Analytics\DailyTotalsDto(
+            fn (array $item) => new DailyTotalsDto(
                 date: $item['date'],
                 expenses: $item['expenses'],
                 income: $item['income'],
@@ -139,9 +136,7 @@ final readonly class TransactionRepository
     }
 
     /**
-     * Get spending by category for a date range.
-     *
-     * @return array<int, \App\DataTransferObjects\Analytics\CategoryExpenseDto>
+     * @return array<int, CategoryExpenseDto>
      */
     public function expensesByCategoryBetween(User $user, Carbon $from, Carbon $to): array
     {
@@ -158,7 +153,7 @@ final readonly class TransactionRepository
             ->get();
 
         return $results->map(function ($row, int $index) {
-            return new \App\DataTransferObjects\Analytics\CategoryExpenseDto(
+            return new CategoryExpenseDto(
                 category: $row->category_name ?? 'Uncategorized',
                 amount: (float) $row->total,
                 color: CategoryColor::fromIndex($index)->hex(),

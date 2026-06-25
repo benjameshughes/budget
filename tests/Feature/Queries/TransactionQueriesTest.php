@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Transaction;
 use App\Models\User;
-use App\Repositories\TransactionRepository;
+use App\Queries\TransactionQueries;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -25,7 +25,7 @@ test('between returns transactions for date range', function () {
         ->thisWeek()
         ->create();
 
-    $repo = app(TransactionRepository::class);
+    $repo = app(TransactionQueries::class);
     $results = $repo->between($user, Carbon::today()->startOfWeek(), Carbon::today()->endOfWeek());
 
     expect($results)->toHaveCount(1)
@@ -67,7 +67,7 @@ test('totalIncomeBetween calculates income for date range', function () {
         ->withAmount(300.00)
         ->create();
 
-    $repo = app(TransactionRepository::class);
+    $repo = app(TransactionQueries::class);
     $total = $repo->totalIncomeBetween($user, Carbon::today()->startOfWeek(), Carbon::today()->endOfWeek());
 
     expect($total)->toBe(1500.00);
@@ -100,7 +100,7 @@ test('totalExpensesBetween calculates expenses for date range', function () {
         ->withAmount(1000.00)
         ->create();
 
-    $repo = app(TransactionRepository::class);
+    $repo = app(TransactionQueries::class);
     $total = $repo->totalExpensesBetween(
         $user,
         Carbon::today()->startOfMonth(),

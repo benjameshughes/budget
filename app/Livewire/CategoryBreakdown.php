@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use App\Repositories\TransactionRepository;
+use App\Queries\TransactionQueries;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -28,7 +28,7 @@ class CategoryBreakdown extends Component
         $to = Carbon::today();
         $from = $to->copy()->subDays($days - 1);
 
-        return app(TransactionRepository::class)->expensesByCategoryBetween(auth()->user(), $from, $to);
+        return app(TransactionQueries::class)->expensesByCategoryBetween(auth()->user(), $from, $to);
     }
 
     #[Computed]
