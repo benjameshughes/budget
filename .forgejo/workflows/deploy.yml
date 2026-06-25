@@ -1,0 +1,28 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Deploy to production
+        run: |
+          ssh -o StrictHostKeyChecking=no -i /home/runner/.ssh/deploy_key root@DEPLOY_HOST bash -s << 'DEPLOY'
+          set -e
+          cd APP_PATH
+          git fetch origin main
+          git reset --hard origin/main
+          git clean -fd
+          COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction
+          npm ci && npm run build
+          php artisan migrate --force
+          php artisan storage:link 2>/dev/null || true
+          php artisan optimize:clear
+          php artisan optimize
+          chown -R www-data:www-data APP_PATH
+          chmod -R 775 storage bootstrap/cache
+          php artisan queue:restart
+          DEPLOY
