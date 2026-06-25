@@ -2,7 +2,15 @@
 
 declare(strict_types=1);
 
+use App\DataTransferObjects\Actions\ParsedExpenseDto;
+use App\Enums\BnplProvider;
+use App\Exceptions\ExpenseParseException;
+use App\Models\Bill;
+use App\Models\BnplInstallment;
+use App\Models\BnplPurchase;
 use App\Models\Category;
+use App\Models\CreditCard;
+use App\Models\SavingsAccount;
 use App\Models\User;
 use App\Services\ExpenseParserService;
 use Carbon\Carbon;
@@ -42,7 +50,7 @@ test('parse extracts expense data from natural language input', function () {
     $result = $this->service->parse('Spent £4.50 at Starbucks', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(4.50)
         ->and($result->name)->toBe('Starbucks coffee')
         ->and($result->type)->toBe('expense')
@@ -67,7 +75,7 @@ test('parse extracts income data from natural language input', function () {
     $result = $this->service->parse('Got paid £500 for freelance work', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(500.00)
         ->and($result->name)->toBe('Freelance payment')
         ->and($result->type)->toBe('income')
@@ -163,11 +171,11 @@ test('parse throws exception when API fails', function () {
     ]);
 
     $this->service->parse('£10 at store', $user->id);
-})->throws(\RuntimeException::class, 'Unable to parse transaction');
+})->throws(ExpenseParseException::class, 'Invalid response format from AI parser.');
 
 test('parse detects credit card payment', function () {
     $user = User::factory()->create();
-    $creditCard = \App\Models\CreditCard::factory()->create([
+    $creditCard = CreditCard::factory()->create([
         'user_id' => $user->id,
         'name' => 'Barclaycard',
     ]);
@@ -189,7 +197,7 @@ test('parse detects credit card payment', function () {
     $result = $this->service->parse('Paid £50 off Barclaycard', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(50.00)
         ->and($result->paymentType)->toBe('credit_card_payment')
         ->and($result->isCreditCardPayment)->toBeTrue()
@@ -200,7 +208,7 @@ test('parse detects credit card payment', function () {
 
 test('parse detects bill payment with exact match', function () {
     $user = User::factory()->create();
-    $bill = \App\Models\Bill::factory()->create([
+    $bill = Bill::factory()->create([
         'user_id' => $user->id,
         'name' => 'Electricity',
         'active' => true,
@@ -223,7 +231,7 @@ test('parse detects bill payment with exact match', function () {
     $result = $this->service->parse('Paid electricity bill', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(75.00)
         ->and($result->paymentType)->toBe('bill_payment')
         ->and($result->billId)->toBe($bill->id)
@@ -234,7 +242,7 @@ test('parse detects bill payment with exact match', function () {
 
 test('parse detects bill payment with fuzzy matching', function () {
     $user = User::factory()->create();
-    $bill = \App\Models\Bill::factory()->create([
+    $bill = Bill::factory()->create([
         'user_id' => $user->id,
         'name' => 'Gas Bill',
         'active' => true,
@@ -257,7 +265,7 @@ test('parse detects bill payment with fuzzy matching', function () {
     $result = $this->service->parse('Paid gas', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(60.00)
         ->and($result->paymentType)->toBe('bill_payment')
         ->and($result->billId)->toBe($bill->id)
@@ -266,13 +274,13 @@ test('parse detects bill payment with fuzzy matching', function () {
 
 test('parse detects BNPL installment payment', function () {
     $user = User::factory()->create();
-    $bnplPurchase = \App\Models\BnplPurchase::factory()->create([
+    $bnplPurchase = BnplPurchase::factory()->create([
         'user_id' => $user->id,
         'merchant' => 'Amazon',
-        'provider' => \App\Enums\BnplProvider::Zilch,
+        'provider' => BnplProvider::Zilch,
     ]);
 
-    $installment = \App\Models\BnplInstallment::factory()->create([
+    $installment = BnplInstallment::factory()->create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $bnplPurchase->id,
         'amount' => 25.00,
@@ -297,7 +305,7 @@ test('parse detects BNPL installment payment', function () {
     $result = $this->service->parse('Paid Zilch installment', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(25.00)
         ->and($result->paymentType)->toBe('bnpl_payment')
         ->and($result->bnplInstallmentId)->toBe($installment->id)
@@ -308,7 +316,7 @@ test('parse detects BNPL installment payment', function () {
 
 test('parse skips inactive bills', function () {
     $user = User::factory()->create();
-    \App\Models\Bill::factory()->create([
+    Bill::factory()->create([
         'user_id' => $user->id,
         'name' => 'Old Internet Bill',
         'active' => false,
@@ -336,14 +344,14 @@ test('parse skips inactive bills', function () {
 
 test('parse skips BNPL purchases with no unpaid installments', function () {
     $user = User::factory()->create();
-    $bnplPurchase = \App\Models\BnplPurchase::factory()->create([
+    $bnplPurchase = BnplPurchase::factory()->create([
         'user_id' => $user->id,
         'merchant' => 'Amazon',
-        'provider' => \App\Enums\BnplProvider::Zilch,
+        'provider' => BnplProvider::Zilch,
     ]);
 
     // All installments are paid
-    \App\Models\BnplInstallment::factory()->create([
+    BnplInstallment::factory()->create([
         'user_id' => $user->id,
         'bnpl_purchase_id' => $bnplPurchase->id,
         'amount' => 25.00,
@@ -395,7 +403,7 @@ test('parse regular transaction still works correctly', function () {
     $result = $this->service->parse('Spent £4.50 at Starbucks', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(4.50)
         ->and($result->paymentType)->toBe('regular')
         ->and($result->billId)->toBeNull()
@@ -427,7 +435,7 @@ test('parse defaults to regular payment type when invalid type provided', functi
 
 test('parse detects savings transfer deposit', function () {
     $user = User::factory()->create();
-    $savingsAccount = \App\Models\SavingsAccount::factory()->create([
+    $savingsAccount = SavingsAccount::factory()->create([
         'user_id' => $user->id,
         'name' => 'Bills Pot',
         'is_bills_float' => true,
@@ -455,7 +463,7 @@ test('parse detects savings transfer deposit', function () {
     $result = $this->service->parse('Transfer £216.71 to bills pot', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(216.71)
         ->and($result->paymentType)->toBe('savings_transfer')
         ->and($result->savingsAccountId)->toBe($savingsAccount->id)
@@ -464,7 +472,7 @@ test('parse detects savings transfer deposit', function () {
 
 test('parse detects savings transfer withdrawal', function () {
     $user = User::factory()->create();
-    $savingsAccount = \App\Models\SavingsAccount::factory()->create([
+    $savingsAccount = SavingsAccount::factory()->create([
         'user_id' => $user->id,
         'name' => 'Emergency Fund',
         'is_bills_float' => false,
@@ -492,7 +500,7 @@ test('parse detects savings transfer withdrawal', function () {
     $result = $this->service->parse('Withdraw £100 from emergency fund', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(100.00)
         ->and($result->paymentType)->toBe('savings_transfer')
         ->and($result->savingsAccountId)->toBe($savingsAccount->id)
@@ -524,7 +532,7 @@ test('parse detects new BNPL purchase with Zilch', function () {
     $result = $this->service->parse('Spent £200 on Zilch at Amazon, fee was £2.50', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(200.00)
         ->and($result->paymentType)->toBe('bnpl_purchase')
         ->and($result->bnplProvider)->toBe('zilch')
@@ -557,7 +565,7 @@ test('parse detects new BNPL purchase without fee', function () {
     $result = $this->service->parse('Used ClearPay for £150 at Boots', $user->id);
 
     expect($result)
-        ->toBeInstanceOf(\App\DataTransferObjects\Actions\ParsedExpenseDto::class)
+        ->toBeInstanceOf(ParsedExpenseDto::class)
         ->and($result->amount)->toBe(150.00)
         ->and($result->paymentType)->toBe('bnpl_purchase')
         ->and($result->bnplProvider)->toBe('clearpay')
@@ -567,7 +575,7 @@ test('parse detects new BNPL purchase without fee', function () {
 
 test('parse defaults transfer direction to deposit when invalid', function () {
     $user = User::factory()->create();
-    $savingsAccount = \App\Models\SavingsAccount::factory()->create([
+    $savingsAccount = SavingsAccount::factory()->create([
         'user_id' => $user->id,
         'name' => 'Holiday Fund',
     ]);

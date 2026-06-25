@@ -27,27 +27,18 @@ class SyncBankPotsJob implements ShouldQueue
 
     public function handle(MonzoService $monzoService, StarlingService $starlingService): void
     {
-        try {
-            $synced = match ($this->account->provider) {
-                BankProvider::Monzo => $this->syncMonzo($monzoService),
-                BankProvider::Starling => $this->syncStarling($starlingService),
-            };
+        $synced = match ($this->account->provider) {
+            BankProvider::Monzo => $this->syncMonzo($monzoService),
+            BankProvider::Starling => $this->syncStarling($starlingService),
+        };
 
-            $this->account->update(['last_synced_at' => now()]);
+        $this->account->update(['last_synced_at' => now()]);
 
-            Log::info('Bank pots synced', [
-                'account_id' => $this->account->id,
-                'provider' => $this->account->provider->value,
-                'synced' => $synced,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to sync bank pots', [
-                'account_id' => $this->account->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            throw $e;
-        }
+        Log::info('Bank pots synced', [
+            'account_id' => $this->account->id,
+            'provider' => $this->account->provider->value,
+            'synced' => $synced,
+        ]);
     }
 
     private function syncMonzo(MonzoService $monzoService): int

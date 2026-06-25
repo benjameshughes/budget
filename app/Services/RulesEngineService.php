@@ -8,6 +8,7 @@ use App\Enums\BankProvider;
 use App\Enums\PotPurpose;
 use App\Enums\RuleActionType;
 use App\Enums\TriggerEvent;
+use App\Exceptions\BankConnectionException;
 use App\Models\AutomationRule;
 use App\Models\AutomationRuleLog;
 use App\Models\BankPot;
@@ -199,7 +200,7 @@ final readonly class RulesEngineService
             }
 
             $status = 'success';
-        } catch (\Exception $e) {
+        } catch (BankConnectionException|\RuntimeException $e) {
             $error = $e->getMessage();
             $status = 'failed';
 

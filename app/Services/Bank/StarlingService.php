@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Bank;
 
+use App\Exceptions\BankConnectionException;
 use App\Models\ConnectedAccount;
 use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
@@ -27,13 +28,15 @@ final readonly class StarlingService
             ->timeout(15)
             ->get('/accounts');
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Starling token validation failed: '.$response->body()
+        ));
 
         $accounts = $response->json('accounts', []);
 
-        if (empty($accounts)) {
-            throw new \RuntimeException('No Starling accounts found for this token.');
-        }
+        throw_if(empty($accounts), new BankConnectionException(
+            'No Starling accounts found for this token.'
+        ));
 
         $primary = $accounts[0];
 
@@ -53,7 +56,9 @@ final readonly class StarlingService
         $response = $this->client($account)
             ->get('/accounts');
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to fetch Starling accounts: '.$response->body()
+        ));
 
         $accounts = $response->json('accounts', []);
 
@@ -76,7 +81,9 @@ final readonly class StarlingService
         $response = $this->client($account)
             ->get("/account/{$account->external_account_id}/spaces");
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to fetch Starling spaces: '.$response->body()
+        ));
 
         $savingsGoals = $response->json('savingsGoals', []);
         $spendingSpaces = $response->json('spendingSpaces', []);
@@ -102,7 +109,9 @@ final readonly class StarlingService
                 ],
             );
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to deposit to Starling space: '.$response->body()
+        ));
     }
 
     /**
@@ -123,7 +132,9 @@ final readonly class StarlingService
                 ],
             );
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to withdraw from Starling space: '.$response->body()
+        ));
     }
 
     /**
@@ -140,7 +151,9 @@ final readonly class StarlingService
                 'changesSince' => $from->toIso8601String(),
             ]);
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to fetch Starling transactions: '.$response->body()
+        ));
 
         $items = $response->json('feedItems', []);
 
@@ -162,7 +175,9 @@ final readonly class StarlingService
         $response = $this->client($account)
             ->get("/accounts/{$account->external_account_id}/balance");
 
-        $response->throw();
+        throw_unless($response->successful(), new BankConnectionException(
+            'Failed to fetch Starling balance: '.$response->body()
+        ));
 
         return [
             'effectiveBalance' => $response->json('effectiveBalance.minorUnits', 0),

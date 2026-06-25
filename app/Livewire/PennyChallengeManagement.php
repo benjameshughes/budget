@@ -195,7 +195,7 @@ class PennyChallengeManagement extends Component
             unset($this->days);
             unset($this->stats);
             unset($this->selectedTotal);
-        } catch (\Exception $e) {
+        } catch (\InvalidArgumentException $e) {
             Flux::toast(
                 text: $e->getMessage(),
                 heading: 'Error',

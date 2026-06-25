@@ -48,21 +48,21 @@ class AddPennyChallenge extends Component
         try {
             $start = Carbon::parse($this->start_date);
             $end = Carbon::parse($this->end_date);
-
-            if ($end->lte($start)) {
-                return ['days' => 0, 'total' => 0];
-            }
-
-            $days = (int) $start->diffInDays($end) + 1;
-            $total = ($days * ($days + 1) / 2) / 100;
-
-            return [
-                'days' => $days,
-                'total' => $total,
-            ];
         } catch (\Exception) {
             return ['days' => 0, 'total' => 0];
         }
+
+        if ($end->lte($start)) {
+            return ['days' => 0, 'total' => 0];
+        }
+
+        $days = (int) $start->diffInDays($end) + 1;
+        $total = ($days * ($days + 1) / 2) / 100;
+
+        return [
+            'days' => $days,
+            'total' => $total,
+        ];
     }
 
     public function save(CreatePennyChallengeAction $action): void

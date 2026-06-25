@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\ExpenseParseException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\VoiceTranscriptionRequest;
 use Illuminate\Http\JsonResponse;
@@ -24,46 +25,26 @@ final class VoiceTranscriptionController extends Controller
             ], 500);
         }
 
-        try {
-            $audioFile = $request->file('audio');
-            $extension = $audioFile->getClientOriginalExtension() ?: 'webm';
+        $audioFile = $request->file('audio');
+        $extension = $audioFile->getClientOriginalExtension() ?: 'webm';
 
-            // Call OpenAI Whisper API directly with proper filename
-            $response = Http::withToken($apiKey)
-                ->attach(
-                    'file',
-                    file_get_contents($audioFile->getRealPath()),
-                    'audio.'.$extension
-                )
-                ->post('https://api.openai.com/v1/audio/transcriptions', [
-                    'model' => 'whisper-1',
-                    'language' => 'en',
-                ]);
-
-            if (! $response->successful()) {
-                \Log::error('OpenAI transcription failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-
-                return response()->json([
-                    'error' => 'Transcription failed',
-                    'message' => $response->json('error.message', 'Unknown error'),
-                ], 500);
-            }
-
-            return response()->json([
-                'text' => $response->json('text'),
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Voice transcription failed', [
-                'error' => $e->getMessage(),
+        $response = Http::withToken($apiKey)
+            ->attach(
+                'file',
+                file_get_contents($audioFile->getRealPath()),
+                'audio.'.$extension
+            )
+            ->post('https://api.openai.com/v1/audio/transcriptions', [
+                'model' => 'whisper-1',
+                'language' => 'en',
             ]);
 
-            return response()->json([
-                'error' => 'Failed to transcribe audio',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
+        throw_unless($response->successful(), new ExpenseParseException(
+            'Transcription failed: '.($response->json('error.message', 'Unknown error'))
+        ));
+
+        return response()->json([
+            'text' => $response->json('text'),
+        ]);
     }
 }
