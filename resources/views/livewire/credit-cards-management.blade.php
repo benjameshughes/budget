@@ -92,12 +92,13 @@
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3">
                         <flux:button
-                            variant="ghost"
+                            variant="primary"
                             size="sm"
                             icon="plus"
-                            aria-label="Make payment"
                             wire:click="$dispatch('open-credit-card-payment', { cardId: {{ $card->id }} })"
-                        />
+                        >
+                            Pay
+                        </flux:button>
                     </flux:table.cell>
                 </flux:table.row>
             @empty

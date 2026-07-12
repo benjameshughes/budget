@@ -6,6 +6,7 @@ namespace App\Livewire\Components;
 
 use App\Models\CreditCard;
 use App\Services\CreditCardService;
+use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
@@ -39,6 +40,16 @@ class CreditCardPayment extends Component
         $this->payment_date = now()->toDateString();
     }
 
+    #[On('open-credit-card-payment')]
+    public function open(int $cardId): void
+    {
+        $this->card = (string) $cardId;
+        $this->payment_date = now()->toDateString();
+        $this->reset(['amount', 'notes']);
+
+        Flux::modal('credit-card-payment')->show();
+    }
+
     #[On('fill-credit-card-payment-form')]
     public function fillForm(array $data): void
     {
@@ -54,7 +65,7 @@ class CreditCardPayment extends Component
         $card = CreditCard::where('user_id', auth()->id())->findOrFail((int) $this->card);
         $this->authorize('view', $card);
 
-        $date = \Carbon\Carbon::parse($data['payment_date']);
+        $date = Carbon::parse($data['payment_date']);
         $service->makePayment($card, (float) $data['amount'], $date, $data['notes'] ?? null);
 
         Flux::toast(text: 'Payment saved', heading: 'Success', variant: 'success');
