@@ -91,7 +91,95 @@
         </div>
     @endif
 
-    {{-- 3. Upcoming Bills & BNPL --}}
+    {{-- 3. Pay Period Forecast --}}
+    @php
+        $forecast = $this->forecast;
+        $hasIncome = $forecast['income'] > 0;
+    @endphp
+    <div class="rounded-xl bg-white dark:bg-zinc-900 ring-1 ring-zinc-950/5 dark:ring-white/5 overflow-hidden mt-2">
+        <div class="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Pay Period Forecast</span>
+                <span class="text-xs text-zinc-500 dark:text-zinc-400">
+                    Paid {{ $forecast['period_start']->format('jS M') }} → Next pay {{ $forecast['period_end']->format('jS M') }}
+                    ({{ $forecast['days_left'] }} {{ Str::plural('day', $forecast['days_left']) }} left)
+                </span>
+            </div>
+        </div>
+
+        <div class="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-zinc-500 dark:text-zinc-400">Income</span>
+                <span class="text-sm font-medium {{ $hasIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400 dark:text-zinc-500' }}">
+                    @if($hasIncome)
+                        £{{ number_format($forecast['income'], 2) }}
+                    @else
+                        No income recorded
+                    @endif
+                </span>
+            </div>
+        </div>
+
+        @if($forecast['outgoings']->isNotEmpty())
+            <div class="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800">
+                <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Coming out</span>
+            </div>
+            <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                @foreach($forecast['outgoings'] as $item)
+                    <div class="flex items-center justify-between px-4 py-2.5">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-sm text-zinc-700 dark:text-zinc-300 truncate">{{ $item['name'] }}</span>
+                            @if($item['type'] === 'bnpl')
+                                <span class="text-[10px] font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950 px-1.5 py-0.5 rounded">BNPL</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0 ml-3">
+                            <span class="text-sm font-medium text-zinc-900 dark:text-white">£{{ number_format($item['amount'], 2) }}</span>
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400 w-16 text-right">
+                                @if($item['cadence'] === 'weekly' || $item['cadence'] === 'biweekly')
+                                    {{ $item['cadence'] }}
+                                @else
+                                    {{ $item['due_date']->format('jS') }}
+                                @endif
+                            </span>
+                            <span class="w-5 text-center">
+                                @if($item['status'] === 'gone')
+                                    <span class="text-emerald-500" title="Already gone">✓</span>
+                                @elseif($item['status'] === 'next_period')
+                                    <span class="text-amber-500" title="After next payday">⚠️</span>
+                                @endif
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="px-4 py-4 text-sm text-zinc-500 dark:text-zinc-400 text-center">Nothing due this period</div>
+        @endif
+
+        <div class="px-4 py-3 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800">
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <div class="text-xs text-zinc-500 dark:text-zinc-400">Committed</div>
+                    <div class="text-sm font-semibold text-zinc-900 dark:text-white">£{{ number_format($forecast['committed'], 2) }}</div>
+                </div>
+                <div>
+                    <div class="text-xs text-zinc-500 dark:text-zinc-400">Remaining</div>
+                    <div class="text-sm font-semibold {{ $forecast['remaining'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
+                        £{{ number_format(abs($forecast['remaining']), 2) }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs text-zinc-500 dark:text-zinc-400">Daily budget</div>
+                    <div class="text-sm font-semibold {{ $forecast['daily_budget'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
+                        £{{ number_format(abs($forecast['daily_budget']), 2) }}/day
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 4. Upcoming Bills & BNPL --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
         {{-- Bills Coming Up --}}
         <div class="rounded-xl bg-white dark:bg-zinc-900 ring-1 ring-zinc-950/5 dark:ring-white/5 overflow-hidden">

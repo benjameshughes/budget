@@ -7,6 +7,7 @@ namespace App\Livewire;
 use App\Models\ConnectedAccount;
 use App\Queries\BillQueries;
 use App\Queries\BnplQueries;
+use App\Queries\PayPeriodForecastQueries;
 use App\Services\BillsFloatService;
 use App\Services\HonestBudgetService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -27,6 +28,7 @@ class SimpleDashboard extends Component
         unset($this->budgetBreakdown);
         unset($this->billsFloatStatus);
         unset($this->upcomingBills);
+        unset($this->forecast);
 
         if ($transactionId) {
             $this->lastTransactionId = $transactionId;
@@ -44,12 +46,20 @@ class SimpleDashboard extends Component
     {
         unset($this->upcomingBills);
         unset($this->budgetBreakdown);
+        unset($this->forecast);
     }
 
     #[On('bnpl-installment-paid')]
     public function onBnplInstallmentPaid(): void
     {
         unset($this->upcomingBnpl);
+        unset($this->forecast);
+    }
+
+    #[Computed]
+    public function forecast(): array
+    {
+        return app(PayPeriodForecastQueries::class)->forecast(auth()->user());
     }
 
     #[Computed]

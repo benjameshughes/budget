@@ -6,6 +6,7 @@ namespace App\Queries;
 
 use App\Models\BnplInstallment;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 final readonly class BnplQueries
@@ -22,6 +23,19 @@ final readonly class BnplQueries
         }
 
         return $query->get();
+    }
+
+    public function dueBetween(User $user, Carbon $from, Carbon $to): Collection
+    {
+        return BnplInstallment::where('user_id', $user->id)
+            ->where('is_paid', false)
+            ->where(function ($query) use ($from, $to) {
+                $query->where('due_date', '<', $from->toDateString())
+                    ->orWhereBetween('due_date', [$from->toDateString(), $to->toDateString()]);
+            })
+            ->with('purchase')
+            ->orderBy('due_date')
+            ->get();
     }
 
     public function remainingBalance(User $user): float
