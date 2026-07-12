@@ -6,6 +6,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\PayCadence;
+use Carbon\Carbon;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -17,7 +19,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
@@ -77,7 +79,7 @@ class User extends Authenticatable
     /**
      * Get the last pay date based on user's pay cadence and pay day
      */
-    public function lastPayDate(): \Carbon\Carbon
+    public function lastPayDate(): Carbon
     {
         $today = now();
 
@@ -109,7 +111,7 @@ class User extends Authenticatable
     /**
      * Get the next pay date based on user's pay cadence and pay day
      */
-    public function nextPayDate(): \Carbon\Carbon
+    public function nextPayDate(): Carbon
     {
         $today = now();
 
@@ -162,6 +164,11 @@ class User extends Authenticatable
     }
 
     // Salary model removed in favor of unified transactions
+
+    public function debts(): HasMany
+    {
+        return $this->hasMany(Debt::class);
+    }
 
     /**
      * Get the user's connected bank accounts.

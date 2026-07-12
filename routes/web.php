@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('savings', 'savings')->name('savings');
     Route::view('penny-challenge', 'penny-challenge')->name('penny-challenge');
     Route::view('calendar', 'calendar')->name('calendar');
+    Route::view('debts', 'debts')->name('debts');
     Route::view('automations', 'automations')->name('automations');
 
     Route::get('advisor/stream/{transaction}', [AdvisorController::class, 'stream'])

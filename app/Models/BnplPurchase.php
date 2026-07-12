@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Contracts\Trackable;
 use App\Enums\BnplProvider;
 use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class BnplPurchase extends Model
+class BnplPurchase extends Model implements Trackable
 {
     use BelongsToUser;
     use HasFactory;
@@ -65,5 +66,42 @@ class BnplPurchase extends Model
         return $this->installments()
             ->where('is_paid', true)
             ->count();
+    }
+
+    public function currentBalance(): float
+    {
+        return $this->remainingBalance();
+    }
+
+    public function minimumPayment(): float
+    {
+        $unpaid = $this->installments()
+            ->where('is_paid', false)
+            ->orderBy('due_date')
+            ->get();
+
+        if ($unpaid->isEmpty()) {
+            return 0.0;
+        }
+
+        if ($unpaid->count() === 1) {
+            return (float) $unpaid->first()->amount;
+        }
+
+        $firstDue = $unpaid->first()->due_date;
+        $lastDue = $unpaid->last()->due_date;
+        $monthsSpan = max(1, $firstDue->diffInDays($lastDue) / 30);
+
+        return (float) $unpaid->sum('amount') / $monthsSpan;
+    }
+
+    public function monthlyInterest(): float
+    {
+        return 0.0;
+    }
+
+    public function isCleared(): bool
+    {
+        return $this->isFullyPaid();
     }
 }

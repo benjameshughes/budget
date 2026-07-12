@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class CreditCard extends Model implements Trackable
+class Debt extends Model implements Trackable
 {
     use BelongsToUser;
     use HasFactory;
@@ -22,9 +22,9 @@ class CreditCard extends Model implements Trackable
     {
         return [
             'starting_balance' => 'decimal:2',
-            'credit_limit' => 'decimal:2',
             'minimum_payment' => 'decimal:2',
             'interest_rate' => 'decimal:2',
+            'cleared_at' => 'datetime',
         ];
     }
 
@@ -35,29 +35,12 @@ class CreditCard extends Model implements Trackable
 
     public function payments(): HasMany
     {
-        return $this->hasMany(CreditCardPayment::class);
-    }
-
-    public function spending(): HasMany
-    {
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(DebtPayment::class);
     }
 
     public function currentBalance(): float
     {
-        $spending = (float) $this->spending()->sum('amount');
-        $payments = (float) $this->payments()->sum('amount');
-
-        return $this->starting_balance + $spending - $payments;
-    }
-
-    public function availableCredit(): ?float
-    {
-        if (! $this->credit_limit || $this->credit_limit <= 0) {
-            return null;
-        }
-
-        return $this->credit_limit - $this->currentBalance();
+        return (float) $this->starting_balance - (float) $this->payments()->sum('amount');
     }
 
     public function minimumPayment(): float
@@ -76,15 +59,6 @@ class CreditCard extends Model implements Trackable
 
     public function isCleared(): bool
     {
-        return $this->currentBalance() <= 0;
-    }
-
-    public function utilizationPercent(): ?float
-    {
-        if (! $this->credit_limit || $this->credit_limit <= 0) {
-            return null;
-        }
-
-        return min(100, ($this->currentBalance() / $this->credit_limit) * 100);
+        return $this->currentBalance() <= 0 || $this->cleared_at !== null;
     }
 }
