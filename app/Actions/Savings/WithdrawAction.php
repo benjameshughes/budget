@@ -23,7 +23,7 @@ final readonly class WithdrawAction
         return DB::transaction(function () use ($account, $amount, $date, $notes) {
             $transaction = Transaction::create([
                 'user_id' => $account->user_id,
-                'name' => 'Savings Withdraw: '.$account->name,
+                'name' => $account->name,
                 'amount' => $amount,
                 'type' => TransactionType::Income,
                 'is_savings' => true,
