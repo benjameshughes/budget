@@ -10,10 +10,6 @@ final readonly class CreateCreditCardAction
 {
     public function handle(array $data): CreditCard
     {
-        return CreditCard::create([
-            'user_id' => $data['user_id'],
-            'name' => $data['name'],
-            'starting_balance' => $data['starting_balance'] ?? 0,
-        ]);
+        return CreditCard::create($data);
     }
 }
