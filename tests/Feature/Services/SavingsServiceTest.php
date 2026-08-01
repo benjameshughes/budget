@@ -70,7 +70,7 @@ test('withdraw creates a transaction and savings transfer', function () {
         ->and($transaction->type)->toBe(TransactionType::Income)
         ->and($transaction->amount)->toBe('50.00')
         ->and($transaction->user_id)->toBe($user->id)
-        ->and($transaction->name)->toBe('Savings Withdraw: '.$account->name)
+        ->and($transaction->name)->toBe($account->name)
         ->and($transaction->is_savings)->toBeTrue();
 });
 
