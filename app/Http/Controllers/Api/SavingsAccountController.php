@@ -9,6 +9,7 @@ use App\Actions\Savings\DeleteSavingsAccountAction;
 use App\Actions\Savings\DepositAction;
 use App\Actions\Savings\UpdateSavingsAccountAction;
 use App\Actions\Savings\WithdrawAction;
+use App\Concerns\PaginatesApiResponse;
 use App\DataTransferObjects\SavingsAccountDto;
 use App\DataTransferObjects\SavingsTransferDto;
 use App\Http\Controllers\Controller;
@@ -21,11 +22,14 @@ use Illuminate\Http\Request;
 
 final class SavingsAccountController extends Controller
 {
+    use PaginatesApiResponse;
+
     public function index(Request $request, SavingsQueries $queries): JsonResponse
     {
-        $accounts = $queries->allForUser($request->user());
-
-        return response()->json(SavingsAccountDto::collect($accounts));
+        return $this->paginatedResponse(
+            $queries->paginatedForUser($request->user()),
+            SavingsAccountDto::class,
+        );
     }
 
     public function show(Request $request, SavingsAccount $savingsAccount): JsonResponse

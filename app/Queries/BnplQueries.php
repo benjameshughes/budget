@@ -8,6 +8,7 @@ use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 final readonly class BnplQueries
@@ -37,6 +38,15 @@ final readonly class BnplQueries
             ->with('purchase')
             ->orderBy('due_date')
             ->get();
+    }
+
+    public function paginatedForUser(User $user, int $perPage = 25): LengthAwarePaginator
+    {
+        return BnplPurchase::query()
+            ->forUser($user)
+            ->with('installments')
+            ->latest('purchase_date')
+            ->paginate($perPage);
     }
 
     public function allForUser(User $user): Collection

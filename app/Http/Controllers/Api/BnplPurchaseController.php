@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Actions\Bnpl\CreatePurchaseAction;
 use App\Actions\Bnpl\DeletePurchaseAction;
 use App\Actions\Bnpl\MarkInstallmentPaidAction;
+use App\Concerns\PaginatesApiResponse;
 use App\DataTransferObjects\BnplInstallmentDto;
 use App\DataTransferObjects\BnplPurchaseDto;
 use App\Enums\BnplProvider;
@@ -21,11 +22,14 @@ use Illuminate\Http\Request;
 
 final class BnplPurchaseController extends Controller
 {
+    use PaginatesApiResponse;
+
     public function index(Request $request, BnplQueries $queries): JsonResponse
     {
-        $purchases = $queries->allForUser($request->user());
-
-        return response()->json(BnplPurchaseDto::collect($purchases));
+        return $this->paginatedResponse(
+            $queries->paginatedForUser($request->user()),
+            BnplPurchaseDto::class,
+        );
     }
 
     public function show(Request $request, BnplPurchase $bnplPurchase): JsonResponse

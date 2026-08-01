@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\PennyChallenge\CreatePennyChallengeAction;
 use App\Actions\PennyChallenge\MarkDaysDepositedAction;
+use App\Concerns\PaginatesApiResponse;
 use App\DataTransferObjects\Actions\CreatePennyChallengeData;
 use App\DataTransferObjects\PennyChallengeDto;
 use App\DataTransferObjects\TransactionDto;
@@ -19,11 +20,14 @@ use Illuminate\Http\Request;
 
 final class PennyChallengeController extends Controller
 {
+    use PaginatesApiResponse;
+
     public function index(Request $request, PennyChallengeQueries $queries): JsonResponse
     {
-        $challenges = $queries->allForUser($request->user());
-
-        return response()->json(PennyChallengeDto::collect($challenges));
+        return $this->paginatedResponse(
+            $queries->paginatedForUser($request->user()),
+            PennyChallengeDto::class,
+        );
     }
 
     public function show(Request $request, PennyChallenge $pennyChallenge): JsonResponse

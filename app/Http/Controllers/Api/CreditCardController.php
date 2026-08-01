@@ -9,6 +9,7 @@ use App\Actions\CreditCard\DeleteCreditCardAction;
 use App\Actions\CreditCard\MakePaymentAction;
 use App\Actions\CreditCard\RecordSpendingAction;
 use App\Actions\CreditCard\UpdateCreditCardAction;
+use App\Concerns\PaginatesApiResponse;
 use App\DataTransferObjects\CreditCardDto;
 use App\DataTransferObjects\CreditCardPaymentDto;
 use App\DataTransferObjects\TransactionDto;
@@ -22,11 +23,14 @@ use Illuminate\Http\Request;
 
 final class CreditCardController extends Controller
 {
+    use PaginatesApiResponse;
+
     public function index(Request $request, CreditCardQueries $queries): JsonResponse
     {
-        $cards = $queries->allForUser($request->user());
-
-        return response()->json(CreditCardDto::collect($cards));
+        return $this->paginatedResponse(
+            $queries->paginatedForUser($request->user()),
+            CreditCardDto::class,
+        );
     }
 
     public function show(Request $request, CreditCard $creditCard, CreditCardQueries $queries): JsonResponse

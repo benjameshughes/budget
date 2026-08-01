@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Concerns\PaginatesApiResponse;
 use App\DataTransferObjects\AutomationRuleDto;
 use App\Http\Controllers\Controller;
 use App\Models\AutomationRule;
@@ -14,11 +15,14 @@ use Illuminate\Http\Request;
 
 final class AutomationRuleController extends Controller
 {
+    use PaginatesApiResponse;
+
     public function index(Request $request, AutomationRuleQueries $queries): JsonResponse
     {
-        $rules = $queries->allForUser($request->user());
-
-        return response()->json(AutomationRuleDto::collect($rules));
+        return $this->paginatedResponse(
+            $queries->paginatedForUser($request->user()),
+            AutomationRuleDto::class,
+        );
     }
 
     public function show(Request $request, AutomationRule $automationRule): JsonResponse

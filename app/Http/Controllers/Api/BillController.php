@@ -9,6 +9,7 @@ use App\Actions\Bill\DeleteBillAction;
 use App\Actions\Bill\MarkBillPaidAction;
 use App\Actions\Bill\ToggleBillActiveAction;
 use App\Actions\Bill\UpdateBillAction;
+use App\Concerns\PaginatesApiResponse;
 use App\DataTransferObjects\Actions\CreateBillData;
 use App\DataTransferObjects\Actions\UpdateBillData;
 use App\DataTransferObjects\BillDto;
@@ -24,11 +25,14 @@ use Illuminate\Http\Request;
 
 final class BillController extends Controller
 {
+    use PaginatesApiResponse;
+
     public function index(Request $request, BillQueries $queries): JsonResponse
     {
-        $bills = $queries->allForUser($request->user());
-
-        return response()->json(BillDto::collect($bills));
+        return $this->paginatedResponse(
+            $queries->paginatedForUser($request->user()),
+            BillDto::class,
+        );
     }
 
     public function show(Request $request, Bill $bill): JsonResponse

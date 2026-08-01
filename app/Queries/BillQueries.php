@@ -7,6 +7,7 @@ namespace App\Queries;
 use App\Models\Bill;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 final readonly class BillQueries
@@ -37,6 +38,15 @@ final readonly class BillQueries
             ->orderBy('next_due_date')
             ->limit($count)
             ->get();
+    }
+
+    public function paginatedForUser(User $user, int $perPage = 25): LengthAwarePaginator
+    {
+        return Bill::query()
+            ->forUser($user)
+            ->with('category')
+            ->orderBy('next_due_date')
+            ->paginate($perPage);
     }
 
     public function allForUser(User $user): Collection

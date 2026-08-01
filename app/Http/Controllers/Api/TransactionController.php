@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\Transaction\CreateTransactionAction;
 use App\Actions\Transaction\DeleteTransactionAction;
+use App\Concerns\PaginatesApiResponse;
 use App\Contracts\ExpenseParserInterface;
 use App\DataTransferObjects\Actions\CreateTransactionData;
 use App\DataTransferObjects\TransactionDto;
@@ -22,19 +23,14 @@ use Illuminate\Http\Request;
 
 final class TransactionController extends Controller
 {
+    use PaginatesApiResponse;
+
     public function index(Request $request, TransactionQueries $queries): JsonResponse
     {
-        $paginator = $queries->paginated($request->user());
-
-        return response()->json([
-            'data' => TransactionDto::collect(collect($paginator->items())),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-            ],
-        ]);
+        return $this->paginatedResponse(
+            $queries->paginated($request->user()),
+            TransactionDto::class,
+        );
     }
 
     public function show(Request $request, Transaction $transaction): JsonResponse

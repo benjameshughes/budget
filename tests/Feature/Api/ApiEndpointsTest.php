@@ -101,14 +101,15 @@ test('transactions show rejects other users transaction', function () {
         ->assertForbidden();
 });
 
-test('bills index returns user bills', function () {
+test('bills index returns paginated user bills', function () {
     [$user, $token] = authenticatedUser();
     Bill::factory()->count(2)->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/bills')
         ->assertOk()
-        ->assertJsonCount(2);
+        ->assertJsonCount(2, 'data')
+        ->assertJsonStructure(['data', 'meta' => ['current_page', 'last_page', 'per_page', 'total']]);
 });
 
 test('bills show returns single bill with dto fields', function () {
@@ -122,24 +123,24 @@ test('bills show returns single bill with dto fields', function () {
         ->assertJsonStructure(['id', 'name', 'amount', 'cadence', 'monthlyEquivalent', 'active']);
 });
 
-test('categories index returns user categories', function () {
+test('categories index returns paginated user categories', function () {
     [$user, $token] = authenticatedUser();
     Category::factory()->count(3)->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/categories')
         ->assertOk()
-        ->assertJsonCount(3);
+        ->assertJsonCount(3, 'data');
 });
 
-test('credit cards index returns user credit cards', function () {
+test('credit cards index returns paginated user credit cards', function () {
     [$user, $token] = authenticatedUser();
     CreditCard::factory()->count(2)->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/credit-cards')
         ->assertOk()
-        ->assertJsonCount(2);
+        ->assertJsonCount(2, 'data');
 });
 
 test('credit cards show includes computed fields', function () {
@@ -163,64 +164,64 @@ test('credit cards show includes computed fields', function () {
         ]);
 });
 
-test('debts index returns user debts', function () {
+test('debts index returns paginated user debts', function () {
     [$user, $token] = authenticatedUser();
     Debt::factory()->count(2)->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/debts')
         ->assertOk()
-        ->assertJsonCount(2);
+        ->assertJsonCount(2, 'data');
 });
 
-test('bnpl index returns user purchases', function () {
+test('bnpl index returns paginated user purchases', function () {
     [$user, $token] = authenticatedUser();
     BnplPurchase::factory()->count(2)->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/bnpl')
         ->assertOk()
-        ->assertJsonCount(2);
+        ->assertJsonCount(2, 'data');
 });
 
-test('savings index returns user savings accounts', function () {
+test('savings index returns paginated user savings accounts', function () {
     [$user, $token] = authenticatedUser();
     SavingsAccount::factory()->count(2)->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/savings')
         ->assertOk()
-        ->assertJsonCount(2);
+        ->assertJsonCount(2, 'data');
 });
 
-test('penny challenges index returns user challenges', function () {
+test('penny challenges index returns paginated user challenges', function () {
     [$user, $token] = authenticatedUser();
     PennyChallenge::factory()->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/penny-challenges')
         ->assertOk()
-        ->assertJsonCount(1);
+        ->assertJsonCount(1, 'data');
 });
 
-test('connected accounts index returns user accounts', function () {
+test('connected accounts index returns paginated user accounts', function () {
     [$user, $token] = authenticatedUser();
     ConnectedAccount::factory()->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/accounts')
         ->assertOk()
-        ->assertJsonCount(1);
+        ->assertJsonCount(1, 'data');
 });
 
-test('automation rules index returns user rules', function () {
+test('automation rules index returns paginated user rules', function () {
     [$user, $token] = authenticatedUser();
     AutomationRule::factory()->count(2)->for($user)->create();
 
     $this->withHeaders(authHeader($token))
         ->getJson('/api/automation-rules')
         ->assertOk()
-        ->assertJsonCount(2);
+        ->assertJsonCount(2, 'data');
 });
 
 test('users cannot access other users resources', function () {

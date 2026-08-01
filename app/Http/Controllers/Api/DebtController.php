@@ -8,6 +8,7 @@ use App\Actions\Debt\CreateDebtAction;
 use App\Actions\Debt\DeleteDebtAction;
 use App\Actions\Debt\RecordPaymentAction;
 use App\Actions\Debt\UpdateDebtAction;
+use App\Concerns\PaginatesApiResponse;
 use App\DataTransferObjects\DebtDto;
 use App\DataTransferObjects\DebtPaymentDto;
 use App\Http\Controllers\Controller;
@@ -20,11 +21,14 @@ use Illuminate\Http\Request;
 
 final class DebtController extends Controller
 {
+    use PaginatesApiResponse;
+
     public function index(Request $request, DebtQueries $queries): JsonResponse
     {
-        $debts = $queries->allForUser($request->user());
-
-        return response()->json(DebtDto::collect($debts));
+        return $this->paginatedResponse(
+            $queries->paginatedForUser($request->user()),
+            DebtDto::class,
+        );
     }
 
     public function show(Request $request, Debt $debt): JsonResponse
