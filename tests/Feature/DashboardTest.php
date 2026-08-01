@@ -26,7 +26,7 @@ test('dashboard shows budget breakdown', function () {
 
     $response->assertStatus(200);
     expect($response->getContent())
-        ->toContain('spent')
+        ->toContain('Spent')
         ->toContain('Bills Coming Up')
         ->toContain('BNPL Coming Up');
 });

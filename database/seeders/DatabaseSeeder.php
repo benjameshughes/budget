@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\BnplProvider;
 use App\Models\Bill;
 use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;
@@ -25,9 +26,9 @@ class DatabaseSeeder extends Seeder
     {
         // Create or retrieve the test user
         $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
+            ['email' => 'ben@app.com'],
             [
-                'name' => 'Test User',
+                'name' => 'Big Daddy',
                 'password' => bcrypt('password'),
                 'email_verified_at' => now(),
             ]
@@ -203,7 +204,7 @@ class DatabaseSeeder extends Seeder
                 'user_id' => $user->id,
                 'merchant' => 'Apple',
                 'total_amount' => 800.00,
-                'provider' => \App\Enums\BnplProvider::Zilch,
+                'provider' => BnplProvider::Zilch,
                 'fee' => 2.50,
                 'purchase_date' => now()->subMonths(2),
             ]),
@@ -211,7 +212,7 @@ class DatabaseSeeder extends Seeder
                 'user_id' => $user->id,
                 'merchant' => 'ASOS',
                 'total_amount' => 240.00,
-                'provider' => \App\Enums\BnplProvider::ClearPay,
+                'provider' => BnplProvider::ClearPay,
                 'fee' => 0,
                 'purchase_date' => now()->subMonth(),
             ]),
@@ -254,8 +255,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->command->info('Database seeded successfully!');
-        $this->command->info('Test user credentials:');
-        $this->command->info('Email: test@example.com');
+        $this->command->info('Email: ben@app.com');
         $this->command->info('Password: password');
     }
 

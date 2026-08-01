@@ -68,6 +68,15 @@ final readonly class BillQueries
             ->get();
     }
 
+    public function overdueCount(User $user): int
+    {
+        return Bill::query()
+            ->forUser($user)
+            ->where('active', true)
+            ->where('next_due_date', '<', today())
+            ->count();
+    }
+
     public function monthlyTotal(User $user): float
     {
         return (float) Bill::query()

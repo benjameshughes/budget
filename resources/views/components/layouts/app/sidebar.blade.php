@@ -47,7 +47,7 @@
             </flux:sidebar.nav>
         </flux:sidebar>
 
-        <flux:header class="lg:hidden mx-3 mt-3 rounded-2xl bg-white shadow-sm dark:bg-zinc-900 border-0">
+        <flux:header class="lg:hidden mx-6 mt-3 rounded-2xl bg-white shadow-sm dark:bg-zinc-900 border-0">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
             <flux:spacer />
             <form method="POST" action="{{route('logout')}}">

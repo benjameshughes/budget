@@ -26,4 +26,13 @@ final readonly class SavingsQueries
             ->with('transfers')
             ->get();
     }
+
+    public function savingsOnly(User $user): Collection
+    {
+        return SavingsAccount::query()
+            ->forUser($user)
+            ->where('is_bills_float', false)
+            ->with('transfers')
+            ->get();
+    }
 }
