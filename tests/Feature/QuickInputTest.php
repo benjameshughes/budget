@@ -2,11 +2,41 @@
 
 declare(strict_types=1);
 
+use App\Contracts\ExpenseParserInterface;
+use App\DataTransferObjects\Actions\ParsedExpenseDto;
 use App\Livewire\QuickInput;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\ExpenseParserService;
 use Livewire\Livewire;
+
+class FakeQuickInputParser implements ExpenseParserInterface
+{
+    public function parse(string $input, int $userId): ParsedExpenseDto
+    {
+        return new ParsedExpenseDto(
+            amount: 25.00,
+            name: 'Tesco',
+            type: 'expense',
+            categoryId: null,
+            categoryName: null,
+            creditCardId: null,
+            creditCardName: null,
+            isCreditCardPayment: false,
+            date: now()->toDateString(),
+            confidence: 0.95,
+            rawInput: $input,
+        );
+    }
+}
+
+function bindFakeParser(): void
+{
+    $fake = new FakeQuickInputParser;
+    app()->instance(ExpenseParserService::class, $fake);
+    app()->instance(ExpenseParserInterface::class, $fake);
+}
 
 test('quick input component can be rendered', function () {
     $user = User::factory()->create();
@@ -20,6 +50,8 @@ test('quick input can create a transaction', function () {
     $user = User::factory()->create();
     Category::factory()->create(['user_id' => $user->id, 'name' => 'Food']);
 
+    bindFakeParser();
+
     Livewire::actingAs($user)
         ->test(QuickInput::class)
         ->set('input', '£25 at Tesco for groceries')
@@ -32,6 +64,8 @@ test('quick input can create a transaction', function () {
 
 test('quick input clears after submission', function () {
     $user = User::factory()->create();
+
+    bindFakeParser();
 
     Livewire::actingAs($user)
         ->test(QuickInput::class)
