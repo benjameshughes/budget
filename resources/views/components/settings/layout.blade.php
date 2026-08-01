@@ -13,7 +13,6 @@
                 <flux:navlist.item :href="route('pay-budget.edit')" wire:navigate>{{ __('Pay & Budget') }}</flux:navlist.item>
                 <flux:navlist.item :href="route('bills-float.edit')" wire:navigate>{{ __('Bills Float') }}</flux:navlist.item>
                 <flux:navlist.item :href="route('categories.edit')" wire:navigate>{{ __('Categories') }}</flux:navlist.item>
-                <flux:navlist.item :href="route('settings.connections')" wire:navigate>{{ __('Bank Connections') }}</flux:navlist.item>
             </flux:navlist.group>
 
             <flux:navlist.group :heading="__('Preferences')">

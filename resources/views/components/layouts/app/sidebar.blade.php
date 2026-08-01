@@ -34,17 +34,6 @@
                     <flux:sidebar.item icon="calendar-days" href="{{route('calendar')}}" class="text-white hover:bg-white/10 [&[data-current]]:bg-violet-700 [&[data-current]]:text-white [&[data-current]]:ring-1 [&[data-current]]:ring-violet-900 transition-all duration-200 ease-in-out">Calendar</flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group heading="Automate" class="text-zinc-400 uppercase tracking-widest text-[10px]">
-                    <flux:sidebar.item icon="bolt" href="{{route('automations')}}" class="text-white hover:bg-white/10 [&[data-current]]:bg-violet-700 [&[data-current]]:text-white [&[data-current]]:ring-1 [&[data-current]]:ring-violet-900 transition-all duration-200 ease-in-out">
-                        Automations
-                        @auth
-                            @php $todayRuns = \App\Models\AutomationRuleLog::where('user_id', auth()->id())->whereDate('ran_at', today())->count(); @endphp
-                            @if($todayRuns > 0)
-                                <flux:badge size="sm" color="violet" class="ml-auto">{{ $todayRuns }}</flux:badge>
-                            @endif
-                        @endauth
-                    </flux:sidebar.item>
-                </flux:sidebar.group>
             </flux:sidebar.nav>
 
             <flux:sidebar.spacer />

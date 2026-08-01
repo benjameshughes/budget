@@ -2,20 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\AutomationRuleController;
 use App\Http\Controllers\Api\BillController;
 use App\Http\Controllers\Api\BnplPurchaseController;
 use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\ConnectedAccountController;
 use App\Http\Controllers\Api\CreditCardController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DebtController;
 use App\Http\Controllers\Api\PennyChallengeController;
-use App\Http\Controllers\Api\RuleTriggerController;
 use App\Http\Controllers\Api\SavingsAccountController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\VoiceTranscriptionController;
-use App\Http\Controllers\BankWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -44,12 +40,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/penny-challenges', [PennyChallengeController::class, 'index'])->name('api.penny-challenges.index');
         Route::get('/penny-challenges/{pennyChallenge}', [PennyChallengeController::class, 'show'])->name('api.penny-challenges.show');
-
-        Route::get('/accounts', [ConnectedAccountController::class, 'index'])->name('api.accounts.index');
-        Route::get('/accounts/{connectedAccount}', [ConnectedAccountController::class, 'show'])->name('api.accounts.show');
-
-        Route::get('/automation-rules', [AutomationRuleController::class, 'index'])->name('api.automation-rules.index');
-        Route::get('/automation-rules/{automationRule}', [AutomationRuleController::class, 'show'])->name('api.automation-rules.show');
     });
 
     Route::middleware('throttle:api-write')->group(function () {
@@ -87,12 +77,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/penny-challenges', [PennyChallengeController::class, 'store'])->name('api.penny-challenges.store');
         Route::post('/penny-challenges/{pennyChallenge}/deposit', [PennyChallengeController::class, 'markDeposited'])->name('api.penny-challenges.deposit');
 
-        Route::post('/rules/trigger', [RuleTriggerController::class, 'trigger'])->name('api.rules.trigger');
-        Route::post('/rules/{ruleId}/trigger', [RuleTriggerController::class, 'trigger'])->name('api.rules.trigger.specific');
-
         Route::post('/voice/transcribe', [VoiceTranscriptionController::class, 'transcribe'])->name('api.voice.transcribe');
     });
 });
-
-Route::post('/webhooks/monzo/{account}/{token}', [BankWebhookController::class, 'monzo'])->name('webhooks.monzo');
-Route::post('/webhooks/starling/{account}', [BankWebhookController::class, 'starling'])->name('webhooks.starling');

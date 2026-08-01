@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Models\AutomationRule;
 use App\Models\Bill;
 use App\Models\BnplPurchase;
 use App\Models\Category;
-use App\Models\ConnectedAccount;
 use App\Models\CreditCard;
 use App\Models\Debt;
 use App\Models\PennyChallenge;
@@ -40,8 +38,6 @@ test('unauthenticated requests return 401', function () {
     $this->getJson('/api/bnpl')->assertUnauthorized();
     $this->getJson('/api/savings')->assertUnauthorized();
     $this->getJson('/api/penny-challenges')->assertUnauthorized();
-    $this->getJson('/api/accounts')->assertUnauthorized();
-    $this->getJson('/api/automation-rules')->assertUnauthorized();
 });
 
 test('dashboard returns summary data', function () {
@@ -52,7 +48,6 @@ test('dashboard returns summary data', function () {
         ->assertOk()
         ->assertJsonStructure([
             'summary' => [
-                'bank_balance',
                 'total_savings',
                 'total_credit_card_debt',
                 'total_debt',
@@ -202,26 +197,6 @@ test('penny challenges index returns paginated user challenges', function () {
         ->getJson('/api/penny-challenges')
         ->assertOk()
         ->assertJsonCount(1, 'data');
-});
-
-test('connected accounts index returns paginated user accounts', function () {
-    [$user, $token] = authenticatedUser();
-    ConnectedAccount::factory()->for($user)->create();
-
-    $this->withHeaders(authHeader($token))
-        ->getJson('/api/accounts')
-        ->assertOk()
-        ->assertJsonCount(1, 'data');
-});
-
-test('automation rules index returns paginated user rules', function () {
-    [$user, $token] = authenticatedUser();
-    AutomationRule::factory()->count(2)->for($user)->create();
-
-    $this->withHeaders(authHeader($token))
-        ->getJson('/api/automation-rules')
-        ->assertOk()
-        ->assertJsonCount(2, 'data');
 });
 
 test('users cannot access other users resources', function () {

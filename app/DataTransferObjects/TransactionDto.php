@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\DataTransferObjects;
 
 use App\Concerns\HasJsonOutput;
-use App\Enums\BankProvider;
 use App\Enums\TransactionType;
 use App\Models\Transaction;
 use Illuminate\Support\Collection;
@@ -24,8 +23,6 @@ final readonly class TransactionDto implements JsonSerializable
         public ?string $description,
         public bool $isSavings,
         public bool $isBill,
-        public bool $isImported,
-        public ?BankProvider $provider,
         public ?CategoryDto $category,
         public ?string $feedback,
         public string $createdAt,
@@ -42,8 +39,6 @@ final readonly class TransactionDto implements JsonSerializable
             description: $transaction->description,
             isSavings: (bool) $transaction->is_savings,
             isBill: (bool) $transaction->is_bill,
-            isImported: $transaction->isImported(),
-            provider: $transaction->provider,
             category: $transaction->relationLoaded('category') && $transaction->category
                 ? CategoryDto::fromModel($transaction->category)
                 : null,

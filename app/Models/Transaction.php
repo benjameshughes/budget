@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\BankProvider;
 use App\Enums\TransactionType;
 use App\Models\Concerns\BelongsToUser;
+use Database\Factories\TransactionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Transaction extends Model
 {
-    /** @use HasFactory<\Database\Factories\TransactionFactory> */
+    /** @use HasFactory<TransactionFactory> */
     use BelongsToUser;
 
     use HasFactory;
@@ -31,7 +31,6 @@ class Transaction extends Model
             'amount' => 'decimal:2',
             'payment_date' => 'date',
             'type' => TransactionType::class,
-            'provider' => BankProvider::class,
             'is_savings' => 'boolean',
             'is_bill' => 'boolean',
         ];
@@ -55,16 +54,6 @@ class Transaction extends Model
     public function creditCard(): BelongsTo
     {
         return $this->belongsTo(CreditCard::class);
-    }
-
-    public function connectedAccount(): BelongsTo
-    {
-        return $this->belongsTo(ConnectedAccount::class);
-    }
-
-    public function isImported(): bool
-    {
-        return $this->external_id !== null;
     }
 
     public function feedback(): HasOne

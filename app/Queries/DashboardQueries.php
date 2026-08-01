@@ -6,7 +6,6 @@ namespace App\Queries;
 
 use App\DataTransferObjects\BillDto;
 use App\DataTransferObjects\BnplPurchaseDto;
-use App\DataTransferObjects\ConnectedAccountDto;
 use App\DataTransferObjects\CreditCardDto;
 use App\DataTransferObjects\DebtDto;
 use App\DataTransferObjects\PennyChallengeDto;
@@ -22,19 +21,15 @@ final readonly class DashboardQueries
         private CreditCardQueries $creditCardQueries,
         private DebtQueries $debtQueries,
         private SavingsQueries $savingsQueries,
-        private ConnectedAccountQueries $connectedAccountQueries,
         private BnplQueries $bnplQueries,
         private PennyChallengeQueries $pennyChallengeQueries,
     ) {}
 
     /**
-     * @return array{summary: array, pay: array, connected_accounts: array, savings_accounts: array, credit_cards: array, debts: array, bnpl_purchases: array, active_bills: array, penny_challenge: PennyChallengeDto|null}
+     * @return array{summary: array, pay: array, savings_accounts: array, credit_cards: array, debts: array, bnpl_purchases: array, active_bills: array, penny_challenge: PennyChallengeDto|null}
      */
     public function forUser(User $user): array
     {
-        $connectedAccounts = $this->connectedAccountQueries->allForUser($user);
-        $totalBankBalance = $connectedAccounts->sum('balance_pence') / 100;
-
         $savingsAccounts = $this->savingsQueries->allForUser($user);
         $totalSavings = $savingsAccounts->sum(fn ($account) => $account->currentBalance());
 
@@ -62,7 +57,6 @@ final readonly class DashboardQueries
 
         return [
             'summary' => [
-                'bank_balance' => $totalBankBalance,
                 'total_savings' => $totalSavings,
                 'total_credit_card_debt' => $totalCreditCardDebt,
                 'total_debt' => $totalDebtBalance,
@@ -78,7 +72,6 @@ final readonly class DashboardQueries
                 'last_pay_date' => $user->lastPayDate()?->toDateString(),
                 'next_pay_date' => $user->nextPayDate()?->toDateString(),
             ],
-            'connected_accounts' => ConnectedAccountDto::collect($connectedAccounts),
             'savings_accounts' => SavingsAccountDto::collect($savingsAccounts),
             'credit_cards' => CreditCardDto::collect($creditCards),
             'debts' => DebtDto::collect($debts),
