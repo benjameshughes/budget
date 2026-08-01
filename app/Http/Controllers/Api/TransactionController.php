@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Actions\Transaction\CreateTransactionAction;
+use App\Actions\Transaction\DeleteTransactionAction;
 use App\Contracts\ExpenseParserInterface;
 use App\DataTransferObjects\Actions\CreateTransactionData;
 use App\DataTransferObjects\TransactionDto;
@@ -97,5 +98,12 @@ final class TransactionController extends Controller
             ],
             'transaction' => TransactionDto::fromModel($transaction),
         ], 201);
+    }
+
+    public function destroy(Transaction $transaction, DeleteTransactionAction $action): JsonResponse
+    {
+        $action->handle($transaction);
+
+        return response()->json(['message' => 'Transaction deleted']);
     }
 }

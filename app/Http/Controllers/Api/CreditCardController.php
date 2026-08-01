@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Api;
 use App\Actions\CreditCard\CreateCreditCardAction;
 use App\Actions\CreditCard\DeleteCreditCardAction;
 use App\Actions\CreditCard\MakePaymentAction;
+use App\Actions\CreditCard\RecordSpendingAction;
 use App\Actions\CreditCard\UpdateCreditCardAction;
 use App\DataTransferObjects\CreditCardDto;
 use App\DataTransferObjects\CreditCardPaymentDto;
+use App\DataTransferObjects\TransactionDto;
 use App\Http\Controllers\Controller;
 use App\Models\CreditCard;
 use App\Queries\CreditCardQueries;
@@ -95,5 +97,25 @@ final class CreditCardController extends Controller
         );
 
         return response()->json(CreditCardPaymentDto::fromModel($payment), 201);
+    }
+
+    public function spending(CreditCard $creditCard, RecordSpendingAction $action, Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'date' => 'nullable|date',
+            'category_id' => 'nullable|exists:categories,id',
+        ]);
+
+        $transaction = $action->handle(
+            $creditCard,
+            (float) $validated['amount'],
+            $validated['name'],
+            Carbon::parse($validated['date'] ?? now()),
+            $validated['category_id'] ?? null,
+        );
+
+        return response()->json(TransactionDto::fromModel($transaction), 201);
     }
 }
