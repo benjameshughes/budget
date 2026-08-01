@@ -29,7 +29,7 @@ final readonly class FinancialAdvisorService implements FinancialAdvisorInterfac
         $userPrompt = $this->buildUserPrompt($transaction, $context);
 
         $response = Prism::text()
-            ->using('anthropic', 'claude-3-5-haiku-latest')
+            ->using('anthropic', 'claude-haiku-4-5-20251001')
             ->withSystemPrompt($systemPrompt)
             ->withPrompt($userPrompt)
             ->withMaxTokens(100)
