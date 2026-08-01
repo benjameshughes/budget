@@ -77,28 +77,27 @@ test('totalExpensesBetween calculates expenses for date range', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
 
+    $midMonth = Carbon::today()->startOfMonth()->addDays(10);
+
     // Create expenses this month
     Transaction::factory()
         ->forUser($user)
         ->expense()
-        ->thisMonth()
         ->withAmount(100.00)
-        ->create();
+        ->create(['payment_date' => $midMonth]);
 
     Transaction::factory()
         ->forUser($user)
         ->expense()
-        ->thisMonth()
         ->withAmount(250.50)
-        ->create();
+        ->create(['payment_date' => $midMonth]);
 
     // Create income this month (should not be included)
     Transaction::factory()
         ->forUser($user)
         ->income()
-        ->thisMonth()
         ->withAmount(1000.00)
-        ->create();
+        ->create(['payment_date' => $midMonth]);
 
     $repo = app(TransactionQueries::class);
     $total = $repo->totalExpensesBetween(
