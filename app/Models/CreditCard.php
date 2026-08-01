@@ -67,11 +67,13 @@ class CreditCard extends Model implements Trackable
 
     public function monthlyInterest(): float
     {
-        if (! $this->interest_rate) {
+        $balance = $this->currentBalance();
+
+        if (! $this->interest_rate || $balance <= 0) {
             return 0.0;
         }
 
-        return $this->currentBalance() * ((float) $this->interest_rate / 100 / 12);
+        return $balance * ((float) $this->interest_rate / 100 / 12);
     }
 
     public function isCleared(): bool
@@ -85,6 +87,6 @@ class CreditCard extends Model implements Trackable
             return null;
         }
 
-        return min(100, ($this->currentBalance() / $this->credit_limit) * 100);
+        return min(100, max(0, ($this->currentBalance() / $this->credit_limit) * 100));
     }
 }
