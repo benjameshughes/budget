@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Queries;
 
 use App\Models\BnplInstallment;
+use App\Models\BnplPurchase;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -35,6 +36,15 @@ final readonly class BnplQueries
             })
             ->with('purchase')
             ->orderBy('due_date')
+            ->get();
+    }
+
+    public function allForUser(User $user): Collection
+    {
+        return BnplPurchase::query()
+            ->forUser($user)
+            ->with('installments')
+            ->latest('purchase_date')
             ->get();
     }
 

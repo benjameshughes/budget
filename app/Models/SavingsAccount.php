@@ -36,13 +36,8 @@ class SavingsAccount extends Model
 
     public function currentBalance(): float
     {
-        $deposits = (float) $this->transfers()
-            ->where('direction', 'deposit')
-            ->sum('amount');
-
-        $withdrawals = (float) $this->transfers()
-            ->where('direction', 'withdraw')
-            ->sum('amount');
+        $deposits = (float) $this->transfers->where('direction', 'deposit')->sum('amount');
+        $withdrawals = (float) $this->transfers->where('direction', 'withdraw')->sum('amount');
 
         return $deposits - $withdrawals;
     }

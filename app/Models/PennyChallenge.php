@@ -66,28 +66,19 @@ class PennyChallenge extends Model
      */
     public function totalDeposited(): float
     {
-        return $this->depositedDays()->sum('day_number') / 100;
+        return $this->depositedDays->sum('day_number') / 100;
     }
 
-    /**
-     * Calculate remaining amount to complete the challenge.
-     */
     public function totalRemaining(): float
     {
         return $this->totalPossible() - $this->totalDeposited();
     }
 
-    /**
-     * Get count of deposited days.
-     */
     public function depositedCount(): int
     {
-        return $this->depositedDays()->count();
+        return $this->depositedDays->count();
     }
 
-    /**
-     * Calculate progress percentage.
-     */
     public function progressPercentage(): float
     {
         $total = $this->totalPossible();
@@ -98,11 +89,8 @@ class PennyChallenge extends Model
         return min(100, ($this->totalDeposited() / $total) * 100);
     }
 
-    /**
-     * Check if challenge is complete (all days deposited).
-     */
     public function isComplete(): bool
     {
-        return $this->pendingDays()->count() === 0;
+        return $this->pendingDays->isEmpty();
     }
 }

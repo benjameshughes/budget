@@ -45,8 +45,8 @@ class CreditCard extends Model implements Trackable
 
     public function currentBalance(): float
     {
-        $spending = (float) $this->spending()->sum('amount');
-        $payments = (float) $this->payments()->sum('amount');
+        $spending = (float) $this->spending->sum('amount');
+        $payments = (float) $this->payments->sum('amount');
 
         return $this->starting_balance + $spending - $payments;
     }

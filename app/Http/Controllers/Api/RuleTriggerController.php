@@ -11,7 +11,7 @@ use App\Services\RulesEngineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class RuleTriggerController extends Controller
+final class RuleTriggerController extends Controller
 {
     /**
      * Fire all manual_trigger rules for the authenticated user.

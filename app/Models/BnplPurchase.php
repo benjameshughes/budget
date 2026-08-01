@@ -41,31 +41,22 @@ class BnplPurchase extends Model implements Trackable
 
     public function remainingBalance(): float
     {
-        return (float) $this->installments()
-            ->where('is_paid', false)
-            ->sum('amount');
+        return (float) $this->installments->where('is_paid', false)->sum('amount');
     }
 
     public function isFullyPaid(): bool
     {
-        return $this->installments()
-            ->where('is_paid', false)
-            ->count() === 0;
+        return $this->installments->where('is_paid', false)->count() === 0;
     }
 
     public function nextUnpaidInstallment(): ?BnplInstallment
     {
-        return $this->installments()
-            ->where('is_paid', false)
-            ->orderBy('due_date')
-            ->first();
+        return $this->installments->where('is_paid', false)->sortBy('due_date')->first();
     }
 
     public function paidInstallmentsCount(): int
     {
-        return $this->installments()
-            ->where('is_paid', true)
-            ->count();
+        return $this->installments->where('is_paid', true)->count();
     }
 
     public function currentBalance(): float
@@ -75,10 +66,7 @@ class BnplPurchase extends Model implements Trackable
 
     public function minimumPayment(): float
     {
-        $unpaid = $this->installments()
-            ->where('is_paid', false)
-            ->orderBy('due_date')
-            ->get();
+        $unpaid = $this->installments->where('is_paid', false)->sortBy('due_date')->values();
 
         if ($unpaid->isEmpty()) {
             return 0.0;

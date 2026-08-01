@@ -40,7 +40,7 @@ class Debt extends Model implements Trackable
 
     public function currentBalance(): float
     {
-        return (float) $this->starting_balance - (float) $this->payments()->sum('amount');
+        return (float) $this->starting_balance - (float) $this->payments->sum('amount');
     }
 
     public function minimumPayment(): float

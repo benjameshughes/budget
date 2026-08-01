@@ -11,12 +11,22 @@ use App\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 final readonly class TransactionQueries
 {
+    public function paginated(User $user, int $perPage = 50): LengthAwarePaginator
+    {
+        return Transaction::query()
+            ->forUser($user)
+            ->with(['category', 'creditCard', 'feedback'])
+            ->latest('payment_date')
+            ->paginate($perPage);
+    }
+
     public function totalByType(User $user, TransactionType $type): float
     {
         return (float) Transaction::query()

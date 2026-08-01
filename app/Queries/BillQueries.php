@@ -39,6 +39,25 @@ final readonly class BillQueries
             ->get();
     }
 
+    public function allForUser(User $user): Collection
+    {
+        return Bill::query()
+            ->forUser($user)
+            ->with('category')
+            ->orderBy('next_due_date')
+            ->get();
+    }
+
+    public function activeForUser(User $user): Collection
+    {
+        return Bill::query()
+            ->forUser($user)
+            ->with('category')
+            ->where('active', true)
+            ->orderBy('next_due_date')
+            ->get();
+    }
+
     public function monthlyTotal(User $user): float
     {
         return (float) Bill::query()
