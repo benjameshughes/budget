@@ -91,14 +91,29 @@
                         @endif
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3">
-                        <flux:button
-                            variant="primary"
-                            size="sm"
-                            icon="plus"
-                            wire:click="$dispatch('open-credit-card-payment', { cardId: {{ $card->id }} })"
-                        >
-                            Pay
-                        </flux:button>
+                        <div class="flex items-center justify-end gap-1">
+                            <flux:button
+                                variant="primary"
+                                size="sm"
+                                icon="plus"
+                                wire:click="$dispatch('open-credit-card-payment', { cardId: {{ $card->id }} })"
+                            >
+                                Pay
+                            </flux:button>
+                            <flux:button
+                                variant="filled"
+                                size="sm"
+                                icon="pencil"
+                                wire:click="$dispatch('show-edit-credit-card', { cardId: {{ $card->id }} })"
+                            />
+                            <flux:button
+                                variant="danger"
+                                size="sm"
+                                icon="trash"
+                                wire:click="deleteCard({{ $card->id }})"
+                                wire:confirm="Are you sure you want to delete this credit card? All payments and spending records will also be deleted."
+                            />
+                        </div>
                     </flux:table.cell>
                 </flux:table.row>
             @empty
@@ -116,5 +131,6 @@
 
     {{-- Modals --}}
     <livewire:components.add-credit-card />
+    <livewire:components.edit-credit-card />
     <livewire:components.credit-card-payment />
 </div>

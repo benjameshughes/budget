@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Actions\CreditCard\DeleteCreditCardAction;
+use App\DataTransferObjects\Budget\CreditCardStatsDto;
 use App\Models\CreditCard;
+use Flux\Flux;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -26,7 +29,7 @@ class CreditCardsManagement extends Component
         }
     }
 
-    #[On(['credit-card-created', 'credit-card-payment-completed'])]
+    #[On(['credit-card-created', 'credit-card-updated', 'credit-card-payment-completed'])]
     public function refresh(): void
     {
         unset($this->cards);
@@ -43,7 +46,7 @@ class CreditCardsManagement extends Component
     }
 
     #[Computed]
-    public function stats(): \App\DataTransferObjects\Budget\CreditCardStatsDto
+    public function stats(): CreditCardStatsDto
     {
         $cards = $this->cards;
 
@@ -59,7 +62,7 @@ class CreditCardsManagement extends Component
             default => 'emerald',
         };
 
-        return new \App\DataTransferObjects\Budget\CreditCardStatsDto(
+        return new CreditCardStatsDto(
             totalDebt: $totalDebt,
             totalLimit: $totalLimit,
             hasLimits: $hasLimits,
@@ -67,6 +70,14 @@ class CreditCardsManagement extends Component
             utilizationColor: $utilizationColor,
             cardsCount: $cards->count(),
         );
+    }
+
+    public function deleteCard(CreditCard $card, DeleteCreditCardAction $action): void
+    {
+        $action->handle($card);
+
+        Flux::toast(text: 'Credit card deleted', heading: 'Success', variant: 'success');
+        $this->refresh();
     }
 
     public function render()

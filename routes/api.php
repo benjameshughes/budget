@@ -32,13 +32,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/categories', [CategoryController::class, 'index'])->name('api.categories.index');
 
     Route::get('/credit-cards', [CreditCardController::class, 'index'])->name('api.credit-cards.index');
+    Route::post('/credit-cards', [CreditCardController::class, 'store'])->name('api.credit-cards.store');
     Route::get('/credit-cards/{creditCard}', [CreditCardController::class, 'show'])->name('api.credit-cards.show');
+    Route::put('/credit-cards/{creditCard}', [CreditCardController::class, 'update'])->name('api.credit-cards.update');
+    Route::delete('/credit-cards/{creditCard}', [CreditCardController::class, 'destroy'])->name('api.credit-cards.destroy');
+    Route::post('/credit-cards/{creditCard}/payments', [CreditCardController::class, 'payment'])->name('api.credit-cards.payment');
 
     Route::get('/debts', [DebtController::class, 'index'])->name('api.debts.index');
     Route::get('/debts/{debt}', [DebtController::class, 'show'])->name('api.debts.show');
 
     Route::get('/bnpl', [BnplPurchaseController::class, 'index'])->name('api.bnpl.index');
+    Route::post('/bnpl', [BnplPurchaseController::class, 'store'])->name('api.bnpl.store');
     Route::get('/bnpl/{bnplPurchase}', [BnplPurchaseController::class, 'show'])->name('api.bnpl.show');
+    Route::delete('/bnpl/{bnplPurchase}', [BnplPurchaseController::class, 'destroy'])->name('api.bnpl.destroy');
+    Route::post('/bnpl/installments/{installment}/paid', [BnplPurchaseController::class, 'markPaid'])->name('api.bnpl.installment.paid');
 
     Route::get('/savings', [SavingsAccountController::class, 'index'])->name('api.savings.index');
     Route::get('/savings/{savingsAccount}', [SavingsAccountController::class, 'show'])->name('api.savings.show');
