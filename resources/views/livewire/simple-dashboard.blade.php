@@ -10,7 +10,7 @@
         {{-- AI Advisor --}}
         <div class="mt-6">
             <div
-                x-data="advisorTerminal()"
+                x-data="advisorTerminal"
                 x-init="$watch('$wire.lastTransactionId', (id) => id && startStream(id))"
                 class="rounded-xl bg-zinc-950 p-4 font-mono text-sm"
             >
@@ -94,29 +94,4 @@
         </div>
     </div>
 
-    <script>
-        function advisorTerminal() {
-            return {
-                output: '',
-                loading: false,
-                startStream(transactionId) {
-                    this.output = '';
-                    this.loading = true;
-                    const eventSource = new EventSource(`/advisor/stream/${transactionId}`);
-                    eventSource.addEventListener('text_delta', (event) => {
-                        const data = JSON.parse(event.data);
-                        this.output += data.delta;
-                    });
-                    eventSource.addEventListener('stream_end', () => {
-                        this.loading = false;
-                        eventSource.close();
-                    });
-                    eventSource.onerror = () => {
-                        this.loading = false;
-                        eventSource.close();
-                    };
-                }
-            }
-        }
-    </script>
 </div>

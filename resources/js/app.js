@@ -11,6 +11,8 @@ import './echo';
  * Provides smooth animations for list additions, removals, and reordering
  */
 import { autoAnimate } from '@formkit/auto-animate';
+import quickInputState from './quick-input';
+import advisorTerminal from './advisor-terminal';
 
 /**
  * Confetti celebrations
@@ -19,6 +21,8 @@ import confetti from 'canvas-confetti';
 
 document.addEventListener('alpine:init', () => {
     Alpine.directive('auto-animate', (el) => autoAnimate(el));
+    Alpine.data('quickInputState', quickInputState);
+    Alpine.data('advisorTerminal', advisorTerminal);
 });
 
 /**
