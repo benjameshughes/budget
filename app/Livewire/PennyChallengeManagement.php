@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Actions\PennyChallenge\DeletePennyChallengeAction;
 use App\Actions\PennyChallenge\MarkDaysDepositedAction;
 use App\Models\PennyChallenge;
-use App\Models\PennyChallengeDay;
+use App\Queries\PennyChallengeQueries;
 use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -17,7 +17,6 @@ use Livewire\WithPagination;
 
 class PennyChallengeManagement extends Component
 {
-    use AuthorizesRequests;
     use WithPagination;
 
     /** @var array<int> */
@@ -38,9 +37,7 @@ class PennyChallengeManagement extends Component
     #[Computed]
     public function challenge(): ?PennyChallenge
     {
-        return PennyChallenge::where('user_id', auth()->id())
-            ->latest()
-            ->first();
+        return app(PennyChallengeQueries::class)->latestForUser(auth()->user());
     }
 
     #[Computed]
@@ -50,11 +47,7 @@ class PennyChallengeManagement extends Component
             return null;
         }
 
-        return PennyChallengeDay::with('challenge')
-            ->where('penny_challenge_id', $this->challenge->id)
-            ->orderByRaw('deposited_at IS NOT NULL ASC')
-            ->orderBy('day_number', 'asc')
-            ->paginate(50);
+        return app(PennyChallengeQueries::class)->paginatedDays($this->challenge);
     }
 
     #[Computed]
@@ -88,9 +81,7 @@ class PennyChallengeManagement extends Component
             return 0;
         }
 
-        return PennyChallengeDay::whereIn('id', $this->selectedDays)
-            ->whereNull('deposited_at')
-            ->sum('day_number') / 100;
+        return app(PennyChallengeQueries::class)->selectedTotal($this->selectedDays);
     }
 
     public function toggleDay(int $dayId): void
@@ -110,10 +101,7 @@ class PennyChallengeManagement extends Component
             return;
         }
 
-        $this->selectedDays = $this->challenge->pendingDays()
-            ->pluck('id')
-            ->toArray();
-
+        $this->selectedDays = $this->challenge->pendingDays->pluck('id')->toArray();
         unset($this->selectedTotal);
     }
 
@@ -147,15 +135,14 @@ class PennyChallengeManagement extends Component
         $this->showDeleteModal = false;
     }
 
-    public function deleteChallenge(): void
+    public function deleteChallenge(DeletePennyChallengeAction $action): void
     {
         if (! $this->challenge) {
             return;
         }
 
         $name = $this->challenge->name;
-        $this->challenge->days()->delete();
-        $this->challenge->delete();
+        $action->handle($this->challenge);
 
         Flux::toast(
             text: "'{$name}' has been deleted",
@@ -177,31 +164,23 @@ class PennyChallengeManagement extends Component
             return;
         }
 
-        try {
-            $transaction = $action->handle($this->challenge, $this->selectedDays);
+        $transaction = $action->handle($this->challenge, $this->selectedDays);
 
-            $count = count($this->selectedDays);
-            $amount = number_format((float) $transaction->amount, 2);
+        $count = count($this->selectedDays);
+        $amount = number_format((float) $transaction->amount, 2);
 
-            Flux::toast(
-                text: "{$count} days marked as deposited (£{$amount})",
-                heading: 'Deposit recorded',
-                variant: 'success'
-            );
+        Flux::toast(
+            text: "{$count} days marked as deposited (£{$amount})",
+            heading: 'Deposit recorded',
+            variant: 'success'
+        );
 
-            $this->selectedDays = [];
-            $this->showDepositModal = false;
-            unset($this->challenge);
-            unset($this->days);
-            unset($this->stats);
-            unset($this->selectedTotal);
-        } catch (\InvalidArgumentException $e) {
-            Flux::toast(
-                text: $e->getMessage(),
-                heading: 'Error',
-                variant: 'danger'
-            );
-        }
+        $this->selectedDays = [];
+        $this->showDepositModal = false;
+        unset($this->challenge);
+        unset($this->days);
+        unset($this->stats);
+        unset($this->selectedTotal);
     }
 
     public function render()
