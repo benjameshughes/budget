@@ -15,16 +15,13 @@
         </flux:table.columns>
         <flux:table.rows>
             @forelse($upcoming as $bill)
-                @php
-                    $isOverdue = $bill->next_due_date->lt($today);
-                @endphp
                 <flux:table.row :key="$bill->id" class="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors duration-150">
                     <flux:table.cell class="py-3 tabular-nums">
                         <div class="flex items-center gap-2">
-                            <span @class(['text-red-600 dark:text-red-400 font-semibold' => $isOverdue])>
+                            <span @class(['text-red-600 dark:text-red-400 font-semibold' => $bill->isOverdue()])>
                                 {{ $bill->next_due_date->format('Y-m-d') }}
                             </span>
-                            @if($isOverdue)
+                            @if($bill->isOverdue())
                                 <flux:badge size="sm" color="red" inset="top bottom">Overdue</flux:badge>
                             @endif
                         </div>

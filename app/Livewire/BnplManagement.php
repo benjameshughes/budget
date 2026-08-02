@@ -43,14 +43,7 @@ class BnplManagement extends Component
 
     public function deletePurchase(int $purchaseId, DeletePurchaseAction $action): void
     {
-        $purchase = BnplPurchase::where('user_id', auth()->id())
-            ->findOrFail($purchaseId);
-
-        if ($purchase->paidInstallmentsCount() > 0) {
-            return;
-        }
-
-        $action->handle($purchase);
+        $action->handle(BnplPurchase::findOrFail($purchaseId));
         $this->refresh();
     }
 

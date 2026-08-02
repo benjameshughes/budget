@@ -59,6 +59,18 @@ class BnplPurchase extends Model implements Trackable
         return $this->installments->where('is_paid', true)->count();
     }
 
+    public function progressPercent(): float
+    {
+        $total = $this->installments->count();
+
+        return $total > 0 ? ($this->paidInstallmentsCount() / $total) * 100 : 0;
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->nextUnpaidInstallment()?->due_date->lt(today()) ?? false;
+    }
+
     public function currentBalance(): float
     {
         return $this->remainingBalance();

@@ -35,25 +35,14 @@
 
         <flux:table.rows x-data x-auto-animate>
             @forelse($this->cards as $card)
-                @php
-                    $balance = $card->currentBalance();
-                    $utilization = $card->utilizationPercent();
-                    $utilizationBarClass = match(true) {
-                        $utilization === null => 'bg-neutral-500',
-                        $utilization >= 90 => 'bg-rose-500',
-                        $utilization >= 70 => 'bg-amber-500',
-                        $utilization >= 30 => 'bg-sky-500',
-                        default => 'bg-emerald-500',
-                    };
-                @endphp
                 <flux:table.row wire:key="card-{{ $card->id }}" class="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors duration-150">
                     <flux:table.cell variant="strong" class="py-3">
                         {{ $card->name }}
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3 whitespace-nowrap">
-                        @if($balance > 0)
+                        @if($card->currentBalance() > 0)
                             <span class="text-rose-600 dark:text-rose-500 font-medium">
-                                £{{ number_format($balance, 2) }}
+                                £{{ number_format($card->currentBalance(), 2) }}
                             </span>
                         @else
                             <flux:badge size="sm" color="green">Paid</flux:badge>
@@ -67,23 +56,23 @@
                         @endif
                     </flux:table.cell>
                     <flux:table.cell align="center" class="py-3">
-                        @if($utilization !== null)
+                        @if($card->utilizationPercent() !== null)
                             <div class="flex items-center justify-center gap-2">
                                 <div
                                     class="w-20 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden"
                                     role="progressbar"
-                                    aria-valuenow="{{ round($utilization) }}"
+                                    aria-valuenow="{{ round($card->utilizationPercent()) }}"
                                     aria-valuemin="0"
                                     aria-valuemax="100"
                                     aria-label="Credit utilization"
                                 >
                                     <div
-                                        class="h-full {{ $utilizationBarClass }} rounded-full transition-all duration-500 ease-out"
-                                        style="width: {{ min(100, $utilization) }}%"
+                                        class="h-full {{ $card->utilizationBarClass() }} rounded-full transition-all duration-500 ease-out"
+                                        style="width: {{ min(100, $card->utilizationPercent()) }}%"
                                     ></div>
                                 </div>
                                 <span class="text-sm text-neutral-500 dark:text-neutral-400">
-                                    {{ number_format($utilization, 0) }}%
+                                    {{ number_format($card->utilizationPercent(), 0) }}%
                                 </span>
                             </div>
                         @else

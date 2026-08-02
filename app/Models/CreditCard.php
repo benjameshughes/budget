@@ -89,4 +89,17 @@ class CreditCard extends Model implements Trackable
 
         return min(100, max(0, ($this->currentBalance() / $this->credit_limit) * 100));
     }
+
+    public function utilizationBarClass(): string
+    {
+        $utilization = $this->utilizationPercent();
+
+        return match (true) {
+            $utilization === null => 'bg-neutral-500',
+            $utilization >= 90 => 'bg-rose-500',
+            $utilization >= 70 => 'bg-amber-500',
+            $utilization >= 30 => 'bg-sky-500',
+            default => 'bg-emerald-500',
+        };
+    }
 }

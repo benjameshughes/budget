@@ -40,6 +40,11 @@ class Bill extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function isOverdue(): bool
+    {
+        return $this->active && $this->next_due_date?->lt(today()) ?? false;
+    }
+
     public function monthlyEquivalent(): float
     {
         $multiplier = match ($this->cadence) {

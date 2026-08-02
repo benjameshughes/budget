@@ -13,6 +13,12 @@ final readonly class DeletePurchaseAction
     {
         Gate::authorize('delete', $purchase);
 
+        throw_if(
+            $purchase->paidInstallmentsCount() > 0,
+            \InvalidArgumentException::class,
+            'Cannot delete a purchase with paid installments.'
+        );
+
         $purchase->delete();
     }
 }

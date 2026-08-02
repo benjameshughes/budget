@@ -27,29 +27,21 @@
     {{-- Mobile: Swipeable Cards --}}
     <div class="md:hidden space-y-2 overflow-hidden" x-data x-auto-animate>
         @forelse($this->purchases as $purchase)
-            @php
-                $nextInstallment = $purchase->nextUnpaidInstallment();
-                $paidCount = $purchase->paidInstallmentsCount();
-                $totalCount = $purchase->installments->count();
-                $progressPercent = $totalCount > 0 ? ($paidCount / $totalCount) * 100 : 0;
-                $isOverdue = $nextInstallment?->due_date->lt(today()) ?? false;
-                $isComplete = $purchase->isFullyPaid();
-            @endphp
             <x-swipeable-row
                 wire:key="bnpl-mobile-{{ $purchase->id }}"
                 on-swipe="$wire.payNextInstallment({{ $purchase->id }})"
-                :disabled="$isComplete"
+                :disabled="$purchase->isFullyPaid()"
             >
                 <div
                     class="p-4 bg-white dark:bg-zinc-900 rounded-xl ring-1 ring-zinc-950/5 dark:ring-white/10"
-                    style="background: linear-gradient(to right, {{ $isComplete ? 'rgb(16 185 129 / 0.15)' : 'rgb(16 185 129 / 0.1)' }} {{ $progressPercent }}%, transparent {{ $progressPercent }}%);"
+                    style="background: linear-gradient(to right, {{ $purchase->isFullyPaid() ? 'rgb(16 185 129 / 0.15)' : 'rgb(16 185 129 / 0.1)' }} {{ $purchase->progressPercent() }}%, transparent {{ $purchase->progressPercent() }}%);"
                 >
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
                                 <span class="font-semibold text-zinc-900 dark:text-white truncate">{{ $purchase->merchant }}</span>
                                 <flux:badge size="sm" color="zinc">{{ $purchase->provider->label() }}</flux:badge>
-                                @if($paidCount === 0)
+                                @if($purchase->paidInstallmentsCount() === 0)
                                     <flux:button
                                         variant="ghost"
                                         size="sm"
@@ -61,25 +53,25 @@
                                     />
                                 @endif
                             </div>
-                            @if($nextInstallment)
+                            @if($purchase->nextUnpaidInstallment())
                                 <p @class([
                                     'text-sm mt-1',
-                                    'text-red-600 dark:text-red-400 font-medium' => $isOverdue,
-                                    'text-zinc-500 dark:text-zinc-400' => !$isOverdue,
+                                    'text-red-600 dark:text-red-400 font-medium' => $purchase->isOverdue(),
+                                    'text-zinc-500 dark:text-zinc-400' => ! $purchase->isOverdue(),
                                 ])>
-                                    {{ $nextInstallment->due_date->format('D j M') }}
-                                    @if($isOverdue) <span class="text-red-600">· Overdue</span> @endif
+                                    {{ $purchase->nextUnpaidInstallment()->due_date->format('D j M') }}
+                                    @if($purchase->isOverdue()) <span class="text-red-600">· Overdue</span> @endif
                                 </p>
-                            @elseif($isComplete)
+                            @elseif($purchase->isFullyPaid())
                                 <p class="text-sm mt-1 text-emerald-600 dark:text-emerald-400 font-medium">Completed</p>
                             @endif
                         </div>
                         <div class="text-right pl-4">
-                            @if($nextInstallment)
-                                <p class="text-lg font-semibold text-zinc-900 dark:text-white">£{{ number_format($nextInstallment->amount, 2) }}</p>
+                            @if($purchase->nextUnpaidInstallment())
+                                <p class="text-lg font-semibold text-zinc-900 dark:text-white">£{{ number_format($purchase->nextUnpaidInstallment()->amount, 2) }}</p>
                             @endif
-                            <p class="text-xs {{ $isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-500 dark:text-zinc-400' }}">
-                                {{ $paidCount }}/{{ $totalCount }} · £{{ number_format($purchase->remainingBalance(), 2) }} left
+                            <p class="text-xs {{ $purchase->isFullyPaid() ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-500 dark:text-zinc-400' }}">
+                                {{ $purchase->paidInstallmentsCount() }}/{{ $purchase->installments->count() }} · £{{ number_format($purchase->remainingBalance(), 2) }} left
                             </p>
                         </div>
                     </div>
@@ -131,18 +123,10 @@
 
         <flux:table.rows x-data x-auto-animate>
             @forelse($this->purchases as $purchase)
-                @php
-                    $nextInstallment = $purchase->nextUnpaidInstallment();
-                    $paidCount = $purchase->paidInstallmentsCount();
-                    $totalCount = $purchase->installments->count();
-                    $progressPercent = $totalCount > 0 ? ($paidCount / $totalCount) * 100 : 0;
-                    $isOverdue = $nextInstallment?->due_date->lt(today()) ?? false;
-                    $isComplete = $purchase->isFullyPaid();
-                @endphp
                 <flux:table.row
                     wire:key="purchase-{{ $purchase->id }}"
                     class="relative"
-                    style="background: linear-gradient(to right, {{ $isComplete ? 'rgb(16 185 129 / 0.15)' : 'rgb(16 185 129 / 0.1)' }} {{ $progressPercent }}%, transparent {{ $progressPercent }}%); transition: background 0.6s ease-out;"
+                    style="background: linear-gradient(to right, {{ $purchase->isFullyPaid() ? 'rgb(16 185 129 / 0.15)' : 'rgb(16 185 129 / 0.1)' }} {{ $purchase->progressPercent() }}%, transparent {{ $purchase->progressPercent() }}%); transition: background 0.6s ease-out;"
                 >
                     <flux:table.cell variant="strong" class="py-3">
                         {{ $purchase->merchant }}
@@ -159,17 +143,17 @@
                         £{{ number_format($purchase->total_amount, 2) }}
                     </flux:table.cell>
                     <flux:table.cell align="center" class="py-3">
-                        <span class="font-medium {{ $isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-neutral-600 dark:text-neutral-300' }}">
-                            {{ $paidCount }}/{{ $totalCount }}
+                        <span class="font-medium {{ $purchase->isFullyPaid() ? 'text-emerald-600 dark:text-emerald-400' : 'text-neutral-600 dark:text-neutral-300' }}">
+                            {{ $purchase->paidInstallmentsCount() }}/{{ $purchase->installments->count() }}
                         </span>
                     </flux:table.cell>
                     <flux:table.cell class="py-3 whitespace-nowrap">
-                        @if($nextInstallment)
+                        @if($purchase->nextUnpaidInstallment())
                             <div class="flex items-center gap-2">
-                                <span @class(['text-red-600 dark:text-red-400 font-semibold' => $isOverdue])>
-                                    {{ $nextInstallment->due_date->format('l jS F Y') }}
+                                <span @class(['text-red-600 dark:text-red-400 font-semibold' => $purchase->isOverdue()])>
+                                    {{ $purchase->nextUnpaidInstallment()->due_date->format('l jS F Y') }}
                                 </span>
-                                @if($isOverdue)
+                                @if($purchase->isOverdue())
                                     <flux:badge size="sm" color="red" inset="top bottom">Overdue</flux:badge>
                                 @endif
                             </div>
@@ -178,22 +162,21 @@
                         @endif
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3 whitespace-nowrap">
-                        @if($nextInstallment)
+                        @if($purchase->nextUnpaidInstallment())
                             <span @class([
-                                'text-red-600 dark:text-red-400 font-medium' => $isOverdue,
-                                'text-neutral-600 dark:text-neutral-300' => !$isOverdue,
+                                'text-red-600 dark:text-red-400 font-medium' => $purchase->isOverdue(),
+                                'text-neutral-600 dark:text-neutral-300' => ! $purchase->isOverdue(),
                             ])>
-                                £{{ number_format($nextInstallment->amount, 2) }}
+                                £{{ number_format($purchase->nextUnpaidInstallment()->amount, 2) }}
                             </span>
                         @else
                             <span class="text-neutral-400">-</span>
                         @endif
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3 whitespace-nowrap">
-                        @php $remaining = $purchase->remainingBalance(); @endphp
-                        @if($remaining > 0)
+                        @if($purchase->remainingBalance() > 0)
                             <span class="text-rose-600 dark:text-rose-500 font-medium">
-                                £{{ number_format($remaining, 2) }}
+                                £{{ number_format($purchase->remainingBalance(), 2) }}
                             </span>
                         @else
                             <flux:badge size="sm" color="green">Paid</flux:badge>
@@ -201,7 +184,7 @@
                     </flux:table.cell>
                     <flux:table.cell align="end" class="py-3">
                         <div class="flex gap-1 justify-end">
-                            @if($nextInstallment)
+                            @if($purchase->nextUnpaidInstallment())
                                 <flux:button
                                     variant="ghost"
                                     size="sm"
@@ -220,7 +203,7 @@
                                 aria-label="View purchase details"
                                 wire:click="$dispatch('show-bnpl-purchase-detail', { purchaseId: {{ $purchase->id }} })"
                             />
-                            @if($paidCount === 0)
+                            @if($purchase->paidInstallmentsCount() === 0)
                                 <flux:button
                                     variant="ghost"
                                     size="sm"

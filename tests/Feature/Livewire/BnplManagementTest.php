@@ -37,10 +37,10 @@ test('cannot delete a purchase that has paid installments', function () {
         'is_paid' => true,
     ]);
 
-    Livewire::actingAs($user)
+    expect(fn () => Livewire::actingAs($user)
         ->test(BnplManagement::class)
         ->call('deletePurchase', $purchase->id)
-        ->assertOk();
+    )->toThrow(\InvalidArgumentException::class);
 
     expect(BnplPurchase::find($purchase->id))->not->toBeNull();
 });
@@ -50,10 +50,10 @@ test('cannot delete another users purchase', function () {
     $other = User::factory()->create();
     $purchase = BnplPurchase::factory()->create(['user_id' => $other->id]);
 
-    expect(fn () => Livewire::actingAs($user)
+    Livewire::actingAs($user)
         ->test(BnplManagement::class)
         ->call('deletePurchase', $purchase->id)
-    )->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->assertForbidden();
 
     expect(BnplPurchase::find($purchase->id))->not->toBeNull();
 });

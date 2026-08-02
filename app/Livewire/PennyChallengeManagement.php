@@ -15,7 +15,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class PennyChallengeManagement extends Component
+final class PennyChallengeManagement extends Component
 {
     use WithPagination;
 

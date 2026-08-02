@@ -32,7 +32,6 @@
     {{-- Mobile: Swipeable Cards --}}
     <div class="md:hidden space-y-2 overflow-hidden" x-data x-auto-animate>
         @forelse($this->bills as $bill)
-            @php $isOverdue = $bill->next_due_date?->lt(today()); @endphp
             <x-swipeable-row
                 wire:key="bill-mobile-{{ $bill->id }}"
                 on-swipe="$wire.pay({{ $bill->id }})"
@@ -47,11 +46,11 @@
                         @if($bill->next_due_date)
                             <p @class([
                                 'text-sm mt-1',
-                                'text-red-600 dark:text-red-400 font-medium' => $isOverdue,
-                                'text-zinc-500 dark:text-zinc-400' => !$isOverdue,
+                                'text-red-600 dark:text-red-400 font-medium' => $bill->isOverdue(),
+                                'text-zinc-500 dark:text-zinc-400' => !$bill->isOverdue(),
                             ])>
                                 {{ $bill->next_due_date->format('D j M') }}
-                                @if($isOverdue) <span class="text-red-600">· Overdue</span> @endif
+                                @if($bill->isOverdue()) <span class="text-red-600">· Overdue</span> @endif
                             </p>
                         @endif
                     </div>
@@ -111,14 +110,11 @@
                         </flux:table.cell>
                         <flux:table.cell class="py-3 whitespace-nowrap">
                             @if($bill->next_due_date)
-                                @php
-                                    $isOverdue = $bill->next_due_date->lt(today());
-                                @endphp
                                 <div class="flex items-center gap-2">
-                                    <span @class(['text-red-600 dark:text-red-400 font-semibold' => $isOverdue])>
+                                    <span @class(['text-red-600 dark:text-red-400 font-semibold' => $bill->isOverdue()])>
                                         {{ $bill->next_due_date->format('M j, Y') }}
                                     </span>
-                                    @if($isOverdue)
+                                    @if($bill->isOverdue())
                                         <flux:badge size="sm" color="red" inset="top bottom">Overdue</flux:badge>
                                     @endif
                                 </div>
