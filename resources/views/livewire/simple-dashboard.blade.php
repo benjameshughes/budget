@@ -1,21 +1,7 @@
 <div>
     <livewire:dashboard.account-health />
 
-    {{-- Hero Card --}}
-    <div class="rounded-xl bg-white dark:bg-zinc-900 ring-1 ring-zinc-200 dark:ring-zinc-800 p-6">
-        <p class="text-sm text-zinc-500 dark:text-zinc-400">
-            {{ $this->budgetBreakdown['period_start']->format('D j M') }} - {{ $this->budgetBreakdown['period_end']->format('D j M') }}
-        </p>
-
-        <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-3">Spent this period</p>
-        <p class="text-4xl font-black tracking-tight mt-0.5 text-zinc-900 dark:text-white">
-            £{{ number_format($this->budgetBreakdown['spent'], 2) }}
-        </p>
-
-        <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-3">
-            {{ $this->budgetBreakdown['days_remaining'] }} {{ Str::plural('day', $this->budgetBreakdown['days_remaining']) }} until next pay
-        </p>
-    </div>
+    <livewire:dashboard.spending-hero />
 
     {{-- Quick Actions --}}
     <div class="mt-4 flex flex-col gap-2">

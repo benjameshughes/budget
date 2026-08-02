@@ -7,7 +7,6 @@ namespace App\Livewire;
 use App\Queries\BillQueries;
 use App\Queries\BnplQueries;
 use App\Queries\PayPeriodForecastQueries;
-use App\Services\HonestBudgetService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -22,7 +21,6 @@ class SimpleDashboard extends Component
     #[On('transaction-added')]
     public function onTransactionAdded(?int $transactionId = null): void
     {
-        unset($this->budgetBreakdown);
         unset($this->upcomingBills);
         unset($this->forecast);
 
@@ -35,7 +33,6 @@ class SimpleDashboard extends Component
     public function onBillPaid(): void
     {
         unset($this->upcomingBills);
-        unset($this->budgetBreakdown);
         unset($this->forecast);
     }
 
@@ -50,12 +47,6 @@ class SimpleDashboard extends Component
     public function forecast(): array
     {
         return app(PayPeriodForecastQueries::class)->forecast(auth()->user());
-    }
-
-    #[Computed]
-    public function budgetBreakdown(): array
-    {
-        return app(HonestBudgetService::class)->breakdown(auth()->user());
     }
 
     #[Computed]
