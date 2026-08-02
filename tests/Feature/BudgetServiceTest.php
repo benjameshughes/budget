@@ -10,6 +10,11 @@ use Carbon\Carbon;
 
 beforeEach(function () {
     $this->service = app(BudgetService::class);
+    Carbon::setTestNow(Carbon::parse('Wednesday'));
+});
+
+afterEach(function () {
+    Carbon::setTestNow();
 });
 
 test('user can have a weekly budget set', function () {
@@ -31,27 +36,25 @@ test('weekly budget is nullable', function () {
 test('weekly expenses calculates total expenses for current week', function () {
     $user = User::factory()->create();
 
-    // Create expenses for this week
     Transaction::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 100.00,
-        'payment_date' => Carbon::today()->startOfWeek()->addDay(),
+        'payment_date' => now()->startOfWeek()->addDay(),
     ]);
 
     Transaction::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 150.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
-    // Create expense for last week (should not be included)
     Transaction::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 200.00,
-        'payment_date' => Carbon::today()->subWeek(),
+        'payment_date' => now()->subWeek(),
     ]);
 
     $weeklyExpenses = $this->service->weeklyExpenses($user);
@@ -68,7 +71,7 @@ test('weekly budget percentage returns zero when no budget is set', function () 
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 100.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     $percentage = $this->service->weeklyBudgetPercentage($user);
@@ -85,7 +88,7 @@ test('weekly budget percentage calculates correctly', function () {
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 250.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     $percentage = $this->service->weeklyBudgetPercentage($user);
@@ -102,7 +105,7 @@ test('weekly budget percentage caps at 100', function () {
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 200.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     $percentage = $this->service->weeklyBudgetPercentage($user);
@@ -119,7 +122,7 @@ test('is over weekly budget returns false when no budget is set', function () {
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 1000.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     expect($this->service->isOverWeeklyBudget($user))->toBeFalse();
@@ -134,7 +137,7 @@ test('is over weekly budget returns true when expenses exceed budget', function 
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 150.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     expect($this->service->isOverWeeklyBudget($user))->toBeTrue();
@@ -149,7 +152,7 @@ test('is over weekly budget returns false when expenses are under budget', funct
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 250.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     expect($this->service->isOverWeeklyBudget($user))->toBeFalse();
@@ -164,7 +167,7 @@ test('weekly budget remaining returns zero when no budget is set', function () {
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 100.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     expect($this->service->weeklyBudgetRemaining($user))->toBe(0.0);
@@ -179,7 +182,7 @@ test('weekly budget remaining calculates correctly', function () {
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 200.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     expect($this->service->weeklyBudgetRemaining($user))->toBe(300.0);
@@ -194,7 +197,7 @@ test('weekly budget remaining returns zero when over budget', function () {
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 150.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     expect($this->service->weeklyBudgetRemaining($user))->toBe(0.0);
@@ -207,14 +210,14 @@ test('weekly expenses only includes expenses not income', function () {
         'user_id' => $user->id,
         'type' => TransactionType::Expense,
         'amount' => 100.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     Transaction::factory()->create([
         'user_id' => $user->id,
         'type' => TransactionType::Income,
         'amount' => 500.00,
-        'payment_date' => Carbon::today(),
+        'payment_date' => now(),
     ]);
 
     expect($this->service->weeklyExpenses($user))->toBe(100.00);
