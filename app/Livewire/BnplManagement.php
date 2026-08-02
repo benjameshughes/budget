@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Actions\Bnpl\DeletePurchaseAction;
 use App\Actions\Bnpl\MarkInstallmentPaidAction;
+use App\DataTransferObjects\Budget\BnplStatsDto;
 use App\Models\BnplInstallment;
 use App\Models\BnplPurchase;
+use App\Queries\BnplQueries;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -38,7 +41,7 @@ class BnplManagement extends Component
         unset($this->dueThisPeriod);
     }
 
-    public function deletePurchase(int $purchaseId): void
+    public function deletePurchase(int $purchaseId, DeletePurchaseAction $action): void
     {
         $purchase = BnplPurchase::where('user_id', auth()->id())
             ->findOrFail($purchaseId);
@@ -47,7 +50,7 @@ class BnplManagement extends Component
             return;
         }
 
-        $purchase->delete();
+        $action->handle($purchase);
         $this->refresh();
     }
 
@@ -95,39 +98,9 @@ class BnplManagement extends Component
     }
 
     #[Computed]
-    public function stats(): \App\DataTransferObjects\Budget\BnplStatsDto
+    public function stats(): BnplStatsDto
     {
-        $totalOutstanding = BnplInstallment::where('user_id', auth()->id())
-            ->where('is_paid', false)
-            ->sum('amount');
-
-        $activePurchases = BnplPurchase::where('user_id', auth()->id())
-            ->whereHas('installments', fn ($q) => $q->where('is_paid', false))
-            ->count();
-
-        $totalPurchases = BnplPurchase::where('user_id', auth()->id())->count();
-
-        $overdueInstallments = BnplInstallment::where('user_id', auth()->id())
-            ->where('is_paid', false)
-            ->where('due_date', '<', now())
-            ->count();
-
-        // Due in next 2 weeks (including overdue)
-        $dueThisPeriod = BnplInstallment::with('purchase')
-            ->where('user_id', auth()->id())
-            ->where('is_paid', false)
-            ->where('due_date', '<=', now()->addWeeks(2))
-            ->orderBy('due_date')
-            ->get();
-
-        return new \App\DataTransferObjects\Budget\BnplStatsDto(
-            totalOutstanding: (float) $totalOutstanding,
-            activePurchases: $activePurchases,
-            totalPurchases: $totalPurchases,
-            overdueInstallments: $overdueInstallments,
-            dueThisPeriodAmount: (float) $dueThisPeriod->sum('amount'),
-            dueThisPeriod: $dueThisPeriod,
-        );
+        return app(BnplQueries::class)->statsForUser(auth()->user());
     }
 
     public function render()

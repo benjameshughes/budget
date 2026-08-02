@@ -28,13 +28,12 @@
     <div class="md:hidden space-y-2 overflow-hidden" x-data x-auto-animate>
         @forelse($this->purchases as $purchase)
             @php
+                $nextInstallment = $purchase->nextUnpaidInstallment();
                 $paidCount = $purchase->paidInstallmentsCount();
                 $totalCount = $purchase->installments->count();
                 $progressPercent = $totalCount > 0 ? ($paidCount / $totalCount) * 100 : 0;
-                $nextInstallment = $purchase->nextUnpaidInstallment();
-                $isOverdue = $nextInstallment && $nextInstallment->due_date->lt(today());
-                $isComplete = $paidCount === $totalCount;
-                $remaining = $purchase->remainingBalance();
+                $isOverdue = $nextInstallment?->due_date->lt(today()) ?? false;
+                $isComplete = $purchase->isFullyPaid();
             @endphp
             <x-swipeable-row
                 wire:key="bnpl-mobile-{{ $purchase->id }}"
@@ -80,7 +79,7 @@
                                 <p class="text-lg font-semibold text-zinc-900 dark:text-white">£{{ number_format($nextInstallment->amount, 2) }}</p>
                             @endif
                             <p class="text-xs {{ $isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-500 dark:text-zinc-400' }}">
-                                {{ $paidCount }}/{{ $totalCount }} · £{{ number_format($remaining, 2) }} left
+                                {{ $paidCount }}/{{ $totalCount }} · £{{ number_format($purchase->remainingBalance(), 2) }} left
                             </p>
                         </div>
                     </div>
@@ -133,12 +132,12 @@
         <flux:table.rows x-data x-auto-animate>
             @forelse($this->purchases as $purchase)
                 @php
+                    $nextInstallment = $purchase->nextUnpaidInstallment();
                     $paidCount = $purchase->paidInstallmentsCount();
                     $totalCount = $purchase->installments->count();
                     $progressPercent = $totalCount > 0 ? ($paidCount / $totalCount) * 100 : 0;
-                    $nextInstallment = $purchase->nextUnpaidInstallment();
-                    $isOverdue = $nextInstallment && $nextInstallment->due_date->lt(today());
-                    $isComplete = $paidCount === $totalCount;
+                    $isOverdue = $nextInstallment?->due_date->lt(today()) ?? false;
+                    $isComplete = $purchase->isFullyPaid();
                 @endphp
                 <flux:table.row
                     wire:key="purchase-{{ $purchase->id }}"
